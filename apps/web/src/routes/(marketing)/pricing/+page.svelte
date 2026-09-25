@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Meta from '$lib/components/Meta.svelte';
 	import PageHero from '$lib/components/PageHero.svelte';
+	import CtaBand from '$lib/components/CtaBand.svelte';
 	import { monthlyPriceLabel, plans } from '$lib/pricing';
 	import { track } from '$lib/api';
 	import { onMount } from 'svelte';
@@ -40,3 +41,5 @@
 		Pembayaran diproses aman oleh Midtrans (QRIS, virtual account, e-wallet, kartu). Satu pembayaran berlaku 1 bulan, tanpa perpanjangan otomatis.
 	</p>
 </div>
+
+<CtaBand title="Masih ragu? Mulai dari yang gratis" body="Coba bersama 1 anak dulu. Berlangganan hanya jika laporannya terasa berguna." />

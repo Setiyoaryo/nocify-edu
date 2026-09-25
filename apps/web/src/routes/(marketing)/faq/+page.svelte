@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Meta from '$lib/components/Meta.svelte';
 	import PageHero from '$lib/components/PageHero.svelte';
+	import CtaBand from '$lib/components/CtaBand.svelte';
 	import { faqs } from '$lib/content/faq';
 	import Plus from 'phosphor-svelte/lib/Plus';
 	const ld = JSON.stringify({
@@ -26,3 +27,5 @@
 		</details>
 	{/each}
 </div>
+
+<CtaBand title="Masih ada pertanyaan?" body="Cara terbaik untuk tahu adalah mencoba. Gratis untuk 1 anak, tanpa kartu kredit." />

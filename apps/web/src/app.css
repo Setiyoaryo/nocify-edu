@@ -348,6 +348,7 @@ dialog[open]::backdrop { animation: fade 0.3s ease; }
  * pastel wash, a white icon disc, a faint oversized icon as decoration, and a
  * white pill action. Ink text stays ≥ 12:1 on every tone.
  */
+@layer components {
 .pastel-grape { background: linear-gradient(140deg, #e7e4ff 0%, #f4ebff 100%); }
 .pastel-rose { background: linear-gradient(140deg, #ffe1e7 0%, #fff0ea 100%); }
 .pastel-peach { background: linear-gradient(140deg, #ffe6cf 0%, #fff5e6 100%); }
@@ -369,6 +370,7 @@ dialog[open]::backdrop { animation: fade 0.3s ease; }
 	font-weight: 800;
 	box-shadow: 0 2px 6px rgb(27 29 58 / 0.08);
 	transition: box-shadow 0.2s ease, translate 0.2s var(--ease-out);
+}
 }
 @media (hover: hover) {
 	.pill-action:hover { translate: 0 -1px; box-shadow: 0 6px 14px rgb(27 29 58 / 0.14); }
