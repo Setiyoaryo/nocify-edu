@@ -1,4 +1,4 @@
-# Common tasks. Requires Go 1.22+, Node 24, Docker.
+# Common tasks. Requires Go 1.26+, Node 24, Docker.
 DB ?= postgres://eduplay:eduplay@localhost:55433/eduplay?sslmode=disable
 
 .PHONY: up down seed staff test test-api test-web e2e

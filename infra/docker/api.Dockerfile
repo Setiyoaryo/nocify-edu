@@ -1,5 +1,5 @@
 # Build context: repository root (needs content/ and assets/licenses for `eduplay seed`).
-FROM golang:1.22-alpine AS build
+FROM golang:1.26-alpine AS build
 WORKDIR /src
 COPY apps/api/go.mod apps/api/go.sum ./
 RUN go mod download
