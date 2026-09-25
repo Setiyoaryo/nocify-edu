@@ -1,0 +1,24 @@
+{
+  "badges": [
+    { "code": "first_challenge", "name": "Langkah Pertama", "description": "Menyelesaikan challenge pertama.", "icon": "target" },
+    { "code": "perfect_score", "name": "Sempurna", "description": "Semua jawaban benar dalam satu challenge.", "icon": "seal-check" },
+    { "code": "streak_3", "name": "3 Hari Rajin", "description": "Belajar 3 hari berturut-turut.", "icon": "fire" },
+    { "code": "ten_challenges", "name": "Penjelajah", "description": "Menyelesaikan 10 challenge.", "icon": "compass" },
+    { "code": "skill_master", "name": "Ahli Skill", "description": "Menguasai satu skill (di atas 85%).", "icon": "graduation-cap" },
+    { "code": "mission_done", "name": "Misi Tuntas", "description": "Menyelesaikan misi dari orang tua.", "icon": "flag" }
+  ],
+  "rewards": [
+    { "code": "cat", "kind": "avatar", "name": "Kucing", "icon": "cat", "xp_required": 0 },
+    { "code": "dog", "kind": "avatar", "name": "Anjing", "icon": "dog", "xp_required": 0 },
+    { "code": "rabbit", "kind": "avatar", "name": "Kelinci", "icon": "rabbit", "xp_required": 0 },
+    { "code": "bird", "kind": "avatar", "name": "Burung", "icon": "bird", "xp_required": 0 },
+    { "code": "butterfly", "kind": "avatar", "name": "Kupu-kupu", "icon": "butterfly", "xp_required": 100 },
+    { "code": "horse", "kind": "avatar", "name": "Kuda", "icon": "horse", "xp_required": 250 },
+    { "code": "robot", "kind": "avatar", "name": "Robot", "icon": "robot", "xp_required": 500 },
+    { "code": "star", "kind": "sticker", "name": "Bintang", "icon": "star", "xp_required": 50 },
+    { "code": "rainbow", "kind": "sticker", "name": "Pelangi", "icon": "rainbow", "xp_required": 150 },
+    { "code": "rocket", "kind": "sticker", "name": "Roket", "icon": "rocket", "xp_required": 300 },
+    { "code": "morning", "kind": "scene", "name": "Pagi Cerah", "icon": "sun-horizon", "xp_required": 400 },
+    { "code": "night", "kind": "scene", "name": "Langit Malam", "icon": "shooting-star", "xp_required": 800 }
+  ]
+}

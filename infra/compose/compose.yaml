@@ -1,0 +1,87 @@
+# Development stack: `docker compose -f infra/compose/compose.yaml up --build`
+# App on http://localhost:8000 (Traefik routes /api → Go API, everything else → SvelteKit).
+name: eduplay-dev
+
+services:
+  proxy:
+    image: traefik:v3.6
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+    ports: ["8000:80"]
+    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: eduplay
+      POSTGRES_PASSWORD: eduplay
+      POSTGRES_DB: eduplay
+    ports: ["127.0.0.1:55433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eduplay"]
+      interval: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: eduplay
+      MINIO_ROOT_PASSWORD: eduplay-dev-secret
+    ports: ["127.0.0.1:59001:9001"] # console for local inspection
+    volumes: [minio:/data]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: { context: ../.., dockerfile: infra/docker/api.Dockerfile }
+    environment: &apienv
+      APP_ENV: development
+      DATABASE_URL: postgres://eduplay:eduplay@postgres:5432/eduplay?sslmode=disable
+      PUBLIC_URL: http://localhost:8000
+      SESSION_SECRET: dev-only-session-secret
+      # Midtrans sandbox by default: put MIDTRANS_SERVER_KEY (SB-Mid-server-…) in infra/compose/.env.
+      # CI and automated E2E run with PAYMENT_PROVIDER=mock (never allowed in production).
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-midtrans}
+      PAYMENT_SECRET: ${PAYMENT_SECRET:-}
+      MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY:-}
+      MIDTRANS_PRODUCTION: "false"
+      STORAGE_DRIVER: s3
+      S3_ENDPOINT: minio:9000
+      S3_BUCKET: eduplay-dev
+      S3_USE_SSL: "false"
+      STORAGE_ACCESS_KEY: eduplay
+      STORAGE_SECRET_KEY: eduplay-dev-secret
+    depends_on:
+      postgres: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.api.rule=PathPrefix(`/api`)
+      - traefik.http.services.api.loadbalancer.server.port=8080
+
+  worker:
+    build: { context: ../.., dockerfile: infra/docker/api.Dockerfile }
+    command: ["worker"]
+    healthcheck: { disable: true } # no HTTP listener; the image healthcheck is for the API
+    environment: *apienv
+    depends_on: { api: { condition: service_started } }
+
+  web:
+    build: { context: ../.., dockerfile: infra/docker/web.Dockerfile }
+    environment:
+      ORIGIN: http://localhost:8000
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.web.rule=PathPrefix(`/`)
+      - traefik.http.routers.web.priority=1
+      - traefik.http.services.web.loadbalancer.server.port=3000
+
+volumes:
+  pgdata:
+  minio:

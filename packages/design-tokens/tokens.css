@@ -1,0 +1,51 @@
+/*
+ * EduPlay design tokens v2 (Tailwind v4 @theme).
+ * Direction: bright, clean Indonesian edtech (reference: Ruangguru, Zenius). Indigo brand
+ * bands, sunshine-yellow pill CTAs, white cards on a cool canvas, one geometric sans.
+ * Contrast pairs are listed in tokens.md.
+ */
+@theme {
+	--font-display: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--font-sans: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+	/* surfaces */
+	--color-canvas: #f5f6fb; /* page background */
+	--color-paper: #ffffff; /* cards, header */
+	--color-paper-deep: #eef0f7; /* recessed wells, question stage */
+	--color-line: #e4e7f0;
+
+	/* text */
+	--color-ink: #1b1d3a; /* 16.4:1 on white */
+	--color-ink-soft: #5c6079; /* 6.2:1 on white */
+
+	/* brand */
+	--color-primary: #5b5ce2; /* white text 5.2:1 */
+	--color-primary-deep: #3f40c2;
+	--color-primary-tint: #eeeefd;
+	--color-night: #1e1f57; /* deep brand band, footer */
+
+	/* accents */
+	--color-sun: #ffc857; /* CTA fill, ink text 10.6:1 */
+	--color-sun-deep: #f2b233;
+	--color-sun-tint: #fff5dc;
+	--color-leaf: #54c98a;
+	--color-leaf-deep: #1f7a4d; /* success text on white 5.3:1 */
+	--color-leaf-tint: #e4f7ec;
+	--color-tangerine: #ff8a4c;
+	--color-tangerine-deep: #a84514; /* warning text on white 6.0:1 */
+	--color-tangerine-tint: #ffede3;
+	--color-sky: #3aa8e8;
+	--color-sky-tint: #e3f3fd;
+	--color-rose: #e5487a;
+	--color-rose-tint: #fde8ef;
+	--color-error: #c0262d; /* 5.9:1 on white */
+	/* subject card fills that carry white text (≥4.5:1) */
+	--color-ember: #c9501c; /* Bahasa Indonesia, white 4.5:1 */
+	--color-forest: #15804a; /* IPAS, white 5.0:1 */
+
+	--radius-soft: 0.875rem;
+	--radius-card: 1.25rem;
+
+	--shadow-card: 0 1px 2px rgb(27 29 58 / 0.04), 0 6px 20px rgb(27 29 58 / 0.06);
+	--shadow-lift: 0 2px 4px rgb(27 29 58 / 0.05), 0 14px 32px rgb(27 29 58 / 0.1);
+}

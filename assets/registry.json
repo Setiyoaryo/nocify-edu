@@ -1,0 +1,240 @@
+{
+  "_note": "Asset provenance registry (\u00a725.2). Seeded into the CMS asset library by `eduplay seed`.",
+  "assets": [
+    {
+      "asset_id": "ILL-0001",
+      "name": "explore.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/adventure-map_3e4p.svg",
+      "source_url": "https://cdn.undraw.co/illustration/adventure-map_3e4p.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "empty-states"
+      ],
+      "size_bytes": 11367
+    },
+    {
+      "asset_id": "ILL-0002",
+      "name": "friends.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/true-friends_1h3v.svg",
+      "source_url": "https://cdn.undraw.co/illustration/true-friends_1h3v.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "onboarding-child-profile",
+        "profile-picker"
+      ],
+      "size_bytes": 18103
+    },
+    {
+      "asset_id": "ILL-0003",
+      "name": "hero-kids.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/back-to-school-offers_uorw.svg",
+      "source_url": "https://cdn.undraw.co/illustration/back-to-school-offers_uorw.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "landing-hero"
+      ],
+      "size_bytes": 13048
+    },
+    {
+      "asset_id": "ILL-0004",
+      "name": "login.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/reading-time_jva3.svg",
+      "source_url": "https://cdn.undraw.co/illustration/reading-time_jva3.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "login"
+      ],
+      "size_bytes": 7969
+    },
+    {
+      "asset_id": "ILL-0005",
+      "name": "missions.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/goals_dwgr.svg",
+      "source_url": "https://cdn.undraw.co/illustration/goals_dwgr.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "parent-missions"
+      ],
+      "size_bytes": 8838
+    },
+    {
+      "asset_id": "ILL-0006",
+      "name": "parent-child.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/quality-time_h2b9.svg",
+      "source_url": "https://cdn.undraw.co/illustration/quality-time_h2b9.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "landing-parents",
+        "for-parents",
+        "register"
+      ],
+      "size_bytes": 8162
+    },
+    {
+      "asset_id": "ILL-0007",
+      "name": "payment.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/confirmed_c5lo.svg",
+      "source_url": "https://cdn.undraw.co/illustration/confirmed_c5lo.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "subscription"
+      ],
+      "size_bytes": 2957
+    },
+    {
+      "asset_id": "ILL-0008",
+      "name": "play.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/toy-car_on9j.svg",
+      "source_url": "https://cdn.undraw.co/illustration/toy-car_on9j.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "child-home-empty",
+        "daily-limit"
+      ],
+      "size_bytes": 10126
+    },
+    {
+      "asset_id": "ILL-0009",
+      "name": "progress.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/personal-goals_f9bb.svg",
+      "source_url": "https://cdn.undraw.co/illustration/personal-goals_f9bb.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "landing-report",
+        "parent-report-empty"
+      ],
+      "size_bytes": 12140
+    },
+    {
+      "asset_id": "ILL-0010",
+      "name": "reading.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/book-lover_m9n3.svg",
+      "source_url": "https://cdn.undraw.co/illustration/book-lover_m9n3.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "subjects-page",
+        "features-page"
+      ],
+      "size_bytes": 14060
+    },
+    {
+      "asset_id": "ILL-0011",
+      "name": "well-done.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/well-done_kqud.svg",
+      "source_url": "https://cdn.undraw.co/illustration/well-done_kqud.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "challenge-result",
+        "mini-reward"
+      ],
+      "size_bytes": 7262
+    },
+    {
+      "asset_id": "ILL-0012",
+      "name": "winner.svg",
+      "kind": "illustration",
+      "source": "unDraw",
+      "creator": "Katerina Limpitsouni (unDraw)",
+      "license": "unDraw License",
+      "license_url": "https://undraw.co/license",
+      "downloaded_at": "2026-09-25",
+      "original_file": "assets/illustrations/undraw/original/winner_x40e.svg",
+      "source_url": "https://cdn.undraw.co/illustration/winner_x40e.svg",
+      "modified": true,
+      "modification_notes": "Brand colour mapping (#6c63ff\u2192#5b5ce2, dark greys\u2192ink #1b1d3a), warmer skin tones, fixed size removed.",
+      "ai_generated": false,
+      "usage": [
+        "challenge-result-high"
+      ],
+      "size_bytes": 5473
+    }
+  ]
+}

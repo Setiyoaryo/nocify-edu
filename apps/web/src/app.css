@@ -1,0 +1,375 @@
+@import 'tailwindcss';
+@import '../../../packages/design-tokens/tokens.css';
+
+@layer base {
+	html {
+		background: var(--color-canvas);
+		color: var(--color-ink);
+		font-family: var(--font-sans);
+		-webkit-text-size-adjust: 100%;
+		text-rendering: optimizeLegibility;
+		-webkit-font-smoothing: antialiased;
+	}
+	body {
+		min-height: 100dvh;
+		overflow-x: hidden; /* §31.3: never scroll sideways */
+		font-weight: 500;
+		word-spacing: 0.04em; /* Plus Jakarta's space is narrow at small sizes */
+	}
+	h1, h2, h3, h4 {
+		font-family: var(--font-display);
+		font-weight: 800;
+		line-height: 1.15;
+		letter-spacing: -0.012em;
+		text-wrap: balance;
+	}
+	p {
+		text-wrap: pretty;
+	}
+	:focus-visible {
+		outline: 3px solid var(--color-primary);
+		outline-offset: 2px;
+		border-radius: 8px;
+	}
+	button, [role='button'], a {
+		-webkit-tap-highlight-color: transparent;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		*, *::before, *::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			animation-delay: 0ms !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
+	html {
+		scroll-behavior: smooth;
+	}
+}
+
+@layer components {
+	/* Buttons: pills, one height scale. */
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		min-height: 48px;
+		padding: 0.7rem 1.4rem;
+		border-radius: 999px;
+		font-weight: 700;
+		line-height: 1.2;
+		transition: transform 0.08s ease, translate 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+	}
+	.btn:active:not(:disabled) {
+		transform: translateY(1px) scale(0.98);
+	}
+	.btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+	.btn-primary {
+		background: var(--color-primary);
+		color: #fff;
+	}
+	.btn-primary:hover:not(:disabled) {
+		background: var(--color-primary-deep);
+	}
+	/* Marketing call to action (Zenius-style sunshine pill). */
+	.btn-sun {
+		background: var(--color-sun);
+		color: var(--color-ink);
+	}
+	.btn-sun:hover:not(:disabled) {
+		background: var(--color-sun-deep);
+	}
+	.btn-quiet {
+		background: #fff;
+		color: var(--color-ink);
+		border: 1.5px solid var(--color-line);
+	}
+	.btn-quiet:hover:not(:disabled) {
+		border-color: var(--color-ink-soft);
+	}
+	.btn-ghost-light {
+		color: #fff;
+		border: 1.5px solid rgb(255 255 255 / 0.55);
+	}
+	.btn-ghost-light:hover {
+		background: rgb(255 255 255 / 0.1);
+	}
+	.btn-danger {
+		background: #fff;
+		color: var(--color-error);
+		border: 1.5px solid currentColor;
+	}
+	.btn-sm {
+		min-height: 40px;
+		padding: 0.45rem 1rem;
+		font-size: 0.875rem;
+	}
+
+	.card {
+		background: var(--color-paper);
+		border-radius: var(--radius-card);
+		box-shadow: var(--shadow-card);
+	}
+	/* Legacy alias used by some admin views. */
+	.panel {
+		background: var(--color-paper);
+		border-radius: var(--radius-card);
+		box-shadow: var(--shadow-card);
+	}
+
+	.pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		border-radius: 999px;
+		padding: 0.2rem 0.65rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	/* Child controls: big, pressable, with a visible "edge" instead of heavy shadows. */
+	.tile {
+		min-height: 64px;
+		min-width: 64px;
+		border-radius: 1.125rem;
+		background: #fff;
+		border: 2px solid var(--color-line);
+		box-shadow: 0 3px 0 var(--color-line);
+		font-weight: 700;
+		transition: transform 0.08s ease, border-color 0.12s ease, background-color 0.12s ease;
+		touch-action: manipulation;
+	}
+	.tile:hover:not(:disabled) {
+		border-color: #c9cde0;
+	}
+	.tile:active:not(:disabled) {
+		transform: translateY(2px);
+		box-shadow: 0 1px 0 var(--color-line);
+	}
+	.tile[aria-pressed='true'],
+	.tile[aria-checked='true'] {
+		border-color: var(--color-primary);
+		box-shadow: 0 3px 0 var(--color-primary);
+		background: var(--color-primary-tint);
+	}
+
+	.field {
+		display: block;
+		width: 100%;
+		min-height: 48px;
+		padding: 0.625rem 0.95rem;
+		border-radius: var(--radius-soft);
+		border: 1.5px solid var(--color-line);
+		background: #fff;
+		font-size: 1rem; /* ≥16px: no iOS zoom on focus */
+		font-weight: 500;
+		transition: border-color 0.12s ease, box-shadow 0.12s ease;
+	}
+	.field:focus {
+		border-color: var(--color-primary);
+		box-shadow: 0 0 0 4px var(--color-primary-tint);
+		outline: none;
+	}
+	.field[aria-invalid='true'] {
+		border-color: var(--color-error);
+	}
+	.label {
+		display: block;
+		font-weight: 700;
+		font-size: 0.9375rem;
+		margin-bottom: 0.375rem;
+	}
+	.field-error {
+		color: var(--color-error);
+		font-size: 0.875rem;
+		font-weight: 600;
+		margin-top: 0.3rem;
+	}
+	.eyebrow-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		border-radius: 999px;
+		padding: 0.35rem 0.85rem;
+		font-size: 0.875rem;
+		font-weight: 700;
+	}
+}
+
+.safe-bottom {
+	padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+/* ------------------------------------------------------------------ motion
+ * One vocabulary for the whole product: short, transform/opacity only (cheap
+ * on low-end phones), eased out, and disabled by prefers-reduced-motion above.
+ *   rise    — content entering (page load, question change)
+ *   reveal  — sections entering the viewport (once)
+ *   pop     — positive confirmation (correct answer, unlock)
+ *   nudge   — gentle "try again" shake (never on the child's answer itself)
+ *   float   — slow idle bob, only for decorative proof cards on the landing hero
+ */
+:root {
+	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+	--ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes rise {
+	from { opacity: 0; transform: translateY(14px); }
+	to { opacity: 1; transform: none; }
+}
+@keyframes rise-scale {
+	from { opacity: 0; transform: translateY(18px) scale(0.97); }
+	to { opacity: 1; transform: none; }
+}
+@keyframes pop {
+	0% { transform: scale(0.6); opacity: 0; }
+	60% { transform: scale(1.08); opacity: 1; }
+	100% { transform: scale(1); }
+}
+@keyframes nudge {
+	0%, 100% { transform: translateX(0); }
+	20% { transform: translateX(-5px); }
+	40% { transform: translateX(5px); }
+	60% { transform: translateX(-3px); }
+	80% { transform: translateX(3px); }
+}
+@keyframes float {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-7px); }
+}
+@keyframes shimmer {
+	from { background-position: 150% 0; }
+	to { background-position: -50% 0; }
+}
+@keyframes fill-x {
+	from { transform: scaleX(0); }
+	to { transform: scaleX(1); }
+}
+@keyframes wiggle {
+	0%, 100% { transform: rotate(0); }
+	25% { transform: rotate(-10deg); }
+	75% { transform: rotate(8deg); }
+}
+
+.anim-rise { animation: rise 0.55s var(--ease-out) both; animation-delay: var(--d, 0ms); }
+.anim-rise-scale { animation: rise-scale 0.65s var(--ease-out) both; animation-delay: var(--d, 0ms); }
+.anim-pop { animation: pop 0.45s var(--ease-spring) both; animation-delay: var(--d, 0ms); }
+.anim-nudge { animation: nudge 0.4s ease-in-out; }
+.anim-float { animation: float 6s ease-in-out infinite; animation-delay: var(--d, 0ms); }
+.anim-wiggle { animation: wiggle 0.6s ease-in-out 0.4s 2; transform-origin: 30% 90%; }
+
+/* Scroll reveal: children of .reveal-stagger enter one after another. */
+.js .reveal { opacity: 0; transform: translateY(18px); }
+.js .reveal.is-in { opacity: 1; transform: none; animation: rise 0.7s var(--ease-out) backwards; animation-delay: var(--d, 0ms); }
+.js .reveal-stagger > * { opacity: 0; transform: translateY(18px); }
+.js .reveal-stagger.is-in > * { opacity: 1; transform: none; animation: rise 0.6s var(--ease-out) backwards; }
+.reveal-stagger.is-in > :nth-child(2) { animation-delay: 80ms; }
+.reveal-stagger.is-in > :nth-child(3) { animation-delay: 160ms; }
+.reveal-stagger.is-in > :nth-child(4) { animation-delay: 240ms; }
+.reveal-stagger.is-in > :nth-child(5) { animation-delay: 320ms; }
+.reveal-stagger.is-in > :nth-child(n + 6) { animation-delay: 400ms; }
+
+/* Loading placeholders */
+.skeleton {
+	background: linear-gradient(90deg, var(--color-paper) 30%, var(--color-paper-deep) 50%, var(--color-paper) 70%);
+	background-size: 200% 100%;
+	animation: shimmer 1.4s linear infinite;
+}
+
+/* Interactive surfaces: a small lift on hover (pointer devices only), press on tap. */
+@media (hover: hover) {
+	/* `translate` (not `transform`) so hover never fights entrance animations. */
+	.btn-primary:hover:not(:disabled),
+	.btn-sun:hover:not(:disabled) {
+		translate: 0 -1px;
+		box-shadow: 0 8px 18px -8px rgb(27 29 58 / 0.35);
+	}
+	.lift {
+		transition: translate 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+	}
+	.lift:hover {
+		translate: 0 -3px;
+		box-shadow: var(--shadow-lift);
+	}
+}
+.press {
+	transition: transform 0.12s ease;
+}
+.press:active:not(:disabled) {
+	transform: translateY(3px) scale(0.99);
+}
+
+/* Bars that fill from the left on first paint. */
+.bar-fill {
+	transform-origin: left center;
+	animation: fill-x 0.9s var(--ease-out) both;
+	animation-delay: var(--d, 150ms);
+}
+
+/* FAQ / disclosure: answer slides in, icon rotates (already on the icon). */
+details[open] > :not(summary) {
+	animation: rise 0.35s var(--ease-out);
+}
+
+/* Child answer tiles: a small bounce when chosen. Counting badges pop in. */
+@keyframes select {
+	0% { transform: scale(1); }
+	40% { transform: scale(0.96); }
+	75% { transform: scale(1.03); }
+	100% { transform: scale(1); }
+}
+.tile[aria-checked='true'],
+.tile[aria-pressed='true'] {
+	animation: select 0.3s var(--ease-out);
+}
+/* Subject cards: the icon tilts a little on hover/press. */
+.icon-bob { transition: transform 0.3s var(--ease-spring); }
+button:hover .icon-bob, button:active .icon-bob { transform: rotate(-8deg) scale(1.06); }
+/* Streak flame flickers gently once the child has played today. */
+@keyframes flame {
+	0%, 100% { transform: scale(1) rotate(0); }
+	50% { transform: scale(1.08) rotate(-4deg); }
+}
+.flame { animation: flame 1.6s ease-in-out infinite; transform-origin: 50% 90%; }
+/* Dialogs scale in over a fading backdrop. */
+dialog[open] { animation: rise-scale 0.3s var(--ease-out); }
+dialog[open]::backdrop { animation: fade 0.3s ease; }
+@keyframes fade { from { opacity: 0; } }
+
+/* ------------------------------------------------------------------ pastel cards
+ * The cheerful card style (reference: Ruangguru product cards): a soft two-stop
+ * pastel wash, a white icon disc, a faint oversized icon as decoration, and a
+ * white pill action. Ink text stays ≥ 12:1 on every tone.
+ */
+.pastel-grape { background: linear-gradient(140deg, #e7e4ff 0%, #f4ebff 100%); }
+.pastel-rose { background: linear-gradient(140deg, #ffe1e7 0%, #fff0ea 100%); }
+.pastel-peach { background: linear-gradient(140deg, #ffe6cf 0%, #fff5e6 100%); }
+.pastel-sun { background: linear-gradient(140deg, #fff0c2 0%, #fff9e6 100%); }
+.pastel-mint { background: linear-gradient(140deg, #d8f5e4 0%, #eefaf3 100%); }
+.pastel-sky { background: linear-gradient(140deg, #d9ecff 0%, #e6f8f4 100%); }
+.pastel-lilac { background: linear-gradient(140deg, #efe0fb 0%, #fdebf5 100%); }
+
+.pill-action {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem;
+	min-height: 44px;
+	padding: 0.55rem 1.25rem;
+	border-radius: 999px;
+	background: #fff;
+	color: var(--color-ink);
+	font-weight: 800;
+	box-shadow: 0 2px 6px rgb(27 29 58 / 0.08);
+	transition: box-shadow 0.2s ease, translate 0.2s var(--ease-out);
+}
+@media (hover: hover) {
+	.pill-action:hover { translate: 0 -1px; box-shadow: 0 6px 14px rgb(27 29 58 / 0.14); }
+}

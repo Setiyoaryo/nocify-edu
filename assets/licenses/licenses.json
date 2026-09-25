@@ -1,0 +1,58 @@
+[
+  {
+    "name": "DrawKit License",
+    "url": "https://www.drawkit.com/license",
+    "commercial_use": true,
+    "attribution_required": false,
+    "redistribution_allowed": false,
+    "notes": "Commercial use allowed within the product. Do not redistribute as standalone assets. Keep a copy of the license with the project (§25.3). Re-verify the terms at download time."
+  },
+  {
+    "name": "Storyset (Freepik) License",
+    "url": "https://storyset.com/terms",
+    "commercial_use": true,
+    "attribution_required": true,
+    "redistribution_allowed": false,
+    "notes": "Free tier requires attribution. Verify the requirement per selected asset before use (§25.3)."
+  },
+  {
+    "name": "Lottie Simple License",
+    "url": "https://lottiefiles.com/page/license",
+    "commercial_use": true,
+    "attribution_required": false,
+    "redistribution_allowed": false,
+    "notes": "Verify per file. Creator attribution strongly recommended (§25.3)."
+  },
+  {
+    "name": "SIL Open Font License 1.1",
+    "url": "https://openfontlicense.org/open-font-license-official-text/",
+    "commercial_use": true,
+    "attribution_required": false,
+    "redistribution_allowed": true,
+    "notes": "Fonts: Fredoka and Nunito (Google Fonts) are published under OFL 1.1."
+  },
+  {
+    "name": "EduPlay Original Work",
+    "url": "docs/brand-assets.md#original-work",
+    "commercial_use": true,
+    "attribution_required": false,
+    "redistribution_allowed": false,
+    "notes": "Artwork created by or commissioned for EduPlay with a signed assignment of rights. Store the contract reference in modification_notes."
+  },
+  {
+    "name": "unDraw License",
+    "url": "https://undraw.co/license",
+    "commercial_use": true,
+    "attribution_required": false,
+    "redistribution_allowed": false,
+    "notes": "Supporting illustrations only; not the centre of the product; no packs; no AI/ML training (checked 2026-09-25)."
+  },
+  {
+    "name": "MIT License",
+    "url": "https://opensource.org/license/mit",
+    "commercial_use": true,
+    "attribution_required": false,
+    "redistribution_allowed": true,
+    "notes": "Phosphor Icons (UI icons, question figures, avatars, badges)."
+  }
+]

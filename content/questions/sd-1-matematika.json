@@ -1,0 +1,381 @@
+{
+  "source": "EduPlay seed set v1 (2026-09-25). Drafted with AI assistance — MUST pass academic review before production (§7, §24).",
+  "questions": [
+    {
+      "code": "SD1-MAT-ADD-01",
+      "skill": "sd1-penjumlahan-1-20",
+      "type": "number_input",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menjumlahkan dua bilangan dengan hasil sampai 20.",
+      "content": {
+        "prompt": "3 + 4 = ?",
+        "audio_text": "3 tambah 4 sama dengan berapa?"
+      },
+      "answer": {
+        "value": 7
+      },
+      "explanation": "3 + 4 = 7. Mulai dari 3, lalu hitung maju 4 kali.",
+      "hint": "Mulai dari 4, lalu hitung maju 3 langkah."
+    },
+    {
+      "code": "SD1-MAT-ADD-02",
+      "skill": "sd1-penjumlahan-1-20",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menjumlahkan dua bilangan dengan hasil sampai 20.",
+      "content": {
+        "prompt": "Berapa hasil 5 + 2?",
+        "audio_text": "Berapa hasil 5 tambah 2?",
+        "options": [
+          {
+            "id": "a",
+            "label": "6"
+          },
+          {
+            "id": "b",
+            "label": "7"
+          },
+          {
+            "id": "c",
+            "label": "8"
+          },
+          {
+            "id": "d",
+            "label": "9"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "5 + 2 = 7.",
+      "hint": "Gunakan jarimu atau hitung maju."
+    },
+    {
+      "code": "SD1-MAT-ADD-03",
+      "skill": "sd1-penjumlahan-1-20",
+      "type": "number_input",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menjumlahkan dua bilangan dengan hasil sampai 20.",
+      "content": {
+        "prompt": "6 + 3 = ?",
+        "audio_text": "6 tambah 3 sama dengan berapa?"
+      },
+      "answer": {
+        "value": 9
+      },
+      "explanation": "6 + 3 = 9. Mulai dari 6, lalu hitung maju 3 kali.",
+      "hint": "Mulai dari 6, lalu hitung maju 3 langkah."
+    },
+    {
+      "code": "SD1-MAT-ADD-04",
+      "skill": "sd1-penjumlahan-1-20",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menjumlahkan dua bilangan dengan hasil sampai 20.",
+      "content": {
+        "prompt": "Berapa hasil 8 + 5?",
+        "audio_text": "Berapa hasil 8 tambah 5?",
+        "options": [
+          {
+            "id": "a",
+            "label": "12"
+          },
+          {
+            "id": "b",
+            "label": "13"
+          },
+          {
+            "id": "c",
+            "label": "14"
+          },
+          {
+            "id": "d",
+            "label": "15"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "8 + 5 = 13.",
+      "hint": "Gunakan jarimu atau hitung maju."
+    },
+    {
+      "code": "SD1-MAT-ADD-05",
+      "skill": "sd1-penjumlahan-1-20",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menjumlahkan dua bilangan dengan hasil sampai 20.",
+      "content": {
+        "prompt": "7 + 7 = ?",
+        "audio_text": "7 tambah 7 sama dengan berapa?"
+      },
+      "answer": {
+        "value": 14
+      },
+      "explanation": "7 + 7 = 14. Mulai dari 7, lalu hitung maju 7 kali.",
+      "hint": "Mulai dari 7, lalu hitung maju 7 langkah."
+    },
+    {
+      "code": "SD1-MAT-ADD-06",
+      "skill": "sd1-penjumlahan-1-20",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menjumlahkan dua bilangan dengan hasil sampai 20.",
+      "content": {
+        "prompt": "Berapa hasil 9 + 6?",
+        "audio_text": "Berapa hasil 9 tambah 6?",
+        "options": [
+          {
+            "id": "a",
+            "label": "14"
+          },
+          {
+            "id": "b",
+            "label": "15"
+          },
+          {
+            "id": "c",
+            "label": "16"
+          },
+          {
+            "id": "d",
+            "label": "17"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "9 + 6 = 15.",
+      "hint": "Gunakan jarimu atau hitung maju."
+    },
+    {
+      "code": "SD1-MAT-ADD-07",
+      "skill": "sd1-penjumlahan-1-20",
+      "type": "number_input",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menjumlahkan dua bilangan dengan hasil sampai 20.",
+      "content": {
+        "prompt": "12 + 5 = ?",
+        "audio_text": "12 tambah 5 sama dengan berapa?"
+      },
+      "answer": {
+        "value": 17
+      },
+      "explanation": "12 + 5 = 17. Mulai dari 12, lalu hitung maju 5 kali.",
+      "hint": "Mulai dari 12, lalu hitung maju 5 langkah."
+    },
+    {
+      "code": "SD1-MAT-ADD-08",
+      "skill": "sd1-penjumlahan-1-20",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menjumlahkan dua bilangan dengan hasil sampai 20.",
+      "content": {
+        "prompt": "Berapa hasil 11 + 8?",
+        "audio_text": "Berapa hasil 11 tambah 8?",
+        "options": [
+          {
+            "id": "a",
+            "label": "18"
+          },
+          {
+            "id": "b",
+            "label": "19"
+          },
+          {
+            "id": "c",
+            "label": "20"
+          },
+          {
+            "id": "d",
+            "label": "21"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "11 + 8 = 19.",
+      "hint": "Gunakan jarimu atau hitung maju."
+    },
+    {
+      "code": "SD1-MAT-SUB-01",
+      "skill": "sd1-pengurangan-1-20",
+      "type": "number_input",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengurangkan bilangan sampai 20.",
+      "content": {
+        "prompt": "7 − 3 = ?",
+        "audio_text": "7 kurang 3 sama dengan berapa?"
+      },
+      "answer": {
+        "value": 4
+      },
+      "explanation": "7 − 3 = 4. Mulai dari 7, lalu hitung mundur 3 kali.",
+      "hint": "Mulai dari 7, hitung mundur 3 langkah."
+    },
+    {
+      "code": "SD1-MAT-SUB-02",
+      "skill": "sd1-pengurangan-1-20",
+      "type": "number_input",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengurangkan bilangan sampai 20.",
+      "content": {
+        "prompt": "9 − 4 = ?",
+        "audio_text": "9 kurang 4 sama dengan berapa?"
+      },
+      "answer": {
+        "value": 5
+      },
+      "explanation": "9 − 4 = 5. Mulai dari 9, lalu hitung mundur 4 kali.",
+      "hint": "Mulai dari 9, hitung mundur 4 langkah."
+    },
+    {
+      "code": "SD1-MAT-SUB-03",
+      "skill": "sd1-pengurangan-1-20",
+      "type": "number_input",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengurangkan bilangan sampai 20.",
+      "content": {
+        "prompt": "10 − 6 = ?",
+        "audio_text": "10 kurang 6 sama dengan berapa?"
+      },
+      "answer": {
+        "value": 4
+      },
+      "explanation": "10 − 6 = 4. Mulai dari 10, lalu hitung mundur 6 kali.",
+      "hint": "Mulai dari 10, hitung mundur 6 langkah."
+    },
+    {
+      "code": "SD1-MAT-SUB-04",
+      "skill": "sd1-pengurangan-1-20",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengurangkan bilangan sampai 20.",
+      "content": {
+        "prompt": "13 − 5 = ?",
+        "audio_text": "13 kurang 5 sama dengan berapa?"
+      },
+      "answer": {
+        "value": 8
+      },
+      "explanation": "13 − 5 = 8. Mulai dari 13, lalu hitung mundur 5 kali.",
+      "hint": "Mulai dari 13, hitung mundur 5 langkah."
+    },
+    {
+      "code": "SD1-MAT-SUB-05",
+      "skill": "sd1-pengurangan-1-20",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengurangkan bilangan sampai 20.",
+      "content": {
+        "prompt": "15 − 8 = ?",
+        "audio_text": "15 kurang 8 sama dengan berapa?"
+      },
+      "answer": {
+        "value": 7
+      },
+      "explanation": "15 − 8 = 7. Mulai dari 15, lalu hitung mundur 8 kali.",
+      "hint": "Mulai dari 15, hitung mundur 8 langkah."
+    },
+    {
+      "code": "SD1-MAT-SUB-06",
+      "skill": "sd1-pengurangan-1-20",
+      "type": "number_input",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat mengurangkan bilangan sampai 20.",
+      "content": {
+        "prompt": "18 − 9 = ?",
+        "audio_text": "18 kurang 9 sama dengan berapa?"
+      },
+      "answer": {
+        "value": 9
+      },
+      "explanation": "18 − 9 = 9. Mulai dari 18, lalu hitung mundur 9 kali.",
+      "hint": "Mulai dari 18, hitung mundur 9 langkah."
+    },
+    {
+      "code": "SD1-MAT-SUB-07",
+      "skill": "sd1-pengurangan-1-20",
+      "type": "number_input",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat mengurangkan bilangan sampai 20.",
+      "content": {
+        "prompt": "20 − 7 = ?",
+        "audio_text": "20 kurang 7 sama dengan berapa?"
+      },
+      "answer": {
+        "value": 13
+      },
+      "explanation": "20 − 7 = 13. Mulai dari 20, lalu hitung mundur 7 kali.",
+      "hint": "Mulai dari 20, hitung mundur 7 langkah."
+    },
+    {
+      "code": "SD1-MAT-CRT-01",
+      "skill": "sd1-soal-cerita",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menyelesaikan soal cerita penjumlahan dan pengurangan sampai 20.",
+      "content": {
+        "prompt": "Rina punya 5 kelereng. Ayah memberi 4 kelereng lagi. Berapa kelereng Rina sekarang?",
+        "audio_text": "Rina punya 5 kelereng. Ayah memberi 4 kelereng lagi. Berapa kelereng Rina sekarang?"
+      },
+      "answer": {
+        "value": 9
+      },
+      "explanation": "Kalimat matematikanya: 5 + 4 = 9.",
+      "hint": "Kata 'lagi' atau 'memberi' berarti ditambah; 'terbang', 'dipakai', 'tersisa' berarti dikurangi."
+    },
+    {
+      "code": "SD1-MAT-CRT-02",
+      "skill": "sd1-soal-cerita",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menyelesaikan soal cerita penjumlahan dan pengurangan sampai 20.",
+      "content": {
+        "prompt": "Ada 12 burung di pohon. 5 burung terbang. Berapa burung yang masih di pohon?",
+        "audio_text": "Ada 12 burung di pohon. 5 burung terbang. Berapa burung yang masih di pohon?"
+      },
+      "answer": {
+        "value": 7
+      },
+      "explanation": "Kalimat matematikanya: 12 − 5 = 7.",
+      "hint": "Kata 'lagi' atau 'memberi' berarti ditambah; 'terbang', 'dipakai', 'tersisa' berarti dikurangi."
+    },
+    {
+      "code": "SD1-MAT-CRT-03",
+      "skill": "sd1-soal-cerita",
+      "type": "number_input",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menyelesaikan soal cerita penjumlahan dan pengurangan sampai 20.",
+      "content": {
+        "prompt": "Budi membaca 6 halaman pagi dan 7 halaman sore. Berapa halaman yang dibaca Budi?",
+        "audio_text": "Budi membaca 6 halaman pagi dan 7 halaman sore. Berapa halaman yang dibaca Budi?"
+      },
+      "answer": {
+        "value": 13
+      },
+      "explanation": "Kalimat matematikanya: 6 + 7 = 13.",
+      "hint": "Kata 'lagi' atau 'memberi' berarti ditambah; 'terbang', 'dipakai', 'tersisa' berarti dikurangi."
+    },
+    {
+      "code": "SD1-MAT-CRT-04",
+      "skill": "sd1-soal-cerita",
+      "type": "number_input",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menyelesaikan soal cerita penjumlahan dan pengurangan sampai 20.",
+      "content": {
+        "prompt": "Ibu membeli 15 telur. 6 telur dipakai untuk kue. Berapa telur yang tersisa?",
+        "audio_text": "Ibu membeli 15 telur. 6 telur dipakai untuk kue. Berapa telur yang tersisa?"
+      },
+      "answer": {
+        "value": 9
+      },
+      "explanation": "Kalimat matematikanya: 15 − 6 = 9.",
+      "hint": "Kata 'lagi' atau 'memberi' berarti ditambah; 'terbang', 'dipakai', 'tersisa' berarti dikurangi."
+    }
+  ]
+}

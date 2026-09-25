@@ -1,0 +1,58 @@
+{
+  "curriculum": { "code": "kurmer-2024", "name": "Kurikulum Merdeka (penyelarasan internal EduPlay)" },
+  "levels": [
+    { "code": "tk", "name": "TK", "grades": [
+      { "code": "tk-a", "name": "TK A", "session_size": 5, "ux_band": "early" },
+      { "code": "tk-b", "name": "TK B", "session_size": 6, "ux_band": "early" }
+    ]},
+    { "code": "sd", "name": "SD", "grades": [
+      { "code": "sd-1", "name": "Kelas 1", "session_size": 8, "ux_band": "lower" },
+      { "code": "sd-2", "name": "Kelas 2", "session_size": 8, "ux_band": "lower" },
+      { "code": "sd-3", "name": "Kelas 3", "session_size": 9, "ux_band": "lower" },
+      { "code": "sd-4", "name": "Kelas 4", "session_size": 10, "ux_band": "upper" },
+      { "code": "sd-5", "name": "Kelas 5", "session_size": 12, "ux_band": "upper" },
+      { "code": "sd-6", "name": "Kelas 6", "session_size": 12, "ux_band": "upper" }
+    ]}
+  ],
+  "subjects": [
+    { "code": "matematika", "name": "Matematika", "motif": "number" },
+    { "code": "bahasa-indonesia", "name": "Bahasa Indonesia", "motif": "book" },
+    { "code": "ipas", "name": "IPAS", "motif": "nature" }
+  ],
+  "chapters": [
+    { "code": "tkb-mat-bilangan", "grade": "tk-b", "subject": "matematika", "name": "Mengenal Bilangan", "skills": [
+      { "code": "tk-membilang-1-10", "name": "Membilang 1–10", "description": "Menghitung benda sampai 10." },
+      { "code": "tk-banyak-sedikit", "name": "Lebih banyak & lebih sedikit", "description": "Membandingkan jumlah dua kelompok benda." }
+    ]},
+    { "code": "tkb-mat-bentuk", "grade": "tk-b", "subject": "matematika", "name": "Bentuk & Pola", "skills": [
+      { "code": "tk-bentuk-dasar", "name": "Bentuk dasar", "description": "Mengenal lingkaran, segitiga, persegi." },
+      { "code": "tk-pola", "name": "Melanjutkan pola", "description": "Mengenali dan melanjutkan pola sederhana." }
+    ]},
+    { "code": "tkb-bhs-huruf", "grade": "tk-b", "subject": "bahasa-indonesia", "name": "Mengenal Huruf", "skills": [
+      { "code": "tk-huruf-awal", "name": "Huruf awal", "description": "Mengenali huruf awal nama benda." },
+      { "code": "tk-urutan-cerita", "name": "Urutan kejadian", "description": "Mengurutkan kegiatan sehari-hari." }
+    ]},
+    { "code": "sd1-mat-penjumlahan", "grade": "sd-1", "subject": "matematika", "name": "Penjumlahan & Pengurangan", "skills": [
+      { "code": "sd1-penjumlahan-1-20", "name": "Penjumlahan 1–20", "description": "Menjumlahkan bilangan sampai 20." },
+      { "code": "sd1-pengurangan-1-20", "name": "Pengurangan 1–20", "description": "Mengurangkan bilangan sampai 20." },
+      { "code": "sd1-soal-cerita", "name": "Soal cerita sederhana", "description": "Menyelesaikan soal cerita penjumlahan/pengurangan." }
+    ]},
+    { "code": "sd1-bhs-kata", "grade": "sd-1", "subject": "bahasa-indonesia", "name": "Suku Kata & Kata", "skills": [
+      { "code": "sd1-suku-kata", "name": "Suku kata", "description": "Menyusun dan mengenali suku kata." },
+      { "code": "sd1-kosakata", "name": "Kosakata benda", "description": "Memasangkan kata dengan benda." }
+    ]},
+    { "code": "sd3-ipas-tumbuhan", "grade": "sd-3", "subject": "ipas", "name": "Tumbuhan & Wujud Benda", "skills": [
+      { "code": "sd3-bagian-tumbuhan", "name": "Bagian tumbuhan", "description": "Mengenali bagian tumbuhan dan fungsinya." },
+      { "code": "sd3-wujud-benda", "name": "Wujud benda", "description": "Membedakan benda padat, cair, dan gas." }
+    ]},
+    { "code": "sd4-mat-perkalian", "grade": "sd-4", "subject": "matematika", "name": "Perkalian & Pembagian", "skills": [
+      { "code": "sd4-perkalian", "name": "Perkalian", "description": "Perkalian bilangan satu dan dua angka." },
+      { "code": "sd4-pembagian", "name": "Pembagian", "description": "Pembagian bersisa nol." },
+      { "code": "sd4-soal-cerita", "name": "Soal cerita perkalian/pembagian", "description": "Menerapkan perkalian dan pembagian dalam cerita." }
+    ]},
+    { "code": "sd4-mat-pecahan", "grade": "sd-4", "subject": "matematika", "name": "Pecahan", "skills": [
+      { "code": "sd4-pecahan-senilai", "name": "Pecahan sederhana", "description": "Mengenali dan membandingkan pecahan sederhana." },
+      { "code": "sd4-nilai-tempat", "name": "Nilai tempat", "description": "Nilai tempat ribuan, ratusan, puluhan, satuan." }
+    ]}
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eduplay/question-schema/question.schema.json",
+  "title": "EduPlay question (content/questions/*.json entry)",
+  "description": "Authoritative validation lives in apps/api/internal/questions (Validate). This schema documents the shape for authors and tooling.",
+  "type": "object",
+  "required": ["code", "skill", "type", "difficulty", "learning_objective", "content", "answer", "explanation"],
+  "additionalProperties": false,
+  "properties": {
+    "code": { "type": "string", "pattern": "^[A-Z0-9-]+$" },
+    "skill": { "type": "string", "description": "skills.code from content/curriculum/curriculum.json" },
+    "type": { "enum": ["single_choice", "image_choice", "tap_count", "number_input", "short_answer", "sequence", "matching"] },
+    "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "learning_objective": { "type": "string", "minLength": 1 },
+    "explanation": { "type": "string", "minLength": 1 },
+    "hint": { "type": "string" },
+    "content": {
+      "type": "object",
+      "required": ["prompt"],
+      "additionalProperties": false,
+      "properties": {
+        "prompt": { "type": "string", "minLength": 1 },
+        "audio_text": { "type": "string", "description": "Read aloud via speech synthesis on tap" },
+        "figures": { "type": "array", "items": { "$ref": "#/$defs/figure" }, "description": "Pictured stimulus (icons, no emoji)" },
+        "image": { "type": "string", "pattern": "^/api/v1/media/", "description": "Must be a published asset" },
+        "image_alt": { "type": "string" },
+        "options": { "type": "array", "minItems": 2, "maxItems": 6, "items": { "$ref": "#/$defs/option" } },
+        "symbol": { "$ref": "#/$defs/icon" },
+        "color": { "$ref": "#/$defs/color" },
+        "count": { "type": "integer", "minimum": 1, "maximum": 20 },
+        "choices": { "type": "array", "items": { "type": "integer" }, "minItems": 2, "maxItems": 5 },
+        "unit": { "type": "string" },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/item" }, "minItems": 2, "maxItems": 6 },
+        "left": { "type": "array", "items": { "$ref": "#/$defs/item" }, "minItems": 2, "maxItems": 5 },
+        "right": { "type": "array", "items": { "$ref": "#/$defs/item" }, "minItems": 2, "maxItems": 5 }
+      },
+      "dependentRequired": { "image": ["image_alt"] }
+    },
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "option_id": { "type": "string", "description": "single_choice, image_choice" },
+        "value": { "type": "number", "description": "tap_count, number_input" },
+        "accepted": { "type": "array", "items": { "type": "string" }, "description": "short_answer (case/space-insensitive)" },
+        "order": { "type": "array", "items": { "type": "string" }, "description": "sequence" },
+        "pairs": { "type": "object", "additionalProperties": { "type": "string" }, "description": "matching: left id → right id" }
+      }
+    }
+  },
+  "$defs": {
+    "option": {
+      "type": "object",
+      "required": ["id", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" }, "label": { "type": "string" }, "figures": { "type": "array", "items": { "$ref": "#/$defs/figure" } },
+        "image": { "type": "string" }, "alt": { "type": "string" }
+      }
+    },
+    "item": {
+      "type": "object", "required": ["id", "label"], "additionalProperties": false,
+      "properties": { "id": { "type": "string" }, "label": { "type": "string" }, "icon": { "$ref": "#/$defs/icon" }, "color": { "$ref": "#/$defs/color" } }
+    },
+    "figure": {
+      "type": "object", "required": ["icon"], "additionalProperties": false,
+      "properties": { "icon": { "$ref": "#/$defs/icon" }, "count": { "type": "integer", "minimum": 1, "maximum": 12 }, "color": { "$ref": "#/$defs/color" } }
+    },
+    "icon": { "type": "string", "description": "Approved icon name; list in apps/api/internal/questions/figures.go (rendered with Phosphor Icons)" },
+    "color": { "enum": ["red", "orange", "yellow", "green", "blue", "purple", "pink", "brown", "gray"] }
+  }
+}

@@ -1,0 +1,542 @@
+{
+  "source": "EduPlay seed set v1 (2026-09-25). Drafted with AI assistance — MUST pass academic review before production (§7, §24).",
+  "questions": [
+    {
+      "code": "SD4-MAT-KAL-01",
+      "skill": "sd4-perkalian",
+      "type": "number_input",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
+      "content": {
+        "prompt": "6 × 7 = ?"
+      },
+      "answer": {
+        "value": 42
+      },
+      "explanation": "6 × 7 = 42.",
+      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+    },
+    {
+      "code": "SD4-MAT-KAL-02",
+      "skill": "sd4-perkalian",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
+      "content": {
+        "prompt": "8 × 9 = ?"
+      },
+      "answer": {
+        "value": 72
+      },
+      "explanation": "8 × 9 = 72.",
+      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+    },
+    {
+      "code": "SD4-MAT-KAL-03",
+      "skill": "sd4-perkalian",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
+      "content": {
+        "prompt": "7 × 12 = ?"
+      },
+      "answer": {
+        "value": 84
+      },
+      "explanation": "7 × 12 = 84. Pecah 12 menjadi 10 + 2: (10 × 7) + (2 × 7) = 70 + 14 = 84.",
+      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+    },
+    {
+      "code": "SD4-MAT-KAL-04",
+      "skill": "sd4-perkalian",
+      "type": "number_input",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
+      "content": {
+        "prompt": "15 × 4 = ?"
+      },
+      "answer": {
+        "value": 60
+      },
+      "explanation": "15 × 4 = 60. Pecah 15 menjadi 10 + 5: (10 × 4) + (5 × 4) = 40 + 20 = 60.",
+      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+    },
+    {
+      "code": "SD4-MAT-KAL-05",
+      "skill": "sd4-perkalian",
+      "type": "number_input",
+      "difficulty": 4,
+      "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
+      "content": {
+        "prompt": "23 × 3 = ?"
+      },
+      "answer": {
+        "value": 69
+      },
+      "explanation": "23 × 3 = 69. Pecah 23 menjadi 20 + 3: (20 × 3) + (3 × 3) = 60 + 9 = 69.",
+      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+    },
+    {
+      "code": "SD4-MAT-KAL-06",
+      "skill": "sd4-perkalian",
+      "type": "number_input",
+      "difficulty": 4,
+      "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
+      "content": {
+        "prompt": "12 × 11 = ?"
+      },
+      "answer": {
+        "value": 132
+      },
+      "explanation": "12 × 11 = 132. Pecah 12 menjadi 10 + 2: (10 × 11) + (2 × 11) = 110 + 22 = 132.",
+      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+    },
+    {
+      "code": "SD4-MAT-BAG-01",
+      "skill": "sd4-pembagian",
+      "type": "number_input",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
+      "content": {
+        "prompt": "24 : 6 = ?"
+      },
+      "answer": {
+        "value": 4
+      },
+      "explanation": "24 : 6 = 4, karena 4 × 6 = 24.",
+      "hint": "Cari bilangan yang jika dikali 6 hasilnya 24."
+    },
+    {
+      "code": "SD4-MAT-BAG-02",
+      "skill": "sd4-pembagian",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
+      "content": {
+        "prompt": "Berapa hasil 35 : 5?",
+        "options": [
+          {
+            "id": "a",
+            "label": "6"
+          },
+          {
+            "id": "b",
+            "label": "7"
+          },
+          {
+            "id": "c",
+            "label": "8"
+          },
+          {
+            "id": "d",
+            "label": "9"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "35 : 5 = 7, karena 7 × 5 = 35.",
+      "hint": "Coba kalikan setiap pilihan dengan 5."
+    },
+    {
+      "code": "SD4-MAT-BAG-03",
+      "skill": "sd4-pembagian",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
+      "content": {
+        "prompt": "56 : 8 = ?"
+      },
+      "answer": {
+        "value": 7
+      },
+      "explanation": "56 : 8 = 7, karena 7 × 8 = 56.",
+      "hint": "Cari bilangan yang jika dikali 8 hasilnya 56."
+    },
+    {
+      "code": "SD4-MAT-BAG-04",
+      "skill": "sd4-pembagian",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
+      "content": {
+        "prompt": "Berapa hasil 72 : 9?",
+        "options": [
+          {
+            "id": "a",
+            "label": "7"
+          },
+          {
+            "id": "b",
+            "label": "8"
+          },
+          {
+            "id": "c",
+            "label": "9"
+          },
+          {
+            "id": "d",
+            "label": "10"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "72 : 9 = 8, karena 8 × 9 = 72.",
+      "hint": "Coba kalikan setiap pilihan dengan 9."
+    },
+    {
+      "code": "SD4-MAT-BAG-05",
+      "skill": "sd4-pembagian",
+      "type": "number_input",
+      "difficulty": 4,
+      "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
+      "content": {
+        "prompt": "96 : 4 = ?"
+      },
+      "answer": {
+        "value": 24
+      },
+      "explanation": "96 : 4 = 24, karena 24 × 4 = 96.",
+      "hint": "Cari bilangan yang jika dikali 4 hasilnya 96."
+    },
+    {
+      "code": "SD4-MAT-BAG-06",
+      "skill": "sd4-pembagian",
+      "type": "single_choice",
+      "difficulty": 4,
+      "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
+      "content": {
+        "prompt": "Berapa hasil 84 : 7?",
+        "options": [
+          {
+            "id": "a",
+            "label": "11"
+          },
+          {
+            "id": "b",
+            "label": "12"
+          },
+          {
+            "id": "c",
+            "label": "13"
+          },
+          {
+            "id": "d",
+            "label": "14"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "84 : 7 = 12, karena 12 × 7 = 84.",
+      "hint": "Coba kalikan setiap pilihan dengan 7."
+    },
+    {
+      "code": "SD4-MAT-CRT-01",
+      "skill": "sd4-soal-cerita",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menyelesaikan soal cerita perkalian dan pembagian.",
+      "content": {
+        "prompt": "Satu kotak berisi 8 pensil. Berapa pensil dalam 6 kotak?"
+      },
+      "answer": {
+        "value": 48
+      },
+      "explanation": "Kalimat matematikanya: 6 × 8 = 48.",
+      "hint": "Beberapa kelompok yang sama banyak berarti dikali; 'dibagi rata' atau 'sama banyak di setiap' berarti dibagi."
+    },
+    {
+      "code": "SD4-MAT-CRT-02",
+      "skill": "sd4-soal-cerita",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menyelesaikan soal cerita perkalian dan pembagian.",
+      "content": {
+        "prompt": "45 permen dibagi rata kepada 5 anak. Berapa permen yang diterima setiap anak?"
+      },
+      "answer": {
+        "value": 9
+      },
+      "explanation": "Kalimat matematikanya: 45 : 5 = 9.",
+      "hint": "Beberapa kelompok yang sama banyak berarti dikali; 'dibagi rata' atau 'sama banyak di setiap' berarti dibagi."
+    },
+    {
+      "code": "SD4-MAT-CRT-03",
+      "skill": "sd4-soal-cerita",
+      "type": "number_input",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menyelesaikan soal cerita perkalian dan pembagian.",
+      "content": {
+        "prompt": "Sebuah bus membawa 32 penumpang. Berapa penumpang yang dibawa 4 bus yang sama?"
+      },
+      "answer": {
+        "value": 128
+      },
+      "explanation": "Kalimat matematikanya: 4 × 32 = 128.",
+      "hint": "Beberapa kelompok yang sama banyak berarti dikali; 'dibagi rata' atau 'sama banyak di setiap' berarti dibagi."
+    },
+    {
+      "code": "SD4-MAT-CRT-04",
+      "skill": "sd4-soal-cerita",
+      "type": "number_input",
+      "difficulty": 4,
+      "learning_objective": "Siswa dapat menyelesaikan soal cerita perkalian dan pembagian.",
+      "content": {
+        "prompt": "Ada 96 buku yang disusun sama banyak di 8 rak. Berapa buku di setiap rak?"
+      },
+      "answer": {
+        "value": 12
+      },
+      "explanation": "Kalimat matematikanya: 96 : 8 = 12.",
+      "hint": "Beberapa kelompok yang sama banyak berarti dikali; 'dibagi rata' atau 'sama banyak di setiap' berarti dibagi."
+    },
+    {
+      "code": "SD4-MAT-PCH-01",
+      "skill": "sd4-pecahan-senilai",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengenali dan membandingkan pecahan sederhana.",
+      "content": {
+        "prompt": "Pizza dipotong menjadi 4 bagian sama besar. Kamu makan 1 potong. Pecahan pizza yang kamu makan adalah …",
+        "options": [
+          {
+            "id": "a",
+            "label": "1/2"
+          },
+          {
+            "id": "b",
+            "label": "1/4"
+          },
+          {
+            "id": "c",
+            "label": "1/3"
+          },
+          {
+            "id": "d",
+            "label": "4/1"
+          }
+        ],
+        "figures": [
+          {
+            "icon": "pizza",
+            "color": "orange"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "1 dari 4 bagian sama besar = 1/4.",
+      "hint": "Bayangkan kue yang dipotong sama besar."
+    },
+    {
+      "code": "SD4-MAT-PCH-02",
+      "skill": "sd4-pecahan-senilai",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengenali dan membandingkan pecahan sederhana.",
+      "content": {
+        "prompt": "Mana yang lebih besar?",
+        "options": [
+          {
+            "id": "a",
+            "label": "1/2"
+          },
+          {
+            "id": "b",
+            "label": "1/4"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Jika pembilangnya sama (1), penyebut yang lebih kecil berarti bagiannya lebih besar. Jadi 1/2 > 1/4.",
+      "hint": "Bayangkan kue yang dipotong sama besar."
+    },
+    {
+      "code": "SD4-MAT-PCH-03",
+      "skill": "sd4-pecahan-senilai",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat mengenali dan membandingkan pecahan sederhana.",
+      "content": {
+        "prompt": "Pecahan yang senilai dengan 1/2 adalah …",
+        "options": [
+          {
+            "id": "a",
+            "label": "2/3"
+          },
+          {
+            "id": "b",
+            "label": "2/4"
+          },
+          {
+            "id": "c",
+            "label": "1/3"
+          },
+          {
+            "id": "d",
+            "label": "3/4"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "1/2 = 2/4 karena pembilang dan penyebut sama-sama dikali 2.",
+      "hint": "Bayangkan kue yang dipotong sama besar."
+    },
+    {
+      "code": "SD4-MAT-PCH-04",
+      "skill": "sd4-pecahan-senilai",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengenali dan membandingkan pecahan sederhana.",
+      "content": {
+        "prompt": "Mana yang lebih kecil?",
+        "options": [
+          {
+            "id": "a",
+            "label": "3/8"
+          },
+          {
+            "id": "b",
+            "label": "5/8"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Penyebutnya sama (8), jadi bandingkan pembilangnya: 3 < 5.",
+      "hint": "Bayangkan kue yang dipotong sama besar."
+    },
+    {
+      "code": "SD4-MAT-NTP-01",
+      "skill": "sd4-nilai-tempat",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menentukan nilai tempat pada bilangan ribuan.",
+      "content": {
+        "prompt": "Nilai tempat angka 7 pada 3.725 adalah …",
+        "options": [
+          {
+            "id": "a",
+            "label": "Ribuan"
+          },
+          {
+            "id": "b",
+            "label": "Ratusan"
+          },
+          {
+            "id": "c",
+            "label": "Puluhan"
+          },
+          {
+            "id": "d",
+            "label": "Satuan"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "3.725 = 3 ribuan, 7 ratusan, 2 puluhan, 5 satuan.",
+      "hint": "Dari kanan: satuan, puluhan, ratusan, ribuan."
+    },
+    {
+      "code": "SD4-MAT-NTP-02",
+      "skill": "sd4-nilai-tempat",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menentukan nilai tempat pada bilangan ribuan.",
+      "content": {
+        "prompt": "Angka 4 pada 4.180 bernilai …",
+        "options": [
+          {
+            "id": "a",
+            "label": "4"
+          },
+          {
+            "id": "b",
+            "label": "40"
+          },
+          {
+            "id": "c",
+            "label": "400"
+          },
+          {
+            "id": "d",
+            "label": "4.000"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "d"
+      },
+      "explanation": "Angka 4 berada di tempat ribuan, jadi nilainya 4.000.",
+      "hint": "Dari kanan: satuan, puluhan, ratusan, ribuan."
+    },
+    {
+      "code": "SD4-MAT-NTP-03",
+      "skill": "sd4-nilai-tempat",
+      "type": "sequence",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengurutkan bilangan ribuan.",
+      "content": {
+        "prompt": "Urutkan dari yang terkecil.",
+        "items": [
+          {
+            "id": "a",
+            "label": "1.089"
+          },
+          {
+            "id": "b",
+            "label": "1.809"
+          },
+          {
+            "id": "c",
+            "label": "1.890"
+          },
+          {
+            "id": "d",
+            "label": "1.980"
+          }
+        ]
+      },
+      "answer": {
+        "order": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ]
+      },
+      "explanation": "Ribuannya sama (1). Bandingkan ratusan: 0 < 8 = 8 < 9. Untuk 1.809 dan 1.890, bandingkan puluhan: 0 < 9.",
+      "hint": "Ribuannya sama, jadi lihat angka ratusan dulu."
+    },
+    {
+      "code": "SD4-MAT-NTP-04",
+      "skill": "sd4-nilai-tempat",
+      "type": "short_answer",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menentukan nilai tempat pada bilangan ribuan.",
+      "content": {
+        "prompt": "Tuliskan nama nilai tempat angka 9 pada bilangan 2.495."
+      },
+      "answer": {
+        "accepted": [
+          "puluhan"
+        ]
+      },
+      "explanation": "2.495 = 2 ribuan, 4 ratusan, 9 puluhan, 5 satuan.",
+      "hint": "Hitung posisi dari kanan: satuan, puluhan, …"
+    }
+  ]
+}

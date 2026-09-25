@@ -1,0 +1,290 @@
+openapi: 3.1.0
+info:
+  title: EduPlay API
+  version: 1.0.0
+  description: |
+    Go modular monolith (apps/api). Session auth via HttpOnly cookie `eduplay_session`.
+    State-changing requests must come from an allowed Origin (CSRF defence).
+    Errors: `{ "error": code, "message": text, "fields"?: { field: text } }`.
+    Every `{childID}` and `{assessmentID}` is scoped to the signed-in parent; others get 404.
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    session: { type: apiKey, in: cookie, name: eduplay_session }
+    webhookSignature: { type: apiKey, in: header, name: none, description: "Midtrans: body field signature_key = SHA512(order_id+status_code+gross_amount+ServerKey), then re-verified via the Midtrans Status API. Test provider: X-Mock-Signature header = HMAC-SHA256(PAYMENT_SECRET, body)." }
+  schemas:
+    Error:
+      type: object
+      properties: { error: { type: string }, message: { type: string }, fields: { type: object, additionalProperties: { type: string } } }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        display_name: { type: string }
+        role: { enum: [parent, content_editor, reviewer, admin] }
+    Child:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        nickname: { type: string }
+        grade_id: { type: integer }
+        grade_name: { type: string }
+        ux_band: { enum: [early, lower, upper, secondary] }
+        avatar: { type: string }
+        has_pin: { type: boolean }
+        xp: { type: integer }
+        level: { type: integer }
+        last_activity: { type: [string, "null"], format: date-time }
+    ChildInput:
+      type: object
+      properties:
+        nickname: { type: string, maxLength: 30 }
+        grade_id: { type: integer }
+        avatar: { type: string }
+        pin: { type: string, pattern: "^([0-9]{4})?$", description: '"" removes the PIN' }
+    Entitlement:
+      type: object
+      properties:
+        plan: { enum: [free, monthly] }
+        premium: { type: boolean }
+        status: { enum: [trial, active, past_due, cancelled, expired] }
+        current_period_end: { type: string, format: date-time }
+        cancel_at_period_end: { type: boolean }
+        limits: { type: object, properties: { max_children: { type: integer }, daily_challenges: { type: integer, description: 0 = unlimited } } }
+    Item:
+      type: object
+      description: Current question. Never contains the answer.
+      properties:
+        id: { type: string, format: uuid }
+        position: { type: integer }
+        type: { type: string }
+        content: { $ref: "../question-schema/question.schema.json#/properties/content" }
+        attempts: { type: integer }
+        hint_shown: { type: boolean }
+        hint: { type: string }
+        skill_name: { type: string }
+    Assessment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        child_id: { type: string, format: uuid }
+        subject_id: { type: integer }
+        subject_name: { type: string }
+        ux_band: { type: string }
+        status: { enum: [in_progress, completed, abandoned] }
+        planned_count: { type: integer }
+        answered: { type: integer }
+        results: { type: array, items: { type: boolean } }
+        current: { oneOf: [{ $ref: "#/components/schemas/Item" }, { type: "null" }] }
+        result: { $ref: "#/components/schemas/Score" }
+    Score:
+      type: object
+      properties: { score: { type: integer }, accuracy: { type: number }, stars: { type: integer }, xp: { type: integer }, correct: { type: integer }, total: { type: integer } }
+    AnswerResult:
+      type: object
+      properties:
+        correct: { type: boolean }
+        final: { type: boolean, description: false → show hint and allow one retry }
+        feedback: { type: string }
+        hint: { type: string }
+        explanation: { type: string }
+        correct_answer: { type: object, description: Only after a final wrong answer }
+        done: { type: boolean }
+        mini_reward: { type: boolean }
+        assessment: { $ref: "#/components/schemas/Assessment" }
+    Question:
+      type: object
+      properties:
+        code: { type: string }
+        skill_id: { type: integer }
+        type: { type: string }
+        difficulty: { type: integer, minimum: 1, maximum: 5 }
+        learning_objective: { type: string }
+        source: { type: string }
+        content: { type: object }
+        answer: { type: object }
+        explanation: { type: string }
+        hint: { type: string }
+  responses:
+    Invalid: { description: Validation failed, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    NotFound: { description: Not found or not yours, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    PaymentRequired: { description: "Plan limit reached (upgrade_required | child_limit | daily_limit)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+
+security: [{ session: [] }]
+
+paths:
+  /auth/register:
+    post:
+      security: []
+      summary: Register a parent (parental consent required). Rate limited 10/min/IP.
+      requestBody: { content: { application/json: { schema: { type: object, required: [email, password, display_name, consent], properties: { email: { type: string }, password: { type: string, minLength: 8, maxLength: 72 }, display_name: { type: string }, consent: { const: true } } } } } }
+      responses: { "201": { description: Created, sets session cookie }, "422": { $ref: "#/components/responses/Invalid" } }
+  /auth/login:
+    post:
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, properties: { email: { type: string }, password: { type: string } } } } } }
+      responses: { "200": { description: OK, sets session cookie }, "401": { description: Invalid credentials } }
+  /auth/logout:
+    post: { responses: { "204": { description: Logged out } } }
+  /me:
+    get: { responses: { "200": { description: Current user, content: { application/json: { schema: { type: object, properties: { user: { $ref: "#/components/schemas/User" } } } } } } } }
+    patch: { summary: Update display name, responses: { "200": { description: OK } } }
+    delete: { summary: "Erase account, children and all learning data (body: {password})", responses: { "204": { description: Deleted } } }
+  /me/password:
+    post: { summary: Change password; revokes other sessions, responses: { "204": { description: OK } } }
+  /me/subscription:
+    get: { summary: Alias of /subscription, responses: { "200": { description: OK } } }
+
+  /grades:
+    get: { security: [], responses: { "200": { description: Grades with level, session_size, ux_band } } }
+  /subjects:
+    get:
+      security: []
+      parameters: [{ name: grade_id, in: query, schema: { type: integer }, description: Only subjects with live questions for this grade }]
+      responses: { "200": { description: Subjects } }
+  /skills:
+    get:
+      security: []
+      parameters: [{ name: grade_id, in: query, schema: { type: integer } }, { name: subject_id, in: query, schema: { type: integer } }]
+      responses: { "200": { description: Skills } }
+  /media/{assetID}:
+    get: { security: [], summary: Published assets are public; others staff-only, parameters: [{ name: assetID, in: path, required: true, schema: { type: string } }], responses: { "200": { description: File }, "404": { $ref: "#/components/responses/NotFound" } } }
+  /events:
+    post: { security: [], summary: "Allow-listed client analytics (landing_visit, pricing_viewed, progress_viewed, subjects_viewed)", responses: { "204": { description: Recorded } } }
+
+  /children:
+    get: { responses: { "200": { description: Children, content: { application/json: { schema: { type: object, properties: { children: { type: array, items: { $ref: "#/components/schemas/Child" } } } } } } } } }
+    post:
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/ChildInput" } } } }
+      responses: { "201": { description: Created }, "402": { $ref: "#/components/responses/PaymentRequired" }, "422": { $ref: "#/components/responses/Invalid" } }
+  /children/{childID}:
+    parameters: [{ name: childID, in: path, required: true, schema: { type: string, format: uuid } }]
+    get: { responses: { "200": { description: Child }, "404": { $ref: "#/components/responses/NotFound" } } }
+    patch: { requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/ChildInput" } } } }, responses: { "200": { description: Updated } } }
+    delete: { summary: Erase the profile and all of its learning evidence, responses: { "204": { description: Deleted } } }
+  /children/{childID}/verify-pin:
+    parameters: [{ name: childID, in: path, required: true, schema: { type: string } }]
+    post: { responses: { "204": { description: PIN ok (or no PIN) }, "403": { description: Wrong PIN } } }
+  /children/{childID}/home:
+    parameters: [{ name: childID, in: path, required: true, schema: { type: string } }]
+    get: { summary: Child-facing home (subjects, stars, challenges left today, next reward), responses: { "200": { description: OK } } }
+  /children/{childID}/rewards:
+    parameters: [{ name: childID, in: path, required: true, schema: { type: string } }]
+    get: { summary: Badges and unlockables with owned flags, responses: { "200": { description: OK } } }
+  /children/{childID}/progress:
+    parameters: [{ name: childID, in: path, required: true, schema: { type: string } }]
+    get: { summary: "Overall/subject mastery, skill groups (strong/developing/needs_practice), activity, trend. Free tier: teaser + locked flags", responses: { "200": { description: OK } } }
+  /children/{childID}/history:
+    parameters: [{ name: childID, in: path, required: true, schema: { type: string } }, { name: limit, in: query, schema: { type: integer } }]
+    get: { summary: "Completed challenges. Free tier: last 3", responses: { "200": { description: OK } } }
+  /children/{childID}/missions:
+    parameters: [{ name: childID, in: path, required: true, schema: { type: string } }]
+    get: { summary: Active missions and those completed in the last 14 days, responses: { "200": { description: "{ missions }" } } }
+    post:
+      summary: "Assign a skill mission (max 3 active; one active per skill)"
+      requestBody: { content: { application/json: { schema: { type: object, required: [skill_id], properties: { skill_id: { type: integer }, target: { type: integer, minimum: 1, maximum: 20, default: 5 }, days: { type: integer, minimum: 1, maximum: 30, default: 7 } } } } } }
+      responses: { "200": { description: "{ missions }" }, "409": { description: "mission_exists | too_many_missions" }, "422": { $ref: "#/components/responses/Invalid" } }
+  /children/{childID}/missions/{missionID}:
+    parameters: [{ name: childID, in: path, required: true, schema: { type: string } }, { name: missionID, in: path, required: true, schema: { type: string } }]
+    delete: { summary: Cancel an active mission, responses: { "200": { description: "{ missions }" } } }
+  /children/{childID}/recommendations:
+    parameters: [{ name: childID, in: path, required: true, schema: { type: string } }]
+    get: { summary: "Deterministic recommendations. Free tier: first only", responses: { "200": { description: OK } } }
+
+  /assessments:
+    post:
+      summary: Start (or resume) a challenge. Free tier daily quota applies.
+      description: "Scope: whole subject (subject_id), one skill (skill_id; falls back to the subject when the skill has fewer than 3 live questions), or a parent mission (mission_id)."
+      requestBody: { content: { application/json: { schema: { type: object, required: [child_id], properties: { child_id: { type: string, format: uuid }, subject_id: { type: integer }, skill_id: { type: integer }, mission_id: { type: string, format: uuid } } } } } }
+      responses:
+        "201": { description: Started, content: { application/json: { schema: { type: object, properties: { assessment: { $ref: "#/components/schemas/Assessment" } } } } } }
+        "200": { description: Resumed an in-progress session }
+        "402": { $ref: "#/components/responses/PaymentRequired" }
+        "409": { description: No content for this subject/grade }
+  /assessments/{assessmentID}:
+    parameters: [{ name: assessmentID, in: path, required: true, schema: { type: string, format: uuid } }]
+    get: { responses: { "200": { description: Assessment } } }
+  /assessments/{assessmentID}/answers:
+    parameters: [{ name: assessmentID, in: path, required: true, schema: { type: string, format: uuid } }]
+    post:
+      summary: Grade the current item server-side; wrong → hint → one retry; next item chosen adaptively.
+      requestBody: { content: { application/json: { schema: { type: object, required: [item_id, response], properties: { item_id: { type: string }, response: { type: object }, response_time_ms: { type: integer } } } } } }
+      responses: { "200": { description: Result, content: { application/json: { schema: { $ref: "#/components/schemas/AnswerResult" } } } }, "409": { description: Item already finalized or session closed } }
+  /assessments/{assessmentID}/items/{itemID}/hint:
+    parameters: [{ name: assessmentID, in: path, required: true, schema: { type: string } }, { name: itemID, in: path, required: true, schema: { type: string } }]
+    post: { summary: Reveal the hint (recorded as hint_used), responses: { "200": { description: "{ hint }" } } }
+  /assessments/{assessmentID}/complete:
+    parameters: [{ name: assessmentID, in: path, required: true, schema: { type: string } }]
+    post: { summary: "Idempotent. Scores, updates mastery/daily progress, grants XP/badges/unlocks", responses: { "200": { description: "{ result, unlocks, skills, child }" } } }
+
+  /subscription:
+    get: { responses: { "200": { description: "{ subscription: Entitlement, offer }" } } }
+  /subscription/checkout:
+    post: { summary: "Create a Midtrans Snap transaction and return its redirect_url. Never activates by itself; the browser returns to /app/parent/subscription?checkout=<ref>.", responses: { "201": { description: "{ checkout_ref, redirect_url }" }, "503": { description: Payments not configured } } }
+  /subscription/checkout/{ref}:
+    get: { summary: "Checkout status for the return page to poll (pending | paid | failed | expired)", parameters: [{ name: ref, in: path, required: true, schema: { type: string } }], responses: { "200": { description: "{ status }" } } }
+  /subscription/cancel:
+    post: { summary: Stop renewal; access continues to period end, responses: { "200": { description: OK }, "409": { description: Not active } } }
+  /subscription/resume:
+    post: { responses: { "200": { description: OK }, "409": { description: Not resumable } } }
+  /webhooks/payment:
+    post:
+      security: [{ webhookSignature: [] }]
+      summary: "Midtrans HTTP notification (set as Payment Notification URL). Signature-verified, re-checked against the Status API, idempotent on transaction_id:status, logged, retry-safe (non-2xx → Midtrans retries)."
+      requestBody: { content: { application/json: { schema: { type: object, properties: { order_id: { type: string }, status_code: { type: string }, gross_amount: { type: string }, signature_key: { type: string }, transaction_id: { type: string }, transaction_status: { type: string }, fraud_status: { type: string } } } } } }
+      responses: { "200": { description: "processed | duplicate | already_paid | ignored" }, "401": { description: Bad signature }, "500": { description: Processing failed (recorded; provider should retry) } }
+  /dev/mock-checkout/{ref}/pay:
+    post: { summary: Only with PAYMENT_PROVIDER=mock outside production (automated tests). Sends a signed mock webhook for the caller's own checkout., parameters: [{ name: ref, in: path, required: true, schema: { type: string } }], responses: { "200": { description: Webhook result } } }
+
+  /admin/stats:
+    get: { summary: "Staff. KPIs + content/asset status counts", responses: { "200": { description: OK } } }
+  /admin/question-types:
+    get: { summary: Registered question types + quality checklist, responses: { "200": { description: OK } } }
+  /admin/questions:
+    get:
+      parameters: [{ name: status, in: query, schema: { type: string } }, { name: skill_id, in: query, schema: { type: integer } }, { name: subject_id, in: query, schema: { type: integer } }, { name: grade_id, in: query, schema: { type: integer } }, { name: q, in: query, schema: { type: string } }]
+      responses: { "200": { description: OK } }
+    post: { requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/Question" } } } }, responses: { "201": { description: Created as draft } } }
+  /admin/questions/{questionID}:
+    parameters: [{ name: questionID, in: path, required: true, schema: { type: string } }]
+    get: { summary: Question with versions and review history, responses: { "200": { description: OK } } }
+    put: { summary: Append a new version (back to draft; live version keeps serving), requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/Question" } } } }, responses: { "200": { description: OK } } }
+  /admin/questions/{questionID}/transition:
+    parameters: [{ name: questionID, in: path, required: true, schema: { type: string } }]
+    post:
+      summary: "draft→review→approved→published→retired→draft. Approve requires full checklist and a reviewer other than the author; publish requires all linked media published."
+      requestBody: { content: { application/json: { schema: { type: object, properties: { to: { type: string }, checklist: { type: object, additionalProperties: { type: boolean } }, notes: { type: string } } } } } }
+      responses: { "200": { description: OK }, "409": { description: Gate failed } }
+  /admin/questions/{questionID}/preview:
+    parameters: [{ name: questionID, in: path, required: true, schema: { type: string } }]
+    post: { summary: Child-facing content + optional server grading of a test response, responses: { "200": { description: OK } } }
+  /admin/curriculum:
+    get: { responses: { "200": { description: Flat lists of versions, levels, grades, subjects, chapters, skills } } }
+  /admin/subjects: { post: { summary: Editor, responses: { "200": { description: OK } } } }
+  /admin/subjects/{id}: { patch: { parameters: [{ name: id, in: path, required: true, schema: { type: integer } }], responses: { "200": { description: OK } } } }
+  /admin/grades/{id}: { patch: { summary: "session_size, ux_band", parameters: [{ name: id, in: path, required: true, schema: { type: integer } }], responses: { "200": { description: OK } } } }
+  /admin/chapters: { post: { responses: { "200": { description: OK } } } }
+  /admin/chapters/{id}: { patch: { parameters: [{ name: id, in: path, required: true, schema: { type: integer } }], responses: { "200": { description: OK } } } }
+  /admin/skills: { post: { responses: { "200": { description: OK } } } }
+  /admin/skills/{id}: { patch: { parameters: [{ name: id, in: path, required: true, schema: { type: integer } }], responses: { "200": { description: OK } } } }
+  /admin/assets:
+    get: { parameters: [{ name: q, in: query, schema: { type: string } }, { name: status, in: query, schema: { type: string } }, { name: kind, in: query, schema: { type: string } }], responses: { "200": { description: Asset library } } }
+    post: { summary: "multipart: meta (JSON provenance) + optional file (≤5 MB, type-sniffed)", responses: { "201": { description: Imported } } }
+  /admin/assets/{assetID}:
+    parameters: [{ name: assetID, in: path, required: true, schema: { type: string } }]
+    get: { responses: { "200": { description: OK } } }
+    patch: { summary: Edit metadata; provenance changes reset status to imported, responses: { "200": { description: OK } } }
+  /admin/assets/{assetID}/file:
+    parameters: [{ name: assetID, in: path, required: true, schema: { type: string } }]
+    post: { summary: Replace file; re-review required, responses: { "200": { description: OK } } }
+  /admin/assets/{assetID}/transition:
+    parameters: [{ name: assetID, in: path, required: true, schema: { type: string } }]
+    post: { summary: "Reviewer. imported→license_verified→design_approved→performance_checked→published | rejected. AI-generated never approved; size budgets enforced.", responses: { "200": { description: OK }, "409": { description: Gate failed } } }
+  /admin/licenses:
+    get: { responses: { "200": { description: OK } } }
+    post: { summary: Reviewer, responses: { "201": { description: Created } } }
+  /admin/audit-logs:
+    get: { parameters: [{ name: entity_type, in: query, schema: { type: string } }, { name: entity_id, in: query, schema: { type: string } }], responses: { "200": { description: Latest 200 entries } } }

@@ -1,0 +1,363 @@
+{
+  "source": "EduPlay seed set v1 (2026-09-25). Drafted with AI assistance — MUST pass academic review before production (§7, §24).",
+  "questions": [
+    {
+      "code": "SD1-BHS-SKT-01",
+      "skill": "sd1-suku-kata",
+      "type": "sequence",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menyusun suku kata menjadi kata.",
+      "content": {
+        "prompt": "Susun suku kata menjadi nama benda di gambar.",
+        "audio_text": "Susun suku kata menjadi kata kucing.",
+        "figures": [
+          {
+            "icon": "cat"
+          }
+        ],
+        "items": [
+          {
+            "id": "1",
+            "label": "ku"
+          },
+          {
+            "id": "2",
+            "label": "cing"
+          }
+        ]
+      },
+      "answer": {
+        "order": [
+          "1",
+          "2"
+        ]
+      },
+      "explanation": "ku-cing dibaca kucing.",
+      "hint": "Ucapkan kata kucing pelan-pelan."
+    },
+    {
+      "code": "SD1-BHS-SKT-02",
+      "skill": "sd1-suku-kata",
+      "type": "sequence",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menyusun suku kata menjadi kata.",
+      "content": {
+        "prompt": "Susun suku kata menjadi nama benda di gambar.",
+        "audio_text": "Susun suku kata menjadi kata buku.",
+        "figures": [
+          {
+            "icon": "book"
+          }
+        ],
+        "items": [
+          {
+            "id": "1",
+            "label": "bu"
+          },
+          {
+            "id": "2",
+            "label": "ku"
+          }
+        ]
+      },
+      "answer": {
+        "order": [
+          "1",
+          "2"
+        ]
+      },
+      "explanation": "bu-ku dibaca buku.",
+      "hint": "Ucapkan kata buku pelan-pelan."
+    },
+    {
+      "code": "SD1-BHS-SKT-03",
+      "skill": "sd1-suku-kata",
+      "type": "sequence",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menyusun suku kata menjadi kata.",
+      "content": {
+        "prompt": "Susun suku kata menjadi nama benda di gambar.",
+        "audio_text": "Susun suku kata menjadi kata sapi.",
+        "figures": [
+          {
+            "icon": "cow"
+          }
+        ],
+        "items": [
+          {
+            "id": "1",
+            "label": "sa"
+          },
+          {
+            "id": "2",
+            "label": "pi"
+          }
+        ]
+      },
+      "answer": {
+        "order": [
+          "1",
+          "2"
+        ]
+      },
+      "explanation": "sa-pi dibaca sapi.",
+      "hint": "Ucapkan kata sapi pelan-pelan."
+    },
+    {
+      "code": "SD1-BHS-SKT-04",
+      "skill": "sd1-suku-kata",
+      "type": "sequence",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menyusun suku kata menjadi kata.",
+      "content": {
+        "prompt": "Susun suku kata menjadi nama benda di gambar.",
+        "audio_text": "Susun suku kata menjadi kata roti.",
+        "figures": [
+          {
+            "icon": "bread"
+          }
+        ],
+        "items": [
+          {
+            "id": "1",
+            "label": "ro"
+          },
+          {
+            "id": "2",
+            "label": "ti"
+          }
+        ]
+      },
+      "answer": {
+        "order": [
+          "1",
+          "2"
+        ]
+      },
+      "explanation": "ro-ti dibaca roti.",
+      "hint": "Ucapkan kata roti pelan-pelan."
+    },
+    {
+      "code": "SD1-BHS-SKT-05",
+      "skill": "sd1-suku-kata",
+      "type": "sequence",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menyusun suku kata menjadi kata.",
+      "content": {
+        "prompt": "Susun suku kata menjadi nama benda di gambar.",
+        "audio_text": "Susun suku kata menjadi kata sepeda.",
+        "figures": [
+          {
+            "icon": "bicycle"
+          }
+        ],
+        "items": [
+          {
+            "id": "1",
+            "label": "se"
+          },
+          {
+            "id": "2",
+            "label": "pe"
+          },
+          {
+            "id": "3",
+            "label": "da"
+          }
+        ]
+      },
+      "answer": {
+        "order": [
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      "explanation": "se-pe-da dibaca sepeda.",
+      "hint": "Ucapkan kata sepeda pelan-pelan."
+    },
+    {
+      "code": "SD1-BHS-SKT-06",
+      "skill": "sd1-suku-kata",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menghitung suku kata.",
+      "content": {
+        "prompt": "Ada berapa suku kata dalam kata 'sepeda'?",
+        "audio_text": "Ada berapa suku kata dalam kata sepeda?",
+        "options": [
+          {
+            "id": "a",
+            "label": "2"
+          },
+          {
+            "id": "b",
+            "label": "3"
+          },
+          {
+            "id": "c",
+            "label": "4"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "se-pe-da: ada 3 suku kata.",
+      "hint": "Tepuk tangan setiap kamu mengucapkan satu bagian kata."
+    },
+    {
+      "code": "SD1-BHS-KSK-01",
+      "skill": "sd1-kosakata",
+      "type": "matching",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat memasangkan kata dengan gambar yang sesuai.",
+      "content": {
+        "prompt": "Pasangkan gambar dengan kata yang tepat.",
+        "audio_text": "Pasangkan gambar dengan kata yang tepat.",
+        "left": [
+          {
+            "id": "l1",
+            "label": "Kucing",
+            "icon": "cat"
+          },
+          {
+            "id": "l2",
+            "label": "Anjing",
+            "icon": "dog"
+          },
+          {
+            "id": "l3",
+            "label": "Sapi",
+            "icon": "cow"
+          }
+        ],
+        "right": [
+          {
+            "id": "r1",
+            "label": "meong"
+          },
+          {
+            "id": "r2",
+            "label": "guk guk"
+          },
+          {
+            "id": "r3",
+            "label": "moo"
+          }
+        ]
+      },
+      "answer": {
+        "pairs": {
+          "l1": "r1",
+          "l2": "r2",
+          "l3": "r3"
+        }
+      },
+      "explanation": "Kucing mengeong, anjing menggonggong, sapi melenguh.",
+      "hint": "Mulai dari gambar yang paling kamu kenal."
+    },
+    {
+      "code": "SD1-BHS-KSK-02",
+      "skill": "sd1-kosakata",
+      "type": "matching",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat memasangkan kata dengan gambar yang sesuai.",
+      "content": {
+        "prompt": "Pasangkan gambar dengan kata yang tepat.",
+        "audio_text": "Pasangkan gambar dengan kata yang tepat.",
+        "left": [
+          {
+            "id": "l1",
+            "label": "",
+            "icon": "orange"
+          },
+          {
+            "id": "l2",
+            "label": "",
+            "icon": "car"
+          },
+          {
+            "id": "l3",
+            "label": "",
+            "icon": "book"
+          }
+        ],
+        "right": [
+          {
+            "id": "r1",
+            "label": "jeruk"
+          },
+          {
+            "id": "r2",
+            "label": "mobil"
+          },
+          {
+            "id": "r3",
+            "label": "buku"
+          }
+        ]
+      },
+      "answer": {
+        "pairs": {
+          "l1": "r1",
+          "l2": "r2",
+          "l3": "r3"
+        }
+      },
+      "explanation": "Setiap gambar dipasangkan dengan namanya.",
+      "hint": "Mulai dari gambar yang paling kamu kenal."
+    },
+    {
+      "code": "SD1-BHS-KSK-03",
+      "skill": "sd1-kosakata",
+      "type": "matching",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat memasangkan kata dengan gambar yang sesuai.",
+      "content": {
+        "prompt": "Pasangkan gambar dengan kata yang tepat.",
+        "audio_text": "Pasangkan gambar dengan kata yang tepat.",
+        "left": [
+          {
+            "id": "l1",
+            "label": "",
+            "icon": "sun"
+          },
+          {
+            "id": "l2",
+            "label": "",
+            "icon": "cloud-rain"
+          },
+          {
+            "id": "l3",
+            "label": "",
+            "icon": "moon"
+          }
+        ],
+        "right": [
+          {
+            "id": "r1",
+            "label": "siang"
+          },
+          {
+            "id": "r2",
+            "label": "hujan"
+          },
+          {
+            "id": "r3",
+            "label": "malam"
+          }
+        ]
+      },
+      "answer": {
+        "pairs": {
+          "l1": "r1",
+          "l2": "r2",
+          "l3": "r3"
+        }
+      },
+      "explanation": "Matahari saat siang, awan hujan saat hujan, bulan saat malam.",
+      "hint": "Mulai dari gambar yang paling kamu kenal."
+    }
+  ]
+}

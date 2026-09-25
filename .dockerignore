@@ -1,0 +1,9 @@
+**/node_modules
+**/.svelte-kit
+**/build
+**/test-results
+**/playwright-report
+apps/api/data
+.git
+.env
+*.env

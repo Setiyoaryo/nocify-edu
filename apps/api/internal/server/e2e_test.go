@@ -1,0 +1,472 @@
+package server_test
+
+// Critical E2E flow of §48 against a real PostgreSQL:
+//
+//	Register → Create Child → Start Challenge → Answer → Complete → Result →
+//	Parent Progress → Subscribe → Payment Webhook → Subscription Active
+//
+// Set TEST_DATABASE_URL to a throwaway database; the test resets its schema.
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/cookiejar"
+	"net/http/httptest"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/nocify/eduplay/api/internal/config"
+	"github.com/nocify/eduplay/api/internal/db"
+	"github.com/nocify/eduplay/api/internal/media"
+	"github.com/nocify/eduplay/api/internal/rewards"
+	"github.com/nocify/eduplay/api/internal/seed"
+	"github.com/nocify/eduplay/api/internal/server"
+	"github.com/nocify/eduplay/api/internal/subscriptions"
+)
+
+const origin = "http://app.test"
+
+type env struct {
+	t    *testing.T
+	srv  *httptest.Server
+	pool *pgxpool.Pool
+	cfg  config.Config
+}
+
+func setup(t *testing.T) *env {
+	url := os.Getenv("TEST_DATABASE_URL")
+	if url == "" {
+		t.Skip("TEST_DATABASE_URL not set")
+	}
+	ctx := context.Background()
+	pool, err := db.Connect(ctx, url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(ctx, `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Migrate(ctx, pool); err != nil {
+		t.Fatal(err)
+	}
+	if err := seed.Run(ctx, pool, seed.Options{ContentDir: "../../../../content", AssetsDir: "../../../../assets", Publish: true}); err != nil {
+		t.Fatal(err)
+	}
+	if err := rewards.LoadFreeAvatars(ctx, pool); err != nil {
+		t.Fatal(err)
+	}
+	tz, _ := time.LoadLocation("Asia/Jakarta")
+	cfg := config.Config{Env: "test", SessionSecret: "s", SessionTTL: time.Hour, PublicURL: origin,
+		PaymentProvider: "mock", PaymentSecret: "whsec", MonthlyPriceIDR: 49000,
+		FreeDailyChallenges: 2, FreeMaxChildren: 1, PaidMaxChildren: 5, StorageDir: t.TempDir(), Timezone: tz}
+	srv := httptest.NewServer(server.New(cfg, pool, media.LocalStorage{Dir: t.TempDir()}))
+	t.Cleanup(func() { srv.Close(); pool.Close() })
+	return &env{t: t, srv: srv, pool: pool, cfg: cfg}
+}
+
+type client struct {
+	e *env
+	c *http.Client
+}
+
+func (e *env) client() *client {
+	jar, _ := cookiejar.New(nil)
+	return &client{e: e, c: &http.Client{Jar: jar}}
+}
+
+func (c *client) do(method, path string, body any, headers ...string) (int, map[string]any) {
+	c.e.t.Helper()
+	var rd io.Reader
+	if body != nil {
+		if b, ok := body.([]byte); ok {
+			rd = bytes.NewReader(b)
+		} else {
+			b, _ := json.Marshal(body)
+			rd = bytes.NewReader(b)
+		}
+	}
+	req, _ := http.NewRequest(method, c.e.srv.URL+"/api/v1"+path, rd)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Origin", origin)
+	for i := 0; i+1 < len(headers); i += 2 {
+		req.Header.Set(headers[i], headers[i+1])
+	}
+	res, err := c.c.Do(req)
+	if err != nil {
+		c.e.t.Fatal(err)
+	}
+	defer res.Body.Close()
+	out := map[string]any{}
+	_ = json.NewDecoder(res.Body).Decode(&out)
+	return res.StatusCode, out
+}
+
+func (c *client) must(want int, method, path string, body any) map[string]any {
+	c.e.t.Helper()
+	code, out := c.do(method, path, body)
+	if code != want {
+		c.e.t.Fatalf("%s %s: status %d, want %d: %v", method, path, code, want, out)
+	}
+	return out
+}
+
+func (c *client) register(email string) map[string]any {
+	return c.must(201, "POST", "/auth/register", map[string]any{"email": email, "password": "rahasia123", "display_name": "Ibu Test", "consent": true})
+}
+
+func gradeID(e *env, code string) int {
+	var id int
+	if err := e.pool.QueryRow(context.Background(), `SELECT id FROM grades WHERE code = $1`, code).Scan(&id); err != nil {
+		e.t.Fatal(err)
+	}
+	return id
+}
+
+func subjectID(e *env, code string) int {
+	var id int
+	if err := e.pool.QueryRow(context.Background(), `SELECT id FROM subjects WHERE code = $1`, code).Scan(&id); err != nil {
+		e.t.Fatal(err)
+	}
+	return id
+}
+
+// correctResponse reads the stored answer for an item, standing in for a child who knows it.
+func correctResponse(e *env, itemID string) json.RawMessage {
+	var answer json.RawMessage
+	if err := e.pool.QueryRow(context.Background(), `SELECT qv.answer FROM assessment_items i JOIN question_versions qv ON qv.id = i.question_version_id WHERE i.id = $1`, itemID).Scan(&answer); err != nil {
+		e.t.Fatal(err)
+	}
+	var a map[string]any
+	_ = json.Unmarshal(answer, &a)
+	if acc, ok := a["accepted"].([]any); ok {
+		b, _ := json.Marshal(map[string]any{"text": acc[0]})
+		return b
+	}
+	return answer
+}
+
+func TestCriticalFlow(t *testing.T) {
+	e := setup(t)
+	parent := e.client()
+
+	// Register + unauthenticated guard
+	if code, _ := e.client().do("GET", "/me", nil); code != 401 {
+		t.Fatalf("anonymous /me should be 401, got %d", code)
+	}
+	parent.register("parent@example.test")
+	me := parent.must(200, "GET", "/me", nil)
+	if me["user"].(map[string]any)["role"] != "parent" {
+		t.Fatal("new accounts must be parents")
+	}
+
+	// Create child (free: max 1)
+	child := parent.must(201, "POST", "/children", map[string]any{"nickname": "Adi", "grade_id": gradeID(e, "sd-1"), "avatar": "dog"})["child"].(map[string]any)
+	childID := child["id"].(string)
+	if code, out := parent.do("POST", "/children", map[string]any{"nickname": "Bima", "grade_id": gradeID(e, "sd-1")}); code != 402 || out["error"] != "upgrade_required" {
+		t.Fatalf("second child on free plan: %d %v", code, out)
+	}
+
+	// Another parent cannot see or use this child
+	stranger := e.client()
+	stranger.register("stranger@example.test")
+	if code, _ := stranger.do("GET", "/children/"+childID+"/progress", nil); code != 404 {
+		t.Fatalf("cross-parent access must be 404, got %d", code)
+	}
+	if code, _ := stranger.do("POST", "/assessments", map[string]any{"child_id": childID, "subject_id": subjectID(e, "matematika")}); code != 404 {
+		t.Fatalf("cross-parent assessment must be 404, got %d", code)
+	}
+
+	// Home lists subjects for the child's grade
+	home := parent.must(200, "GET", "/children/"+childID+"/home", nil)
+	if n := len(home["subjects"].([]any)); n != 2 {
+		t.Fatalf("SD 1 should have 2 subjects with content, got %d", n)
+	}
+
+	// Start a challenge
+	asm := parent.must(201, "POST", "/assessments", map[string]any{"child_id": childID, "subject_id": subjectID(e, "matematika")})["assessment"].(map[string]any)
+	asmID := asm["id"].(string)
+	planned := int(asm["planned_count"].(float64))
+	if planned != 8 {
+		t.Fatalf("SD 1 session size should be 8, got %d", planned)
+	}
+	cur := asm["current"].(map[string]any)
+	if _, leaked := cur["content"].(map[string]any)["answer"]; leaked {
+		t.Fatal("answer must never be sent to the client")
+	}
+
+	// Resuming returns the same session instead of spending quota
+	again := parent.must(200, "POST", "/assessments", map[string]any{"child_id": childID, "subject_id": subjectID(e, "matematika")})["assessment"].(map[string]any)
+	if again["id"] != asmID {
+		t.Fatal("in-progress session should be resumed")
+	}
+
+	// Item 1: wrong → hint + retry → correct (retry)
+	res := parent.must(200, "POST", "/assessments/"+asmID+"/answers", map[string]any{"item_id": cur["id"], "response": map[string]any{"value": -999, "option_id": "zzz"}, "response_time_ms": 3000})
+	if res["correct"] != false || res["final"] != false || res["hint"] == "" || !strings.HasPrefix(res["feedback"].(string), "Hampir benar") {
+		t.Fatalf("wrong first attempt should give hint + retry: %v", res)
+	}
+	res = parent.must(200, "POST", "/assessments/"+asmID+"/answers", map[string]any{"item_id": cur["id"], "response": correctResponse(e, cur["id"].(string)), "response_time_ms": 2000})
+	if res["correct"] != true || res["final"] != true || res["explanation"] == "" {
+		t.Fatalf("correct retry should finalize: %v", res)
+	}
+	// A finalized item cannot be answered again (attempts are immutable evidence)
+	if code, _ := parent.do("POST", "/assessments/"+asmID+"/answers", map[string]any{"item_id": cur["id"], "response": correctResponse(e, cur["id"].(string))}); code != 409 {
+		t.Fatalf("re-answering a finalized item must be 409, got %d", code)
+	}
+
+	// Remaining items: answer correctly
+	for i := 2; i <= planned; i++ {
+		view := res["assessment"].(map[string]any)
+		cur = view["current"].(map[string]any)
+		if int(cur["position"].(float64)) != i {
+			t.Fatalf("expected position %d, got %v", i, cur["position"])
+		}
+		res = parent.must(200, "POST", "/assessments/"+asmID+"/answers", map[string]any{"item_id": cur["id"], "response": correctResponse(e, cur["id"].(string)), "response_time_ms": 1500})
+		if res["correct"] != true {
+			t.Fatalf("item %d graded wrong: %v", i, res)
+		}
+		if i == 3 && res["mini_reward"] != true {
+			t.Fatal("mini reward expected after challenge 3")
+		}
+	}
+	if res["done"] != true {
+		t.Fatalf("session should be done after %d items", planned)
+	}
+
+	// Complete: score, stars, XP, badges, skill mastery
+	done := parent.must(200, "POST", "/assessments/"+asmID+"/complete", nil)
+	result := done["result"].(map[string]any)
+	// 7 first-try correct + 1 correct on retry = 7.5/8 = 94
+	if result["score"].(float64) != 94 || result["stars"].(float64) != 3 || result["accuracy"].(float64) != 87.5 {
+		t.Fatalf("unexpected result: %v", result)
+	}
+	unlocked := map[string]bool{}
+	for _, u := range done["unlocks"].([]any) {
+		unlocked[u.(map[string]any)["code"].(string)] = true
+	}
+	if !unlocked["first_challenge"] {
+		t.Fatalf("first_challenge badge expected, got %v", done["unlocks"])
+	}
+	if len(done["skills"].([]any)) == 0 {
+		t.Fatal("completion should report updated skills")
+	}
+	// Idempotent completion
+	again2 := parent.must(200, "POST", "/assessments/"+asmID+"/complete", nil)
+	if again2["already_completed"] != true || len(again2["unlocks"].([]any)) != 0 {
+		t.Fatal("second complete must not award again")
+	}
+
+	// Parent progress (free tier: teaser only, skills locked)
+	prog := parent.must(200, "GET", "/children/"+childID+"/progress", nil)
+	if prog["overall"] == nil || prog["premium"] != false || prog["locked"].(map[string]any)["skills"] != true {
+		t.Fatalf("free progress view unexpected: %v", prog)
+	}
+	hist := parent.must(200, "GET", "/children/"+childID+"/history", nil)
+	if len(hist["history"].([]any)) != 1 {
+		t.Fatal("history should contain the completed session")
+	}
+	parent.must(200, "GET", "/children/"+childID+"/recommendations", nil)
+
+	// Free daily limit (2): one used; one more allowed, third blocked
+	parent.must(201, "POST", "/assessments", map[string]any{"child_id": childID, "subject_id": subjectID(e, "bahasa-indonesia")})
+	if code, out := parent.do("POST", "/assessments", map[string]any{"child_id": childID, "subject_id": subjectID(e, "matematika")}); code != 402 || out["error"] != "daily_limit" {
+		t.Fatalf("free daily limit should block: %d %v", code, out)
+	}
+
+	// Subscribe: checkout never activates by itself
+	chk := parent.must(201, "POST", "/subscription/checkout", map[string]any{"plan": "monthly"})
+	ref := chk["checkout_ref"].(string)
+	if sub := parent.must(200, "GET", "/subscription", nil)["subscription"].(map[string]any); sub["premium"] != false {
+		t.Fatal("checkout alone must not activate")
+	}
+
+	// Webhook with a bad signature is rejected
+	body, _ := json.Marshal(subscriptions.Event{ID: "evt_1", Type: "payment.succeeded", CheckoutRef: ref, Amount: 49000, Currency: "IDR"})
+	anon := e.client()
+	if code, _ := anon.do("POST", "/webhooks/payment", body, subscriptions.MockSignatureHeader, "deadbeef"); code != 401 {
+		t.Fatalf("bad signature must be 401, got %d", code)
+	}
+	// Tampered amount is refused even with a valid signature
+	bad, _ := json.Marshal(subscriptions.Event{ID: "evt_0", Type: "payment.succeeded", CheckoutRef: ref, Amount: 1, Currency: "IDR"})
+	mock := subscriptions.MockProvider{Secret: []byte(e.cfg.PaymentSecret)}
+	if code, _ := anon.do("POST", "/webhooks/payment", bad, subscriptions.MockSignatureHeader, mock.Sign(bad)); code != 500 {
+		t.Fatalf("amount mismatch must fail (so provider retries/alerts), got %d", code)
+	}
+	// Valid, signed webhook activates; replay is a no-op
+	code, out := anon.do("POST", "/webhooks/payment", body, subscriptions.MockSignatureHeader, mock.Sign(body))
+	if code != 200 || out["result"] != "processed" {
+		t.Fatalf("webhook: %d %v", code, out)
+	}
+	code, out = anon.do("POST", "/webhooks/payment", body, subscriptions.MockSignatureHeader, mock.Sign(body))
+	if code != 200 || out["result"] != "duplicate" {
+		t.Fatalf("replayed webhook must be idempotent: %d %v", code, out)
+	}
+	sub := parent.must(200, "GET", "/subscription", nil)["subscription"].(map[string]any)
+	if sub["premium"] != true || sub["status"] != "active" {
+		t.Fatalf("subscription should be active: %v", sub)
+	}
+	var periods int
+	_ = e.pool.QueryRow(context.Background(), `SELECT count(*) FROM subscriptions WHERE current_period_end BETWEEN now() + interval '27 days' AND now() + interval '32 days'`).Scan(&periods)
+	if periods != 1 {
+		t.Fatal("duplicate webhook must not extend the period twice")
+	}
+
+	// Premium unlocks: full skills, more children, unlimited challenges
+	prog = parent.must(200, "GET", "/children/"+childID+"/progress", nil)
+	if prog["premium"] != true || prog["trend"] == nil {
+		t.Fatalf("premium progress should include trend: %v", prog)
+	}
+	parent.must(201, "POST", "/children", map[string]any{"nickname": "Bima", "grade_id": gradeID(e, "tk-b")})
+	parent.must(201, "POST", "/assessments", map[string]any{"child_id": childID, "subject_id": subjectID(e, "matematika")})
+
+	// Missions: parent assigns a skill; the child plays a focused session; it counts.
+	var skillID int
+	_ = e.pool.QueryRow(context.Background(), `SELECT id FROM skills WHERE code = 'sd1-pengurangan-1-20'`).Scan(&skillID)
+	ms := parent.must(200, "POST", "/children/"+childID+"/missions", map[string]any{"skill_id": skillID, "target": 1})["missions"].([]any)
+	missionID := ms[0].(map[string]any)["id"].(string)
+	if code, _ := parent.do("POST", "/children/"+childID+"/missions", map[string]any{"skill_id": skillID}); code != 409 {
+		t.Fatal("duplicate active mission for the same skill must be refused")
+	}
+	home = parent.must(200, "GET", "/children/"+childID+"/home", nil)
+	if len(home["missions"].([]any)) != 1 {
+		t.Fatal("child home should list the active mission")
+	}
+	focused := parent.must(201, "POST", "/assessments", map[string]any{"child_id": childID, "mission_id": missionID})["assessment"].(map[string]any)
+	if focused["focus_skill"] != "Pengurangan 1–20" {
+		t.Fatalf("mission session must be skill-focused: %v", focused["focus_skill"])
+	}
+	fid := focused["id"].(string)
+	res = map[string]any{"assessment": focused}
+	for {
+		cur := res["assessment"].(map[string]any)["current"]
+		if cur == nil {
+			break
+		}
+		item := cur.(map[string]any)
+		var sk int
+		_ = e.pool.QueryRow(context.Background(), `SELECT skill_id FROM assessment_items WHERE id = $1`, item["id"]).Scan(&sk)
+		if sk != skillID {
+			t.Fatal("focused session served a question from another skill")
+		}
+		res = parent.must(200, "POST", "/assessments/"+fid+"/answers", map[string]any{"item_id": item["id"], "response": correctResponse(e, item["id"].(string))})
+		if res["done"] == true {
+			break
+		}
+	}
+	done = parent.must(200, "POST", "/assessments/"+fid+"/complete", nil)
+	if m := done["mission"].(map[string]any); m["status"] != "completed" {
+		t.Fatalf("mission should be completed: %v", m)
+	}
+	gotBadge := false
+	for _, u := range done["unlocks"].([]any) {
+		gotBadge = gotBadge || u.(map[string]any)["code"] == "mission_done"
+	}
+	if !gotBadge {
+		t.Fatal("mission_done badge expected")
+	}
+	prog = parent.must(200, "GET", "/children/"+childID+"/progress", nil)
+	if prog["streak"].(float64) < 1 || len(prog["chapters"].([]any)) == 0 {
+		t.Fatalf("progress should include streak and chapters: %v %v", prog["streak"], prog["chapters"])
+	}
+
+	// Cancel keeps access until period end
+	sub = parent.must(200, "POST", "/subscription/cancel", nil)["subscription"].(map[string]any)
+	if sub["status"] != "cancelled" || sub["premium"] != true {
+		t.Fatalf("cancelled sub keeps access until period end: %v", sub)
+	}
+
+	// Raw attempts are immutable in the database itself
+	if _, err := e.pool.Exec(context.Background(), `UPDATE question_attempts SET is_correct = true`); err == nil {
+		t.Fatal("question_attempts must reject updates")
+	}
+}
+
+func TestCSRFAndAdminRBAC(t *testing.T) {
+	e := setup(t)
+	parent := e.client()
+	parent.register("p@example.test")
+
+	// Cross-site POST with the victim's cookie is refused
+	code, _ := parent.do("POST", "/children", map[string]any{"nickname": "X", "grade_id": gradeID(e, "sd-1")}, "Origin", "https://evil.example")
+	if code != 403 {
+		t.Fatalf("foreign Origin must be 403, got %d", code)
+	}
+	// Parents cannot reach the CMS
+	if code, _ := parent.do("GET", "/admin/questions", nil); code != 403 {
+		t.Fatalf("parent on admin must be 403, got %d", code)
+	}
+
+	// Editor authors a question; reviewer approves and publishes; editor cannot publish.
+	ctx := context.Background()
+	mkStaff := func(email, role string) *client {
+		c := e.client()
+		c.register(email)
+		if _, err := e.pool.Exec(ctx, `UPDATE users SET role = $2 WHERE email = $1`, email, role); err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	editor := mkStaff("editor@example.test", "content_editor")
+	reviewer := mkStaff("reviewer@example.test", "reviewer")
+	var skillID int
+	_ = e.pool.QueryRow(ctx, `SELECT id FROM skills WHERE code = 'sd1-penjumlahan-1-20'`).Scan(&skillID)
+
+	q := editor.must(201, "POST", "/admin/questions", map[string]any{
+		"skill_id": skillID, "type": "number_input", "difficulty": 1, "learning_objective": "Penjumlahan",
+		"source": "Tim konten, rev 1", "content": map[string]any{"prompt": "2 + 2 = ?"}, "answer": map[string]any{"value": 4},
+		"explanation": "2 + 2 = 4", "hint": "Hitung jari."})["question"].(map[string]any)
+	qid := q["id"].(string)
+	editor.must(200, "POST", "/admin/questions/"+qid+"/transition", map[string]any{"to": "review"})
+	if code, _ := editor.do("POST", "/admin/questions/"+qid+"/transition", map[string]any{"to": "approved"}); code != 409 {
+		t.Fatal("editor must not approve")
+	}
+	if code, _ := reviewer.do("POST", "/admin/questions/"+qid+"/transition", map[string]any{"to": "approved", "checklist": map[string]bool{"academic_answer": true}}); code != 409 {
+		t.Fatal("approval without full checklist must fail")
+	}
+	checklist := map[string]bool{}
+	for _, k := range []string{"academic_answer", "academic_explanation", "academic_curriculum", "academic_difficulty", "ux_instruction", "ux_readable", "ux_touch", "ux_visual", "a11y_color", "a11y_alternatives", "a11y_contrast"} {
+		checklist[k] = true
+	}
+	reviewer.must(200, "POST", "/admin/questions/"+qid+"/transition", map[string]any{"to": "approved", "checklist": checklist})
+	if code, _ := editor.do("POST", "/admin/questions/"+qid+"/transition", map[string]any{"to": "published"}); code != 403 && code != 409 {
+		t.Fatalf("editor must not publish, got %d", code)
+	}
+	pub := reviewer.must(200, "POST", "/admin/questions/"+qid+"/transition", map[string]any{"to": "published"})["question"].(map[string]any)
+	if pub["published_version_id"] == nil {
+		t.Fatal("published question must have a live version")
+	}
+
+	// Editing a live question keeps serving v1 until v2 is published
+	editor.must(200, "PUT", "/admin/questions/"+qid, map[string]any{
+		"skill_id": skillID, "type": "number_input", "difficulty": 1, "learning_objective": "Penjumlahan",
+		"source": "Tim konten, rev 2", "content": map[string]any{"prompt": "3 + 3 = ?"}, "answer": map[string]any{"value": 6},
+		"explanation": "3 + 3 = 6", "hint": ""})
+	got := reviewer.must(200, "GET", "/admin/questions/"+qid, nil)["question"].(map[string]any)
+	if got["status"] != "draft" || got["published_version_id"] != pub["published_version_id"] {
+		t.Fatalf("edit should create a draft v2 while v1 stays live: %v", got)
+	}
+
+	// Preview grades like the child app
+	pv := editor.must(200, "POST", "/admin/questions/"+qid+"/preview", map[string]any{"response": map[string]any{"value": 6}})
+	if pv["correct"] != true {
+		t.Fatalf("preview grading: %v", pv)
+	}
+
+	// Asset governance: AI-generated imagery cannot be approved
+	var licID int
+	_ = e.pool.QueryRow(ctx, `SELECT id FROM asset_licenses WHERE name = 'DrawKit License'`).Scan(&licID)
+	var assetID string
+	_ = e.pool.QueryRow(ctx, `INSERT INTO assets (code, name, kind, source, creator, license_id, license_url, ai_generated)
+		VALUES ('ILL-9001','x.svg','illustration','Generator','AI',$1,'https://www.drawkit.com/license',true) RETURNING id`, licID).Scan(&assetID)
+	reviewer.must(200, "POST", "/admin/assets/"+assetID+"/transition", map[string]any{"to": "license_verified"})
+	if code, _ := reviewer.do("POST", "/admin/assets/"+assetID+"/transition", map[string]any{"to": "design_approved"}); code != 409 {
+		t.Fatal("AI-generated asset must not be design-approved")
+	}
+}

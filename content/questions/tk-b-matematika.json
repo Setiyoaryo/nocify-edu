@@ -1,0 +1,773 @@
+{
+  "source": "EduPlay seed set v1 (2026-09-25). Drafted with AI assistance — MUST pass academic review before production (§7, §24).",
+  "questions": [
+    {
+      "code": "TKB-MAT-HIT-01",
+      "skill": "tk-membilang-1-10",
+      "type": "tap_count",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat membilang banyak benda sampai 10.",
+      "content": {
+        "prompt": "Ada berapa jeruk? Ketuk satu per satu sambil menghitung.",
+        "audio_text": "Ada berapa jeruk? Ketuk satu per satu sambil menghitung.",
+        "symbol": "orange",
+        "color": "orange",
+        "count": 3,
+        "choices": [
+          2,
+          3,
+          4
+        ]
+      },
+      "answer": {
+        "value": 3
+      },
+      "explanation": "Kalau dihitung satu per satu, ada 3 jeruk.",
+      "hint": "Ketuk setiap gambar sekali saja, lalu lihat angkanya."
+    },
+    {
+      "code": "TKB-MAT-HIT-02",
+      "skill": "tk-membilang-1-10",
+      "type": "tap_count",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat membilang banyak benda sampai 10.",
+      "content": {
+        "prompt": "Ada berapa bintang? Ketuk satu per satu sambil menghitung.",
+        "audio_text": "Ada berapa bintang? Ketuk satu per satu sambil menghitung.",
+        "symbol": "star",
+        "color": "yellow",
+        "count": 4,
+        "choices": [
+          3,
+          4,
+          5
+        ]
+      },
+      "answer": {
+        "value": 4
+      },
+      "explanation": "Kalau dihitung satu per satu, ada 4 bintang.",
+      "hint": "Ketuk setiap gambar sekali saja, lalu lihat angkanya."
+    },
+    {
+      "code": "TKB-MAT-HIT-03",
+      "skill": "tk-membilang-1-10",
+      "type": "tap_count",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat membilang banyak benda sampai 10.",
+      "content": {
+        "prompt": "Ada berapa ikan? Ketuk satu per satu sambil menghitung.",
+        "audio_text": "Ada berapa ikan? Ketuk satu per satu sambil menghitung.",
+        "symbol": "fish",
+        "color": "blue",
+        "count": 5,
+        "choices": [
+          4,
+          5,
+          6
+        ]
+      },
+      "answer": {
+        "value": 5
+      },
+      "explanation": "Kalau dihitung satu per satu, ada 5 ikan.",
+      "hint": "Ketuk setiap gambar sekali saja, lalu lihat angkanya."
+    },
+    {
+      "code": "TKB-MAT-HIT-04",
+      "skill": "tk-membilang-1-10",
+      "type": "tap_count",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat membilang banyak benda sampai 10.",
+      "content": {
+        "prompt": "Ada berapa balon? Ketuk satu per satu sambil menghitung.",
+        "audio_text": "Ada berapa balon? Ketuk satu per satu sambil menghitung.",
+        "symbol": "balloon",
+        "color": "red",
+        "count": 6,
+        "choices": [
+          5,
+          6,
+          7
+        ]
+      },
+      "answer": {
+        "value": 6
+      },
+      "explanation": "Kalau dihitung satu per satu, ada 6 balon.",
+      "hint": "Ketuk setiap gambar sekali saja, lalu lihat angkanya."
+    },
+    {
+      "code": "TKB-MAT-HIT-05",
+      "skill": "tk-membilang-1-10",
+      "type": "tap_count",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat membilang banyak benda sampai 10.",
+      "content": {
+        "prompt": "Ada berapa bunga? Ketuk satu per satu sambil menghitung.",
+        "audio_text": "Ada berapa bunga? Ketuk satu per satu sambil menghitung.",
+        "symbol": "flower",
+        "color": "pink",
+        "count": 7,
+        "choices": [
+          6,
+          7,
+          8
+        ]
+      },
+      "answer": {
+        "value": 7
+      },
+      "explanation": "Kalau dihitung satu per satu, ada 7 bunga.",
+      "hint": "Ketuk setiap gambar sekali saja, lalu lihat angkanya."
+    },
+    {
+      "code": "TKB-MAT-HIT-06",
+      "skill": "tk-membilang-1-10",
+      "type": "tap_count",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat membilang banyak benda sampai 10.",
+      "content": {
+        "prompt": "Ada berapa mobil? Ketuk satu per satu sambil menghitung.",
+        "audio_text": "Ada berapa mobil? Ketuk satu per satu sambil menghitung.",
+        "symbol": "car",
+        "color": "blue",
+        "count": 8,
+        "choices": [
+          7,
+          8,
+          9
+        ]
+      },
+      "answer": {
+        "value": 8
+      },
+      "explanation": "Kalau dihitung satu per satu, ada 8 mobil.",
+      "hint": "Ketuk setiap gambar sekali saja, lalu lihat angkanya."
+    },
+    {
+      "code": "TKB-MAT-HIT-07",
+      "skill": "tk-membilang-1-10",
+      "type": "tap_count",
+      "difficulty": 3,
+      "learning_objective": "Anak dapat membilang banyak benda sampai 10.",
+      "content": {
+        "prompt": "Ada berapa burung? Ketuk satu per satu sambil menghitung.",
+        "audio_text": "Ada berapa burung? Ketuk satu per satu sambil menghitung.",
+        "symbol": "bird",
+        "color": "yellow",
+        "count": 9,
+        "choices": [
+          8,
+          9,
+          10
+        ]
+      },
+      "answer": {
+        "value": 9
+      },
+      "explanation": "Kalau dihitung satu per satu, ada 9 burung.",
+      "hint": "Ketuk setiap gambar sekali saja, lalu lihat angkanya."
+    },
+    {
+      "code": "TKB-MAT-HIT-08",
+      "skill": "tk-membilang-1-10",
+      "type": "tap_count",
+      "difficulty": 3,
+      "learning_objective": "Anak dapat membilang banyak benda sampai 10.",
+      "content": {
+        "prompt": "Ada berapa wortel? Ketuk satu per satu sambil menghitung.",
+        "audio_text": "Ada berapa wortel? Ketuk satu per satu sambil menghitung.",
+        "symbol": "carrot",
+        "color": "orange",
+        "count": 10,
+        "choices": [
+          9,
+          10,
+          11
+        ]
+      },
+      "answer": {
+        "value": 10
+      },
+      "explanation": "Kalau dihitung satu per satu, ada 10 wortel.",
+      "hint": "Ketuk setiap gambar sekali saja, lalu lihat angkanya."
+    },
+    {
+      "code": "TKB-MAT-BND-01",
+      "skill": "tk-banyak-sedikit",
+      "type": "image_choice",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat membandingkan banyak benda (lebih banyak / lebih sedikit).",
+      "content": {
+        "prompt": "Mana yang jeruknya lebih banyak?",
+        "audio_text": "Mana yang jeruknya lebih banyak?",
+        "options": [
+          {
+            "id": "a",
+            "label": "3 jeruk",
+            "figures": [
+              {
+                "icon": "orange",
+                "color": "orange",
+                "count": 3
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "5 jeruk",
+            "figures": [
+              {
+                "icon": "orange",
+                "color": "orange",
+                "count": 5
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Kelompok pertama ada 3, kelompok kedua ada 5. Jadi yang lebih banyak adalah kelompok berisi 5.",
+      "hint": "Hitung tiap kelompok dulu, lalu bandingkan angkanya."
+    },
+    {
+      "code": "TKB-MAT-BND-02",
+      "skill": "tk-banyak-sedikit",
+      "type": "image_choice",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat membandingkan banyak benda (lebih banyak / lebih sedikit).",
+      "content": {
+        "prompt": "Mana yang ikannya lebih sedikit?",
+        "audio_text": "Mana yang ikannya lebih sedikit?",
+        "options": [
+          {
+            "id": "a",
+            "label": "6 ikan",
+            "figures": [
+              {
+                "icon": "fish",
+                "color": "blue",
+                "count": 6
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "2 ikan",
+            "figures": [
+              {
+                "icon": "fish",
+                "color": "blue",
+                "count": 2
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Kelompok pertama ada 6, kelompok kedua ada 2. Jadi yang lebih sedikit adalah kelompok berisi 2.",
+      "hint": "Hitung tiap kelompok dulu, lalu bandingkan angkanya."
+    },
+    {
+      "code": "TKB-MAT-BND-03",
+      "skill": "tk-banyak-sedikit",
+      "type": "image_choice",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat membandingkan banyak benda (lebih banyak / lebih sedikit).",
+      "content": {
+        "prompt": "Mana yang bintangnya lebih banyak?",
+        "audio_text": "Mana yang bintangnya lebih banyak?",
+        "options": [
+          {
+            "id": "a",
+            "label": "4 bintang",
+            "figures": [
+              {
+                "icon": "star",
+                "color": "yellow",
+                "count": 4
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "7 bintang",
+            "figures": [
+              {
+                "icon": "star",
+                "color": "yellow",
+                "count": 7
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Kelompok pertama ada 4, kelompok kedua ada 7. Jadi yang lebih banyak adalah kelompok berisi 7.",
+      "hint": "Hitung tiap kelompok dulu, lalu bandingkan angkanya."
+    },
+    {
+      "code": "TKB-MAT-BND-04",
+      "skill": "tk-banyak-sedikit",
+      "type": "image_choice",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat membandingkan banyak benda (lebih banyak / lebih sedikit).",
+      "content": {
+        "prompt": "Mana yang balonnya lebih sedikit?",
+        "audio_text": "Mana yang balonnya lebih sedikit?",
+        "options": [
+          {
+            "id": "a",
+            "label": "8 balon",
+            "figures": [
+              {
+                "icon": "balloon",
+                "color": "red",
+                "count": 8
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "5 balon",
+            "figures": [
+              {
+                "icon": "balloon",
+                "color": "red",
+                "count": 5
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Kelompok pertama ada 8, kelompok kedua ada 5. Jadi yang lebih sedikit adalah kelompok berisi 5.",
+      "hint": "Hitung tiap kelompok dulu, lalu bandingkan angkanya."
+    },
+    {
+      "code": "TKB-MAT-BND-05",
+      "skill": "tk-banyak-sedikit",
+      "type": "image_choice",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat membandingkan banyak benda (lebih banyak / lebih sedikit).",
+      "content": {
+        "prompt": "Mana yang bunganya lebih banyak?",
+        "audio_text": "Mana yang bunganya lebih banyak?",
+        "options": [
+          {
+            "id": "a",
+            "label": "2 bunga",
+            "figures": [
+              {
+                "icon": "flower",
+                "color": "pink",
+                "count": 2
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "3 bunga",
+            "figures": [
+              {
+                "icon": "flower",
+                "color": "pink",
+                "count": 3
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Kelompok pertama ada 2, kelompok kedua ada 3. Jadi yang lebih banyak adalah kelompok berisi 3.",
+      "hint": "Hitung tiap kelompok dulu, lalu bandingkan angkanya."
+    },
+    {
+      "code": "TKB-MAT-BND-06",
+      "skill": "tk-banyak-sedikit",
+      "type": "image_choice",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat membandingkan banyak benda (lebih banyak / lebih sedikit).",
+      "content": {
+        "prompt": "Mana yang cerinya lebih sedikit?",
+        "audio_text": "Mana yang cerinya lebih sedikit?",
+        "options": [
+          {
+            "id": "a",
+            "label": "9 ceri",
+            "figures": [
+              {
+                "icon": "cherries",
+                "color": "red",
+                "count": 9
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "6 ceri",
+            "figures": [
+              {
+                "icon": "cherries",
+                "color": "red",
+                "count": 6
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Kelompok pertama ada 9, kelompok kedua ada 6. Jadi yang lebih sedikit adalah kelompok berisi 6.",
+      "hint": "Hitung tiap kelompok dulu, lalu bandingkan angkanya."
+    },
+    {
+      "code": "TKB-MAT-BTK-01",
+      "skill": "tk-bentuk-dasar",
+      "type": "image_choice",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat mengenali bentuk dasar.",
+      "content": {
+        "prompt": "Ketuk bentuk lingkaran.",
+        "audio_text": "Ketuk bentuk lingkaran.",
+        "options": [
+          {
+            "id": "a",
+            "label": "",
+            "figures": [
+              {
+                "icon": "square",
+                "color": "blue"
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "",
+            "figures": [
+              {
+                "icon": "circle",
+                "color": "blue"
+              }
+            ]
+          },
+          {
+            "id": "c",
+            "label": "",
+            "figures": [
+              {
+                "icon": "triangle",
+                "color": "blue"
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Lingkaran bulat dan tidak punya sudut.",
+      "hint": "Cari bentuk yang bulat seperti bola."
+    },
+    {
+      "code": "TKB-MAT-BTK-02",
+      "skill": "tk-bentuk-dasar",
+      "type": "image_choice",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat mengenali bentuk dasar.",
+      "content": {
+        "prompt": "Ketuk bentuk segitiga.",
+        "audio_text": "Ketuk bentuk segitiga.",
+        "options": [
+          {
+            "id": "a",
+            "label": "",
+            "figures": [
+              {
+                "icon": "square",
+                "color": "blue"
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "",
+            "figures": [
+              {
+                "icon": "triangle",
+                "color": "blue"
+              }
+            ]
+          },
+          {
+            "id": "c",
+            "label": "",
+            "figures": [
+              {
+                "icon": "circle",
+                "color": "blue"
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Segitiga punya 3 sisi dan 3 sudut.",
+      "hint": "Hitung sisinya: ada 3."
+    },
+    {
+      "code": "TKB-MAT-BTK-03",
+      "skill": "tk-bentuk-dasar",
+      "type": "image_choice",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat mengenali bentuk dasar.",
+      "content": {
+        "prompt": "Ketuk bentuk persegi.",
+        "audio_text": "Ketuk bentuk persegi.",
+        "options": [
+          {
+            "id": "a",
+            "label": "",
+            "figures": [
+              {
+                "icon": "triangle",
+                "color": "blue"
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "",
+            "figures": [
+              {
+                "icon": "circle",
+                "color": "blue"
+              }
+            ]
+          },
+          {
+            "id": "c",
+            "label": "",
+            "figures": [
+              {
+                "icon": "square",
+                "color": "blue"
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "c"
+      },
+      "explanation": "Persegi punya 4 sisi yang sama panjang.",
+      "hint": "Cari yang punya 4 sisi sama panjang."
+    },
+    {
+      "code": "TKB-MAT-POL-01",
+      "skill": "tk-pola",
+      "type": "image_choice",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat melanjutkan pola sederhana.",
+      "content": {
+        "prompt": "Apa yang datang berikutnya?",
+        "audio_text": "Lihat polanya. Apa yang datang berikutnya?",
+        "figures": [
+          {
+            "icon": "circle",
+            "color": "red"
+          },
+          {
+            "icon": "square",
+            "color": "blue"
+          },
+          {
+            "icon": "circle",
+            "color": "red"
+          },
+          {
+            "icon": "square",
+            "color": "blue"
+          },
+          {
+            "icon": "circle",
+            "color": "red"
+          },
+          {
+            "icon": "question",
+            "color": "gray"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "",
+            "figures": [
+              {
+                "icon": "square",
+                "color": "blue"
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "",
+            "figures": [
+              {
+                "icon": "triangle",
+                "color": "yellow"
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Pola selalu berulang dengan urutan yang sama, jadi berikutnya adalah bentuk yang sama dengan urutan itu.",
+      "hint": "Sebutkan polanya keras-keras dari awal."
+    },
+    {
+      "code": "TKB-MAT-POL-02",
+      "skill": "tk-pola",
+      "type": "image_choice",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat melanjutkan pola sederhana.",
+      "content": {
+        "prompt": "Apa yang datang berikutnya?",
+        "audio_text": "Lihat polanya. Apa yang datang berikutnya?",
+        "figures": [
+          {
+            "icon": "star",
+            "color": "yellow"
+          },
+          {
+            "icon": "star",
+            "color": "yellow"
+          },
+          {
+            "icon": "moon",
+            "color": "purple"
+          },
+          {
+            "icon": "star",
+            "color": "yellow"
+          },
+          {
+            "icon": "star",
+            "color": "yellow"
+          },
+          {
+            "icon": "question",
+            "color": "gray"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "",
+            "figures": [
+              {
+                "icon": "circle",
+                "color": "blue"
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "",
+            "figures": [
+              {
+                "icon": "moon",
+                "color": "purple"
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Pola selalu berulang dengan urutan yang sama, jadi berikutnya adalah bentuk yang sama dengan urutan itu.",
+      "hint": "Sebutkan polanya keras-keras dari awal."
+    },
+    {
+      "code": "TKB-MAT-POL-03",
+      "skill": "tk-pola",
+      "type": "image_choice",
+      "difficulty": 3,
+      "learning_objective": "Anak dapat melanjutkan pola sederhana.",
+      "content": {
+        "prompt": "Apa yang datang berikutnya?",
+        "audio_text": "Lihat polanya. Apa yang datang berikutnya?",
+        "figures": [
+          {
+            "icon": "orange",
+            "color": "orange"
+          },
+          {
+            "icon": "cherries",
+            "color": "red"
+          },
+          {
+            "icon": "carrot",
+            "color": "orange"
+          },
+          {
+            "icon": "orange",
+            "color": "orange"
+          },
+          {
+            "icon": "cherries",
+            "color": "red"
+          },
+          {
+            "icon": "question",
+            "color": "gray"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "",
+            "figures": [
+              {
+                "icon": "carrot",
+                "color": "orange"
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label": "",
+            "figures": [
+              {
+                "icon": "orange",
+                "color": "orange"
+              }
+            ]
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Pola selalu berulang dengan urutan yang sama, jadi berikutnya adalah bentuk yang sama dengan urutan itu.",
+      "hint": "Sebutkan polanya keras-keras dari awal."
+    }
+  ]
+}

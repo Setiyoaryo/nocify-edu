@@ -1,0 +1,16 @@
+node_modules/
+.svelte-kit/
+apps/web/build/
+apps/web/test-results/
+apps/web/playwright-report/
+apps/api/data/
+.env
+infra/compose/.env
+*.dump
+
+# Never commit secrets, database dumps or local build output
+*secrets*
+*.tar
+*.sql.gz
+nocify-cloud-licenses.sql
+/.svelte-kit/

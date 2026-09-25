@@ -1,0 +1,363 @@
+{
+  "source": "EduPlay seed set v1 (2026-09-25). Drafted with AI assistance — MUST pass academic review before production (§7, §24).",
+  "questions": [
+    {
+      "code": "TKB-BHS-HRF-01",
+      "skill": "tk-huruf-awal",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat mengenali huruf awal nama benda.",
+      "content": {
+        "prompt": "Kucing dimulai dengan huruf apa?",
+        "audio_text": "Kucing. Kucing dimulai dengan huruf apa?",
+        "figures": [
+          {
+            "icon": "cat"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "K"
+          },
+          {
+            "id": "b",
+            "label": "M"
+          },
+          {
+            "id": "c",
+            "label": "S"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Kata Kucing diawali bunyi huruf K.",
+      "hint": "Ucapkan pelan-pelan: Kucing. Dengar bunyi pertamanya."
+    },
+    {
+      "code": "TKB-BHS-HRF-02",
+      "skill": "tk-huruf-awal",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat mengenali huruf awal nama benda.",
+      "content": {
+        "prompt": "Ikan dimulai dengan huruf apa?",
+        "audio_text": "Ikan. Ikan dimulai dengan huruf apa?",
+        "figures": [
+          {
+            "icon": "fish"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "A"
+          },
+          {
+            "id": "b",
+            "label": "I"
+          },
+          {
+            "id": "c",
+            "label": "U"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Kata Ikan diawali bunyi huruf I.",
+      "hint": "Ucapkan pelan-pelan: Ikan. Dengar bunyi pertamanya."
+    },
+    {
+      "code": "TKB-BHS-HRF-03",
+      "skill": "tk-huruf-awal",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Anak dapat mengenali huruf awal nama benda.",
+      "content": {
+        "prompt": "Bulan dimulai dengan huruf apa?",
+        "audio_text": "Bulan. Bulan dimulai dengan huruf apa?",
+        "figures": [
+          {
+            "icon": "moon"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "B"
+          },
+          {
+            "id": "b",
+            "label": "D"
+          },
+          {
+            "id": "c",
+            "label": "P"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Kata Bulan diawali bunyi huruf B.",
+      "hint": "Ucapkan pelan-pelan: Bulan. Dengar bunyi pertamanya."
+    },
+    {
+      "code": "TKB-BHS-HRF-04",
+      "skill": "tk-huruf-awal",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat mengenali huruf awal nama benda.",
+      "content": {
+        "prompt": "Pesawat dimulai dengan huruf apa?",
+        "audio_text": "Pesawat. Pesawat dimulai dengan huruf apa?",
+        "figures": [
+          {
+            "icon": "airplane"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "B"
+          },
+          {
+            "id": "b",
+            "label": "P"
+          },
+          {
+            "id": "c",
+            "label": "D"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Kata Pesawat diawali bunyi huruf P.",
+      "hint": "Ucapkan pelan-pelan: Pesawat. Dengar bunyi pertamanya."
+    },
+    {
+      "code": "TKB-BHS-HRF-05",
+      "skill": "tk-huruf-awal",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat mengenali huruf awal nama benda.",
+      "content": {
+        "prompt": "Sapi dimulai dengan huruf apa?",
+        "audio_text": "Sapi. Sapi dimulai dengan huruf apa?",
+        "figures": [
+          {
+            "icon": "cow"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "S"
+          },
+          {
+            "id": "b",
+            "label": "C"
+          },
+          {
+            "id": "c",
+            "label": "Z"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Kata Sapi diawali bunyi huruf S.",
+      "hint": "Ucapkan pelan-pelan: Sapi. Dengar bunyi pertamanya."
+    },
+    {
+      "code": "TKB-BHS-HRF-06",
+      "skill": "tk-huruf-awal",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat mengenali huruf awal nama benda.",
+      "content": {
+        "prompt": "Roti dimulai dengan huruf apa?",
+        "audio_text": "Roti. Roti dimulai dengan huruf apa?",
+        "figures": [
+          {
+            "icon": "bread"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "R"
+          },
+          {
+            "id": "b",
+            "label": "L"
+          },
+          {
+            "id": "c",
+            "label": "T"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Kata Roti diawali bunyi huruf R.",
+      "hint": "Ucapkan pelan-pelan: Roti. Dengar bunyi pertamanya."
+    },
+    {
+      "code": "TKB-BHS-URT-01",
+      "skill": "tk-urutan-cerita",
+      "type": "sequence",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat mengurutkan kejadian sederhana.",
+      "content": {
+        "prompt": "Urutkan kegiatan pagi hari. Ketuk dari yang pertama.",
+        "audio_text": "Urutkan kegiatan pagi hari. Ketuk dari yang pertama.",
+        "items": [
+          {
+            "id": "1",
+            "label": "Bangun tidur",
+            "icon": "bed"
+          },
+          {
+            "id": "2",
+            "label": "Sikat gigi",
+            "icon": "tooth"
+          },
+          {
+            "id": "3",
+            "label": "Berangkat sekolah",
+            "icon": "backpack"
+          }
+        ]
+      },
+      "answer": {
+        "order": [
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      "explanation": "Urutannya: bangun tidur, lalu sikat gigi, lalu berangkat sekolah.",
+      "hint": "Pikirkan: apa yang terjadi paling awal?"
+    },
+    {
+      "code": "TKB-BHS-URT-02",
+      "skill": "tk-urutan-cerita",
+      "type": "sequence",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat mengurutkan kejadian sederhana.",
+      "content": {
+        "prompt": "Urutkan cara menanam biji. Ketuk dari yang pertama.",
+        "audio_text": "Urutkan cara menanam biji. Ketuk dari yang pertama.",
+        "items": [
+          {
+            "id": "1",
+            "label": "Gali tanah",
+            "icon": "shovel"
+          },
+          {
+            "id": "2",
+            "label": "Masukkan biji",
+            "icon": "acorn"
+          },
+          {
+            "id": "3",
+            "label": "Siram air",
+            "icon": "drop"
+          }
+        ]
+      },
+      "answer": {
+        "order": [
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      "explanation": "Urutannya: gali tanah, lalu masukkan biji, lalu siram air.",
+      "hint": "Pikirkan: apa yang terjadi paling awal?"
+    },
+    {
+      "code": "TKB-BHS-URT-03",
+      "skill": "tk-urutan-cerita",
+      "type": "sequence",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat mengurutkan kejadian sederhana.",
+      "content": {
+        "prompt": "Urutkan saat makan. Ketuk dari yang pertama.",
+        "audio_text": "Urutkan saat makan. Ketuk dari yang pertama.",
+        "items": [
+          {
+            "id": "1",
+            "label": "Cuci tangan",
+            "icon": "hand-soap"
+          },
+          {
+            "id": "2",
+            "label": "Makan",
+            "icon": "bread"
+          },
+          {
+            "id": "3",
+            "label": "Cuci tangan lagi",
+            "icon": "hand-soap"
+          }
+        ]
+      },
+      "answer": {
+        "order": [
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      "explanation": "Urutannya: cuci tangan, lalu makan, lalu cuci tangan lagi.",
+      "hint": "Pikirkan: apa yang terjadi paling awal?"
+    },
+    {
+      "code": "TKB-BHS-URT-04",
+      "skill": "tk-urutan-cerita",
+      "type": "sequence",
+      "difficulty": 2,
+      "learning_objective": "Anak dapat mengurutkan kejadian sederhana.",
+      "content": {
+        "prompt": "Urutkan dari yang paling kecil. Ketuk dari yang pertama.",
+        "audio_text": "Urutkan dari yang paling kecil. Ketuk dari yang pertama.",
+        "items": [
+          {
+            "id": "1",
+            "label": "Semut",
+            "icon": "bug"
+          },
+          {
+            "id": "2",
+            "label": "Kucing",
+            "icon": "cat"
+          },
+          {
+            "id": "3",
+            "label": "Kuda",
+            "icon": "horse"
+          }
+        ]
+      },
+      "answer": {
+        "order": [
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      "explanation": "Urutannya: semut, lalu kucing, lalu kuda.",
+      "hint": "Pikirkan: apa yang terjadi paling awal?"
+    }
+  ]
+}

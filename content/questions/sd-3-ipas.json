@@ -1,0 +1,381 @@
+{
+  "source": "EduPlay seed set v1 (2026-09-25). Drafted with AI assistance — MUST pass academic review before production (§7, §24).",
+  "questions": [
+    {
+      "code": "SD3-IPA-TMB-01",
+      "skill": "sd3-bagian-tumbuhan",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menjelaskan fungsi bagian-bagian tumbuhan.",
+      "content": {
+        "prompt": "Bagian tumbuhan yang menyerap air dari tanah adalah …",
+        "audio_text": "Bagian tumbuhan yang menyerap air dari tanah adalah …",
+        "figures": [
+          {
+            "icon": "plant",
+            "color": "green"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "Daun"
+          },
+          {
+            "id": "b",
+            "label": "Akar"
+          },
+          {
+            "id": "c",
+            "label": "Bunga"
+          },
+          {
+            "id": "d",
+            "label": "Batang"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Akar menyerap air dan mineral dari tanah.",
+      "hint": "Bayangkan tumbuhan dari bawah (tanah) sampai atas."
+    },
+    {
+      "code": "SD3-IPA-TMB-02",
+      "skill": "sd3-bagian-tumbuhan",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menjelaskan fungsi bagian-bagian tumbuhan.",
+      "content": {
+        "prompt": "Bagian tumbuhan tempat membuat makanan (fotosintesis) adalah …",
+        "audio_text": "Bagian tumbuhan tempat membuat makanan (fotosintesis) adalah …",
+        "figures": [
+          {
+            "icon": "plant",
+            "color": "green"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "Akar"
+          },
+          {
+            "id": "b",
+            "label": "Batang"
+          },
+          {
+            "id": "c",
+            "label": "Daun"
+          },
+          {
+            "id": "d",
+            "label": "Buah"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "c"
+      },
+      "explanation": "Daun membuat makanan dengan bantuan cahaya matahari.",
+      "hint": "Bayangkan tumbuhan dari bawah (tanah) sampai atas."
+    },
+    {
+      "code": "SD3-IPA-TMB-03",
+      "skill": "sd3-bagian-tumbuhan",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menjelaskan fungsi bagian-bagian tumbuhan.",
+      "content": {
+        "prompt": "Bagian yang mengangkut air dari akar ke daun adalah …",
+        "audio_text": "Bagian yang mengangkut air dari akar ke daun adalah …",
+        "figures": [
+          {
+            "icon": "plant",
+            "color": "green"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "Batang"
+          },
+          {
+            "id": "b",
+            "label": "Bunga"
+          },
+          {
+            "id": "c",
+            "label": "Biji"
+          },
+          {
+            "id": "d",
+            "label": "Daun"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Batang mengalirkan air dan menopang tumbuhan.",
+      "hint": "Bayangkan tumbuhan dari bawah (tanah) sampai atas."
+    },
+    {
+      "code": "SD3-IPA-TMB-04",
+      "skill": "sd3-bagian-tumbuhan",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menjelaskan fungsi bagian-bagian tumbuhan.",
+      "content": {
+        "prompt": "Bagian tumbuhan yang biasanya berkembang menjadi buah adalah …",
+        "audio_text": "Bagian tumbuhan yang biasanya berkembang menjadi buah adalah …",
+        "figures": [
+          {
+            "icon": "plant",
+            "color": "green"
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "label": "Akar"
+          },
+          {
+            "id": "b",
+            "label": "Bunga"
+          },
+          {
+            "id": "c",
+            "label": "Daun"
+          },
+          {
+            "id": "d",
+            "label": "Batang"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Setelah penyerbukan, bunga berkembang menjadi buah.",
+      "hint": "Bayangkan tumbuhan dari bawah (tanah) sampai atas."
+    },
+    {
+      "code": "SD3-IPA-TMB-05",
+      "skill": "sd3-bagian-tumbuhan",
+      "type": "matching",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat memasangkan bagian tumbuhan dengan fungsinya.",
+      "content": {
+        "prompt": "Pasangkan bagian tumbuhan dengan fungsinya.",
+        "audio_text": "Pasangkan bagian tumbuhan dengan fungsinya.",
+        "left": [
+          {
+            "id": "l1",
+            "label": "Akar"
+          },
+          {
+            "id": "l2",
+            "label": "Daun"
+          },
+          {
+            "id": "l3",
+            "label": "Batang"
+          }
+        ],
+        "right": [
+          {
+            "id": "r1",
+            "label": "Menyerap air"
+          },
+          {
+            "id": "r2",
+            "label": "Membuat makanan"
+          },
+          {
+            "id": "r3",
+            "label": "Mengangkut air"
+          }
+        ]
+      },
+      "answer": {
+        "pairs": {
+          "l1": "r1",
+          "l2": "r2",
+          "l3": "r3"
+        }
+      },
+      "explanation": "Akar menyerap air, daun membuat makanan, batang mengangkut air ke seluruh tumbuhan.",
+      "hint": "Mulai dari akar: ia ada di dalam tanah."
+    },
+    {
+      "code": "SD3-IPA-WJD-01",
+      "skill": "sd3-wujud-benda",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat membedakan wujud benda padat, cair, dan gas.",
+      "content": {
+        "prompt": "Apa wujud benda ini: es batu?",
+        "audio_text": "Apa wujud benda ini: es batu?",
+        "options": [
+          {
+            "id": "a",
+            "label": "Padat"
+          },
+          {
+            "id": "b",
+            "label": "Cair"
+          },
+          {
+            "id": "c",
+            "label": "Gas"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Benda padat bentuknya tetap.",
+      "hint": "Apakah bentuknya tetap, mengalir, atau melayang di udara?"
+    },
+    {
+      "code": "SD3-IPA-WJD-02",
+      "skill": "sd3-wujud-benda",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat membedakan wujud benda padat, cair, dan gas.",
+      "content": {
+        "prompt": "Apa wujud benda ini: air minum?",
+        "audio_text": "Apa wujud benda ini: air minum?",
+        "options": [
+          {
+            "id": "a",
+            "label": "Padat"
+          },
+          {
+            "id": "b",
+            "label": "Cair"
+          },
+          {
+            "id": "c",
+            "label": "Gas"
+          }
+        ],
+        "figures": [
+          {
+            "icon": "drop",
+            "color": "blue"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Benda cair mengikuti bentuk wadahnya.",
+      "hint": "Apakah bentuknya tetap, mengalir, atau melayang di udara?"
+    },
+    {
+      "code": "SD3-IPA-WJD-03",
+      "skill": "sd3-wujud-benda",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat membedakan wujud benda padat, cair, dan gas.",
+      "content": {
+        "prompt": "Apa wujud benda ini: uap air panas?",
+        "audio_text": "Apa wujud benda ini: uap air panas?",
+        "options": [
+          {
+            "id": "a",
+            "label": "Padat"
+          },
+          {
+            "id": "b",
+            "label": "Cair"
+          },
+          {
+            "id": "c",
+            "label": "Gas"
+          }
+        ],
+        "figures": [
+          {
+            "icon": "cloud",
+            "color": "blue"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "c"
+      },
+      "explanation": "Gas mengisi seluruh ruang dan sering tidak terlihat.",
+      "hint": "Apakah bentuknya tetap, mengalir, atau melayang di udara?"
+    },
+    {
+      "code": "SD3-IPA-WJD-04",
+      "skill": "sd3-wujud-benda",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat membedakan wujud benda padat, cair, dan gas.",
+      "content": {
+        "prompt": "Apa wujud benda ini: buku?",
+        "audio_text": "Apa wujud benda ini: buku?",
+        "options": [
+          {
+            "id": "a",
+            "label": "Padat"
+          },
+          {
+            "id": "b",
+            "label": "Cair"
+          },
+          {
+            "id": "c",
+            "label": "Gas"
+          }
+        ],
+        "figures": [
+          {
+            "icon": "book",
+            "color": "purple"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Benda padat bentuknya tetap.",
+      "hint": "Apakah bentuknya tetap, mengalir, atau melayang di udara?"
+    },
+    {
+      "code": "SD3-IPA-WJD-05",
+      "skill": "sd3-wujud-benda",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat membedakan wujud benda padat, cair, dan gas.",
+      "content": {
+        "prompt": "Apa wujud benda ini: jus buah?",
+        "audio_text": "Apa wujud benda ini: jus buah?",
+        "options": [
+          {
+            "id": "a",
+            "label": "Padat"
+          },
+          {
+            "id": "b",
+            "label": "Cair"
+          },
+          {
+            "id": "c",
+            "label": "Gas"
+          }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Benda cair mengikuti bentuk wadahnya.",
+      "hint": "Apakah bentuknya tetap, mengalir, atau melayang di udara?"
+    }
+  ]
+}
