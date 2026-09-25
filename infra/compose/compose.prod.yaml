@@ -36,7 +36,7 @@ services:
       retries: 10
 
   api:
-    image: ${REGISTRY:-ghcr.io/nocify}/eduplay-api:${TAG:-latest}
+    image: ${REGISTRY:-ghcr.io/setiyoaryo}/eduplay-api:${TAG:-latest}
     restart: unless-stopped
     environment: &apienv
       APP_ENV: ${APP_ENV:-production}
@@ -63,7 +63,7 @@ services:
       - traefik.http.services.api.loadbalancer.server.port=8080
 
   worker:
-    image: ${REGISTRY:-ghcr.io/nocify}/eduplay-api:${TAG:-latest}
+    image: ${REGISTRY:-ghcr.io/setiyoaryo}/eduplay-api:${TAG:-latest}
     restart: unless-stopped
     command: ["worker"]
     # No HTTP listener: healthy while the worker process (PID 1) is alive.
@@ -75,7 +75,7 @@ services:
     depends_on: { api: { condition: service_started } }
 
   web:
-    image: ${REGISTRY:-ghcr.io/nocify}/eduplay-web:${TAG:-latest}
+    image: ${REGISTRY:-ghcr.io/setiyoaryo}/eduplay-web:${TAG:-latest}
     restart: unless-stopped
     environment:
       ORIGIN: https://${DOMAIN}
