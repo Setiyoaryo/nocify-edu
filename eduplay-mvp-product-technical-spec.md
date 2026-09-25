@@ -2379,7 +2379,7 @@ Recorded per §62. Full rationale: `docs/decisions.md`.
 # Appendix B. Production iteration (2026-09-25)
 
 - **Payments:** Midtrans Snap. Webhook = signature check (§22) plus a Status API re-check; idempotent on `transaction_id:status`. Monthly plan is **pay-per-month without auto-renewal** (auto-renew deferred). Each payment adds one month; 3-day grace after the end date, then back to free.
-- **Storage:** S3-compatible object storage (bucket private, served through the API). MinIO in development.
+- **Storage:** S3-compatible object storage (bucket private, served through the API). SeaweedFS in development.
 - **Learning logic added:** skill-focused sessions; **parent missions** (turn a recommendation into "N challenges on skill X", max 3 active, shown first on the child home, badge on completion); learning **streak**; mastery aggregated per **chapter** (Child → Subject → Chapter → Skill, §11).
 - **Data model:** `assessments.skill_id`, `assessments.mission_id`, new table `child_missions`.
 - **Brand/visuals:** no emoji anywhere. Question content uses `figures` (approved icon names + palette colours) instead of free-text visuals. Icons: Phosphor (MIT). Illustrations: unDraw, recoloured, provenance registered. Typography: Plus Jakarta Sans (one family).

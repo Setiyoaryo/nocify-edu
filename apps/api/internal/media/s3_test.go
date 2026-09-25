@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-// Runs against a real S3-compatible endpoint when TEST_S3_ENDPOINT is set (MinIO in compose).
+// Runs against a real S3-compatible endpoint when TEST_S3_ENDPOINT is set (SeaweedFS in compose).
 func TestS3RoundTrip(t *testing.T) {
 	ep := os.Getenv("TEST_S3_ENDPOINT")
 	if ep == "" {

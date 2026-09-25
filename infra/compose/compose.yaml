@@ -25,18 +25,18 @@ services:
       interval: 5s
       retries: 10
 
-  minio:
-    image: minio/minio:latest
-    command: ["server", "/data", "--console-address", ":9001"]
-    environment:
-      MINIO_ROOT_USER: eduplay
-      MINIO_ROOT_PASSWORD: eduplay-dev-secret
-    ports: ["127.0.0.1:59001:9001"] # console for local inspection
-    volumes: [minio:/data]
+  # S3-compatible object storage for development (SeaweedFS, Apache-2.0).
+  # MinIO no longer publishes public community images, so it cannot be pulled in CI.
+  s3:
+    image: chrislusf/seaweedfs:4.47
+    command: ["server", "-s3", "-s3.config=/etc/seaweedfs/s3.json", "-dir=/data"]
+    volumes:
+      - ./seaweedfs-s3.json:/etc/seaweedfs/s3.json:ro
+      - s3data:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9333/cluster/status"]
       interval: 5s
-      retries: 10
+      retries: 20
 
   api:
     build: { context: ../.., dockerfile: infra/docker/api.Dockerfile }
@@ -52,14 +52,14 @@ services:
       MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY:-}
       MIDTRANS_PRODUCTION: "false"
       STORAGE_DRIVER: s3
-      S3_ENDPOINT: minio:9000
+      S3_ENDPOINT: s3:8333
       S3_BUCKET: eduplay-dev
       S3_USE_SSL: "false"
       STORAGE_ACCESS_KEY: eduplay
       STORAGE_SECRET_KEY: eduplay-dev-secret
     depends_on:
       postgres: { condition: service_healthy }
-      minio: { condition: service_healthy }
+      s3: { condition: service_healthy }
     labels:
       - traefik.enable=true
       - traefik.http.routers.api.rule=PathPrefix(`/api`)
@@ -84,4 +84,4 @@ services:
 
 volumes:
   pgdata:
-  minio:
+  s3data:

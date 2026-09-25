@@ -17,7 +17,7 @@ make staff EMAIL=admin@eduplay.local PASSWORD=admin12345 ROLE=admin
 - Payments go through **Midtrans Snap**. Put a sandbox Server Key in `infra/compose/.env`
   (`MIDTRANS_SERVER_KEY=SB-Mid-server-…`), and expose the webhook (e.g. with a tunnel) as the Midtrans Notification URL.
   For automated tests: `PAYMENT_PROVIDER=mock make up` (never allowed in production).
-- File storage is S3-compatible: MinIO runs in the dev stack (console on http://127.0.0.1:59001).
+- File storage is S3-compatible: SeaweedFS runs in the dev stack as the S3 server (production uses any S3 provider).
 
 Local development without Docker for the apps:
 
@@ -58,5 +58,5 @@ docs/               Architecture, decisions, operations, privacy, brand-asset go
 | Design | Redesigned in the style of Indonesian edtech (Ruangguru/Zenius reference): Plus Jakarta Sans, indigo bands, yellow pill CTAs, card UI. unDraw illustrations with provenance; Phosphor icons; **no emoji, no AI imagery**. **Open:** logo/mascot by a designer (§26.2). |
 | Technical | Go, PostgreSQL, Docker, auth, RBAC, migrations, backups, structured logs, Prometheus metrics, CI: **done**. HTTPS via Traefik/Let's Encrypt is configured in `compose.prod.yaml` but not yet exercised on a real domain. |
 | Mobile | Verified at 320/360/1280 in Playwright; **open:** real-device performance testing |
-| Payments & storage | Midtrans Snap + verified webhooks; S3-compatible storage (MinIO in dev). **Open:** production Midtrans keys, bucket, and domain. |
+| Payments & storage | Midtrans Snap + verified webhooks; S3-compatible storage (SeaweedFS in dev). **Open:** production Midtrans keys, bucket, and domain. |
 | Before public launch | Legal review of child-data handling (UU PDP / PP 17/2025), academic review of the seed question bank, transactional email (deferred), auto-renewal (deferred) |

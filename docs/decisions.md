@@ -25,8 +25,8 @@ Each entry says what differs from the spec, why, and when to revisit.
 8. **Tap-to-order instead of drag-and-drop** for `sequence`/`matching`: more reliable for small
    fingers and fully keyboard/screen-reader operable. A drag interaction can be added later
    as an enhancement on the same renderer.
-9. **S3-compatible object storage** (`media.S3Storage`, minio-go) in staging/production, MinIO in the
-   dev stack, local disk only for tests. The bucket stays private and files are streamed through the
+9. **S3-compatible object storage** (`media.S3Storage`, minio-go client) in staging/production, SeaweedFS in the
+   dev stack (MinIO stopped publishing public images), local disk only for tests. The bucket stays private and files are streamed through the
    API, so the rule "only published assets are public" lives in one place. Production refuses local storage.
 10. **In-memory rate limiting.** Correct for the single-binary MVP; move to Redis if the API scales out.
 11. **Free-tier limits** (1 child, 3 challenges/day, teaser progress) and the price (Rp49.000) are

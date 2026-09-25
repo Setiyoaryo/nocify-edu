@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "eduplay",
+      "credentials": [{ "accessKey": "eduplay", "secretKey": "eduplay-dev-secret" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}
