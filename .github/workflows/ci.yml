@@ -54,6 +54,11 @@ jobs:
       - run: npx playwright test
         working-directory: apps/web
         env: { BASE_URL: "http://localhost:8000", E2E_PAYMENTS: mock }
+      - name: Container status and logs (on failure)
+        if: failure()
+        run: |
+          docker compose -f infra/compose/compose.yaml ps -a
+          docker compose -f infra/compose/compose.yaml logs --tail=80
       - if: failure()
         uses: actions/upload-artifact@v5
         with: { name: playwright-traces, path: apps/web/test-results }
