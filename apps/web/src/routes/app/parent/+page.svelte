@@ -111,7 +111,7 @@
 					</div>
 				</div>
 
-				<div class="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1.1fr_1fr]">
+				<div class="grid gap-6 p-5 sm:p-6 xl:grid-cols-[1.1fr_1fr]">
 					<div>
 						{#if progress.overall === null}
 							<p class="rounded-2xl bg-paper-deep p-5 text-ink-soft">{child.nickname} belum menyelesaikan challenge. Laporan muncul setelah challenge pertama.</p>

@@ -25,8 +25,8 @@
 	const initials = $derived((session.user?.display_name ?? '?').split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase());
 </script>
 
-<div class="min-h-dvh md:grid md:grid-cols-[16rem_1fr]">
-	<aside class="sticky top-0 hidden h-dvh flex-col gap-6 border-r border-line bg-paper p-5 md:flex">
+<div class="min-h-dvh lg:grid lg:grid-cols-[16rem_1fr]">
+	<aside class="sticky top-0 hidden h-dvh flex-col gap-6 border-r border-line bg-paper p-5 lg:flex">
 		<Wordmark href="/app/parent" />
 		<nav aria-label="Area orang tua">
 			<ul class="space-y-1">
@@ -52,17 +52,17 @@
 	</aside>
 
 	<div class="min-w-0">
-		<header class="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-paper/95 px-4 py-2 backdrop-blur md:hidden">
+		<header class="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-paper/95 px-4 py-2 backdrop-blur sm:px-6 lg:hidden">
 			<Wordmark href="/app/parent" />
 			<a href="/app/play" class="btn btn-sun btn-sm"><GameController size={18} weight="fill" aria-hidden="true" />Mode anak</a>
 		</header>
-		<main class="mx-auto max-w-6xl px-4 pt-6 pb-28 sm:px-6 md:pt-10 md:pb-16">
+		<main class="mx-auto max-w-6xl px-4 pt-6 pb-28 sm:px-6 sm:pt-8 lg:pt-10 lg:pb-16">
 			{@render children()}
 		</main>
 	</div>
 
-	<nav class="safe-bottom fixed inset-x-0 bottom-0 z-20 border-t border-line bg-paper md:hidden" aria-label="Area orang tua">
-		<ul class="grid grid-cols-4">
+	<nav class="safe-bottom fixed inset-x-0 bottom-0 z-20 border-t border-line bg-paper lg:hidden" aria-label="Area orang tua">
+		<ul class="mx-auto grid max-w-lg grid-cols-4">
 			{#each nav as n}
 				<li>
 					<a href={n.href} aria-current={active(n.href) ? 'page' : undefined}

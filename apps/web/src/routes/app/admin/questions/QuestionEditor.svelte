@@ -57,7 +57,7 @@
 	let previewResponse = $state<Response | null>(null);
 </script>
 
-<div class="grid gap-6 lg:grid-cols-2">
+<div class="grid gap-6 xl:grid-cols-2">
 	<div class="card space-y-5 p-5 sm:p-6">
 		<div class="grid gap-4 sm:grid-cols-2">
 			<div>
@@ -124,7 +124,7 @@
 		</div>
 	</div>
 
-	<aside aria-label="Pratinjau" class="lg:sticky lg:top-6 lg:self-start">
+	<aside aria-label="Pratinjau" class="xl:sticky xl:top-6 xl:self-start">
 		<p class="label">Pratinjau tampilan anak</p>
 		<div class="card p-5 ring-2 ring-primary/20">
 			{#if parsed.ok}

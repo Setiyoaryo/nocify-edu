@@ -42,7 +42,10 @@
 				<span class={opt.figures?.length || opt.image ? 'text-sm font-semibold text-ink-soft' : 'text-xl font-bold'}>{opt.label}</span>
 			{/if}
 			{#if isAnswer}
-				<span class="pill anim-pop absolute top-2 right-2 bg-leaf text-ink"><CheckCircle size={16} weight="bold" aria-hidden="true" />Jawaban benar</span>
+				<!-- Inline for text options so it never covers the answer; a corner badge on picture options. -->
+				<span class="anim-pop {image ? 'absolute top-2 right-2' : 'ml-auto'} grid size-8 shrink-0 place-items-center rounded-full bg-leaf-deep text-white">
+					<CheckCircle size={20} weight="fill" aria-hidden="true" /><span class="sr-only">Jawaban benar</span>
+				</span>
 			{/if}
 		</label>
 	{/each}

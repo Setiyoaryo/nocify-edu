@@ -72,7 +72,27 @@
 </div>
 {#if err}<p class="field-error px-4 pt-3" role="alert">{err}</p>{/if}
 
-<div class="overflow-x-auto">
+<ul class="divide-y divide-line xl:hidden">
+	{#each assets as a (a.id)}
+		{@const next = steps[steps.indexOf(a.status) + 1]}
+		<li class="flex gap-3 px-4 py-4">
+			{#if a.url && a.mime_type?.startsWith('image/')}<img src={a.url} alt="" class="size-14 shrink-0 rounded-lg bg-paper-deep object-contain" />{:else}<span class="size-14 shrink-0 rounded-lg bg-paper-deep"></span>{/if}
+			<div class="min-w-0 flex-1">
+				<div class="flex items-start justify-between gap-2"><p class="font-bold">{a.code} <span class="font-semibold text-ink-soft">{a.name}</span></p><StatusPill status={a.status} /></div>
+				<p class="mt-0.5 text-sm text-ink-soft">{a.kind}, {a.source}, {a.license_name ?? 'lisensi belum dicatat'}, {kb(a.size_bytes)}</p>
+				{#if isReviewer}
+					<div class="mt-2 flex flex-wrap gap-2">
+						{#if next}<button class="btn btn-quiet btn-sm" onclick={() => move(a, next)}>Tandai: {label[next]}</button>{/if}
+						{#if a.status !== 'rejected'}<button class="btn btn-sm text-error" onclick={() => move(a, 'rejected')}>Tolak</button>{/if}
+					</div>
+				{/if}
+			</div>
+		</li>
+	{:else}
+		<li class="px-4 py-8 text-ink-soft">Belum ada aset.</li>
+	{/each}
+</ul>
+<div class="hidden overflow-x-auto xl:block">
 	<table class="w-full min-w-4xl text-left text-sm">
 		<thead class="bg-paper-deep/60 text-xs font-bold text-ink-soft"><tr><th class="px-4 py-3">Pratinjau</th><th>Aset</th><th>Sumber & lisensi</th><th>Ukuran</th><th>Dipakai di</th><th>Status</th><th></th></tr></thead>
 		<tbody>

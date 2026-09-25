@@ -75,7 +75,7 @@
 	{#if home.missions.length}
 		<section class="mt-7" aria-labelledby="missions-title">
 			<h2 id="missions-title" class="flex items-center gap-2 text-xl"><Flag size={24} weight="fill" class="anim-wiggle text-tangerine" aria-hidden="true" />Misi dari orang tua</h2>
-			<ul class="mt-3 grid gap-4 sm:grid-cols-2">
+			<ul class="mt-3 grid gap-4 {home.missions.length > 1 ? 'sm:grid-cols-2' : ''}">
 				{#each home.missions as m, i (m.id)}
 					<li class="anim-rise" style="--d:{80 + i * 80}ms">
 						<FunCard tone="sun" icon={Flag} iconColor="#c9501c" title={m.skill_name} desc="{m.subject_name}: {m.completed} dari {m.target} challenge"

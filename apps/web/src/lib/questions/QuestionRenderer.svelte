@@ -49,8 +49,9 @@
 	const spoken = $derived(content.audio_text || content.prompt);
 </script>
 
-<!-- Mobile: prompt, stimulus, interaction stacked. Desktop: prompt + stimulus beside the interaction (§31.4). -->
-<div class="grid gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:items-start md:gap-10">
+<!-- One column at every width: prompt and stimulus on top, interaction below. A side-by-side
+     split squeezed long prompts into a narrow tower on tablets and in the CMS preview (§31.4). -->
+<div class="space-y-5 sm:space-y-6">
 	<div class="space-y-4">
 		<div class="flex items-start gap-3">
 			<h2 class="flex-1 {promptSize} leading-snug font-extrabold">{content.prompt}</h2>

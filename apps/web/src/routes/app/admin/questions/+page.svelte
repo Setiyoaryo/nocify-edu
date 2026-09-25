@@ -49,7 +49,29 @@
 		</form>
 	</div>
 	{#if data}
-		<div class="overflow-x-auto">
+		<!-- Phones and tablets: one card per question instead of a squeezed table. -->
+		<ul class="divide-y divide-line xl:hidden">
+			{#each data.questions as row (row.id)}
+				<li>
+					<a href="/app/admin/questions/{row.id}" class="block px-4 py-4 hover:bg-paper-deep/40">
+						<div class="flex items-start justify-between gap-3">
+							<p class="font-bold">{row.prompt}</p>
+							<StatusPill status={row.status} />
+						</div>
+						<p class="mt-1 text-sm text-ink-soft">{row.skill_name}, {row.grade_name} {row.subject_name}</p>
+						<div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-soft">
+							<span class="font-mono">{row.code}</span>
+							<span>{types[row.type] ?? row.type}</span>
+							<span class="flex items-center gap-1">Kesulitan <span class="flex gap-0.5">{#each [1, 2, 3, 4, 5] as d}<span class="h-1.5 w-2.5 rounded-sm {d <= row.difficulty ? 'bg-primary' : 'bg-line'}"></span>{/each}</span></span>
+							<span>{relative(row.updated_at)}</span>
+						</div>
+					</a>
+				</li>
+			{:else}
+				<li class="px-4 py-10 text-center text-ink-soft">Tidak ada soal untuk filter ini.</li>
+			{/each}
+		</ul>
+		<div class="hidden overflow-x-auto xl:block">
 			<table class="w-full min-w-3xl text-left text-sm">
 				<thead class="bg-paper-deep/60 text-xs font-bold text-ink-soft uppercase-none">
 					<tr><th class="px-4 py-3">Soal</th><th class="px-4">Skill</th><th class="px-4">Tipe</th><th class="px-4">Kesulitan</th><th class="px-4">Status</th><th class="px-4">Diubah</th></tr>

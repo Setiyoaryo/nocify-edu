@@ -194,6 +194,7 @@
 		<button class="btn btn-primary mt-8 min-h-16 px-12 text-xl" onclick={() => { phase = 'final'; next(); }}>Lanjut</button>
 	</section>
 {:else}
+	<div class="mx-auto max-w-2xl">
 	<div class="flex items-center gap-3 pt-2">
 		<a href="/app/play/{childId}" class="tile grid size-12 shrink-0 place-items-center text-ink-soft" aria-label="Berhenti dulu, bisa dilanjutkan nanti"><X size={20} weight="bold" aria-hidden="true" /></a>
 		<ol class="flex flex-1 gap-1.5" aria-label="Soal {Math.min(answeredCount + 1, asm.planned_count)} dari {asm.planned_count}">
@@ -218,17 +219,18 @@
 		{/if}
 	{/if}
 
+	</div>
 	<!-- Sticky action bar: stays above the home indicator and never covers content (§33). -->
 	<div class="h-44" aria-hidden="true"></div>
 	<div class="safe-bottom fixed inset-x-0 bottom-0 z-10 border-t border-line px-4 pt-3 transition-colors duration-300 {feedback ? (feedback.ok ? 'bg-leaf-tint' : 'bg-sun-tint') : 'bg-paper'}" aria-live="polite">
-		<div class="mx-auto max-w-4xl">
+		<div class="mx-auto max-w-2xl">
 			{#if feedback}
 				{#key feedback}
 				<div class="mb-3 flex items-start gap-3 {feedback.ok ? 'anim-rise' : phase === 'final' ? 'anim-rise' : 'anim-nudge'}">
 					<span class="relative grid size-11 shrink-0 place-items-center rounded-full {feedback.ok ? 'anim-pop' : ''} {feedback.ok ? 'bg-leaf-deep text-white' : phase === 'final' ? 'bg-primary text-white' : 'bg-sun-deep text-ink'}" aria-hidden="true">
 						{#if feedback.ok}<CheckCircle size={26} weight="fill" /><Burst />{:else if phase === 'final'}<Info size={26} weight="fill" />{:else}<ArrowCounterClockwise size={24} weight="bold" />{/if}
 					</span>
-					<div>
+					<div class="min-w-0 flex-1">
 						<p class="text-xl font-extrabold">{feedback.text}</p>
 						{#if phase === 'final' && explanation}<p class="mt-0.5 text-ink-soft">{explanation}</p>{/if}
 					</div>
