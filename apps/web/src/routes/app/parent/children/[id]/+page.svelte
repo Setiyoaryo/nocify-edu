@@ -121,14 +121,16 @@
 			<h1 class="text-3xl">{child.nickname}</h1>
 			<p class="text-ink-soft">{child.grade_name}, level {child.level} ({child.xp} XP), aktif {relative(child.last_activity).toLowerCase()}</p>
 		</div>
-		{#if progress.streak > 0}<span class="pill bg-white text-tangerine-deep shadow-sm"><Fire size={16} weight="fill" aria-hidden="true" />{progress.streak} hari beruntun</span>{/if}
-		<a href="/app/play/{child.id}" class="btn btn-sun"><GameController size={20} weight="fill" aria-hidden="true" />Main sebagai {child.nickname}</a>
+		<div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+			{#if progress.streak > 0}<span class="pill bg-white text-tangerine-deep shadow-sm"><Fire size={16} weight="fill" aria-hidden="true" />{progress.streak} hari beruntun</span>{/if}
+			<a href="/app/play/{child.id}" class="btn btn-sun w-full sm:w-auto"><GameController size={20} weight="fill" aria-hidden="true" />Main sebagai {child.nickname}</a>
+		</div>
 	</header>
 
-	<div class="mt-6 flex gap-1 overflow-x-auto rounded-full bg-paper p-1 shadow-[var(--shadow-card)] sm:inline-flex" role="tablist" aria-label="Laporan">
+	<div class="mt-6 grid grid-cols-[1.45fr_1fr_1fr_1fr] gap-1 rounded-full bg-paper p-1 shadow-[var(--shadow-card)] sm:inline-grid sm:grid-flow-col sm:grid-cols-none" role="tablist" aria-label="Laporan">
 		{#each tabs as [k, label]}
 			<button role="tab" id="tab-{k}" aria-selected={tab === k} aria-controls="panel-{k}"
-				class="min-h-11 shrink-0 rounded-full px-5 font-bold transition-colors {tab === k ? 'bg-primary text-white' : 'text-ink-soft hover:text-ink'}"
+				class="min-h-11 rounded-full px-1 text-[0.8rem] font-bold whitespace-nowrap transition-colors min-[400px]:text-sm sm:px-5 sm:text-base {tab === k ? 'bg-primary text-white' : 'text-ink-soft hover:text-ink'}"
 				onclick={() => (tab = k)}>{label}{#if k === 'missions' && activeMissions.length}<span class="ml-1.5 rounded-full bg-sun px-1.5 text-xs text-ink">{activeMissions.length}</span>{/if}</button>
 		{/each}
 	</div>

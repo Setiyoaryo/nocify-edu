@@ -103,10 +103,12 @@
 						<h2 id="c-{child.id}" class="text-2xl">{child.nickname}</h2>
 						<p class="text-sm text-ink-soft">{child.grade_name}, level {child.level}, aktif {relative(child.last_activity).toLowerCase()}</p>
 					</div>
-					{#if progress.streak > 0}
-						<span class="pill bg-white text-tangerine-deep shadow-sm"><Fire size={16} weight="fill" aria-hidden="true" />{progress.streak} hari beruntun</span>
-					{/if}
-					<a href="/app/parent/children/{child.id}" class="pill-action">Lihat laporan</a>
+					<div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+						{#if progress.streak > 0}
+							<span class="pill bg-white text-tangerine-deep shadow-sm"><Fire size={16} weight="fill" aria-hidden="true" />{progress.streak} hari beruntun</span>
+						{/if}
+						<a href="/app/parent/children/{child.id}" class="pill-action ml-auto">Lihat laporan</a>
+					</div>
 				</div>
 
 				<div class="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1.1fr_1fr]">

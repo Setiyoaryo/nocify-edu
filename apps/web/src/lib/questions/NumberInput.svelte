@@ -23,11 +23,11 @@
 	}
 </script>
 
-<div class="mx-auto max-w-xs space-y-3">
+<div class="mx-auto max-w-xs space-y-2.5 sm:space-y-3">
 	<label class="block">
 		<span class="sr-only">Jawabanmu</span>
 		<input
-			class="field h-16 text-center text-4xl font-extrabold"
+			class="field h-14 text-center text-4xl font-extrabold sm:h-16"
 			inputmode="none"
 			autocomplete="off"
 			bind:value={text}
@@ -38,9 +38,9 @@
 		/>
 		{#if content.unit}<span class="mt-1 block text-center text-ink-soft">{content.unit}</span>{/if}
 	</label>
-	<div class="grid grid-cols-3 gap-2">
+	<div class="grid grid-cols-3 gap-1.5 sm:gap-2">
 		{#each keys as k}
-			<button type="button" class="tile grid h-14 place-items-center text-2xl" {disabled} onclick={() => press(k)} aria-label={k === 'hapus' ? 'Hapus' : k === '-' ? 'Tanda minus' : k}>
+			<button type="button" class="tile grid h-12 min-h-12 place-items-center text-2xl sm:h-14" {disabled} onclick={() => press(k)} aria-label={k === 'hapus' ? 'Hapus' : k === '-' ? 'Tanda minus' : k}>
 				{#if k === 'hapus'}<Backspace size={26} weight="bold" aria-hidden="true" />{:else}{k}{/if}
 			</button>
 		{/each}
