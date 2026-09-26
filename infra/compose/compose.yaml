@@ -1,5 +1,7 @@
-# Development stack: `docker compose -f infra/compose/compose.yaml up --build`
-# App on http://localhost:8000 (Traefik routes /api → Go API, everything else → SvelteKit).
+# Development / testing stack: `docker compose -f infra/compose/compose.yaml up --build`
+# App on http://localhost:8000 (Traefik routes /api to the Go API, everything else to SvelteKit).
+# On a test VPS set PUBLIC_URL to the address people open, e.g. PUBLIC_URL=http://203.0.113.10:8000
+# (state-changing API calls are only accepted from that origin).
 name: eduplay-dev
 
 services:
@@ -9,7 +11,7 @@ services:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
-    ports: ["8000:80"]
+    ports: ["${HTTP_PORT:-8000}:80"]
     volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]
 
   postgres:
@@ -43,7 +45,7 @@ services:
     environment: &apienv
       APP_ENV: development
       DATABASE_URL: postgres://eduplay:eduplay@postgres:5432/eduplay?sslmode=disable
-      PUBLIC_URL: http://localhost:8000
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8000}
       SESSION_SECRET: dev-only-session-secret
       # Midtrans sandbox by default: put MIDTRANS_SERVER_KEY (SB-Mid-server-…) in infra/compose/.env.
       # CI and automated E2E run with PAYMENT_PROVIDER=mock (never allowed in production).
@@ -79,7 +81,7 @@ services:
   web:
     build: { context: ../.., dockerfile: infra/docker/web.Dockerfile }
     environment:
-      ORIGIN: http://localhost:8000
+      ORIGIN: ${PUBLIC_URL:-http://localhost:8000}
     labels:
       - traefik.enable=true
       - traefik.http.routers.web.rule=PathPrefix(`/`)

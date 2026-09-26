@@ -28,6 +28,24 @@ cd apps/api && DATABASE_URL=... go run ./cmd/eduplay seed --publish
 cd apps/web && npm i && API_URL=http://localhost:8080 npm run dev     # http://localhost:5173
 ```
 
+## Test server (VPS, not production)
+
+Runs the same dev stack (Postgres, SeaweedFS, test payments) on a VPS, reachable by IP:
+
+```bash
+git clone https://github.com/Setiyoaryo/nocify-edu.git && cd nocify-edu
+cat > infra/compose/.env <<'ENV'
+PUBLIC_URL=http://<VPS-IP>:8000
+PAYMENT_PROVIDER=mock
+PAYMENT_SECRET=test-only-secret
+ENV
+docker compose -f infra/compose/compose.yaml up -d --build --wait
+docker compose -f infra/compose/compose.yaml exec -T api eduplay seed --publish
+docker compose -f infra/compose/compose.yaml exec -T api eduplay user --email admin@test.local --password '<pass>' --role admin
+```
+
+Update later with `git pull` and the same `up -d --build --wait`. For real users use `compose.prod.yaml` (see docs/operations.md).
+
 ## Tests
 
 | Command | What |
