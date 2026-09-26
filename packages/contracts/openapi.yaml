@@ -180,6 +180,9 @@ paths:
   /children/{childID}/history:
     parameters: [{ name: childID, in: path, required: true, schema: { type: string } }, { name: limit, in: query, schema: { type: integer } }]
     get: { summary: "Completed challenges. Free tier: last 3", responses: { "200": { description: OK } } }
+  /children/{childID}/recap:
+    parameters: [{ name: childID, in: path, required: true, schema: { type: string } }]
+    get: { summary: "Child activity recap, archetype, card tier, and stats for shareable story card", responses: { "200": { description: OK } } }
   /children/{childID}/missions:
     parameters: [{ name: childID, in: path, required: true, schema: { type: string } }]
     get: { summary: Active missions and those completed in the last 14 days, responses: { "200": { description: "{ missions }" } } }

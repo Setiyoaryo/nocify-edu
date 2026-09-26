@@ -23,6 +23,7 @@
 	import Flag from 'phosphor-svelte/lib/Flag';
 	import LockKey from 'phosphor-svelte/lib/LockKey';
 	import Star from 'phosphor-svelte/lib/Star';
+	import Sparkle from 'phosphor-svelte/lib/Sparkle';
 	import X from 'phosphor-svelte/lib/X';
 	import type { Child } from '$lib/types';
 
@@ -123,6 +124,7 @@
 		</div>
 		<div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
 			{#if progress.streak > 0}<span class="pill bg-white text-tangerine-deep shadow-sm"><Fire size={16} weight="fill" aria-hidden="true" />{progress.streak} hari beruntun</span>{/if}
+			<a href="/app/play/{child.id}/card" class="btn border border-primary/20 bg-white text-primary hover:bg-primary-tint w-full sm:w-auto"><Sparkle size={18} weight="fill" class="text-sun-deep" aria-hidden="true" />Kartu Legendaris</a>
 			<a href="/app/play/{child.id}" class="btn btn-sun w-full sm:w-auto"><GameController size={20} weight="fill" aria-hidden="true" />Main sebagai {child.nickname}</a>
 		</div>
 	</header>

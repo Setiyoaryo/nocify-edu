@@ -69,6 +69,30 @@
 		</div>
 	</section>
 
+	<!-- Legendary Archetype Card Banner -->
+	<div class="anim-rise mt-5">
+		<a
+			href="/app/play/{id}/card"
+			class="press lift group relative flex items-center justify-between overflow-hidden rounded-[1.6rem] bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 p-4 sm:p-5 text-ink shadow-lift"
+		>
+			<div class="relative z-10 flex items-center gap-3.5">
+				<span class="grid size-12 place-items-center rounded-2xl bg-white/90 text-amber-600 shadow-xs">
+					<Sparkle size={26} weight="fill" class="anim-wiggle" aria-hidden="true" />
+				</span>
+				<div>
+					<span class="inline-block rounded-full bg-night/80 px-2.5 py-0.5 text-[0.7rem] font-black uppercase tracking-wider text-sun">
+						Kartu Legendaris
+					</span>
+					<h2 class="text-lg font-black sm:text-xl">Lihat Gelar Karakter & Rekapmu!</h2>
+					<p class="text-xs font-bold text-ink/75">Buka kartu koleksi, cek tier, dan bagikan ke Story</p>
+				</div>
+			</div>
+			<span class="relative z-10 hidden sm:inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-xs font-black shadow-xs">
+				Buka Kartu
+			</span>
+		</a>
+	</div>
+
 	{#if notice}<p class="anim-nudge mt-4 rounded-2xl bg-sun-tint p-4 font-bold" role="alert">{notice}</p>{/if}
 
 	<!-- Missions from the parent come first: "what should I do next" (§58). -->

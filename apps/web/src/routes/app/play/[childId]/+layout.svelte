@@ -14,6 +14,7 @@
 	import Gift from 'phosphor-svelte/lib/Gift';
 	import UserCircle from 'phosphor-svelte/lib/UserCircle';
 	import Backspace from 'phosphor-svelte/lib/Backspace';
+	import Sparkle from 'phosphor-svelte/lib/Sparkle';
 	import type { Child } from '$lib/types';
 	import { setContext } from 'svelte';
 
@@ -64,6 +65,7 @@
 	const tabs = [
 		{ href: `/app/play/${id}`, label: 'Main', icon: House },
 		{ href: `/app/play/${id}/rewards`, label: 'Hadiah', icon: Gift },
+		{ href: `/app/play/${id}/card`, label: 'Kartu', icon: Sparkle },
 		{ href: `/app/play/${id}/profile`, label: 'Profil', icon: UserCircle }
 	];
 </script>

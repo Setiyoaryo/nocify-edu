@@ -273,6 +273,10 @@ func TestCriticalFlow(t *testing.T) {
 		t.Fatal("history should contain the completed session")
 	}
 	parent.must(200, "GET", "/children/"+childID+"/recommendations", nil)
+	recap := parent.must(200, "GET", "/children/"+childID+"/recap", nil)
+	if recap["archetype"] == nil || recap["stats"] == nil {
+		t.Fatal("recap must include archetype and stats")
+	}
 
 	// Free daily limit (2): one used; one more allowed, third blocked
 	parent.must(201, "POST", "/assessments", map[string]any{"child_id": childID, "subject_id": subjectID(e, "bahasa-indonesia")})

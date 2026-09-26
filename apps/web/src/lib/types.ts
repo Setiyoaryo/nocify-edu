@@ -83,3 +83,38 @@ export interface Entitlement {
 	cancel_at_period_end: boolean;
 	limits: { max_children: number; daily_challenges: number };
 }
+
+export interface RecapStats {
+	total_challenges: number;
+	total_questions: number;
+	accuracy: number;
+	stars: number;
+	mastered_skills: number;
+	streak: number;
+	favorite_subject: string;
+	top_badge?: {
+		name: string;
+		icon: string;
+		description: string;
+	};
+}
+
+export interface Archetype {
+	code: string;
+	title: string;
+	subtitle: string;
+	praise: string;
+	highlight: string;
+	tag: string;
+	theme: string;
+	icon: string;
+	tier: 'starter' | 'rare' | 'epic' | 'legendary';
+	tier_name: string;
+	next_tier_hint: string;
+}
+
+export interface ChildRecap {
+	child: Child;
+	stats: RecapStats;
+	archetype: Archetype;
+}

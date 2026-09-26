@@ -108,6 +108,7 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 					r.Get("/progress", progH.Progress)
 					r.Get("/history", progH.History)
 					r.Get("/recommendations", progH.Recommendations)
+					r.Get("/recap", progH.Recap)
 					r.Get("/missions", misH.List)
 					r.Post("/missions", misH.Create)
 					r.Delete("/missions/{missionID}", misH.Cancel)
