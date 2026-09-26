@@ -28,14 +28,14 @@
 </script>
 
 <article
-	class="relative w-full overflow-hidden rounded-[2.25rem] border border-white/80 bg-[#fffaf0] shadow-[0_24px_60px_rgba(27,29,58,0.20)]"
+	class="relative w-full overflow-hidden rounded-[1.75rem] sm:rounded-[2.25rem] border border-white/80 bg-[#fffaf0] shadow-[0_24px_60px_rgba(27,29,58,0.20)]"
 	style="--accent:{theme.accent}; --soft:{theme.soft}; --deep:{theme.deep};"
 >
 	<div class="pointer-events-none absolute inset-0 opacity-70" style="background:radial-gradient(circle at 10% 0%, var(--soft), transparent 35%),radial-gradient(circle at 95% 20%, #fff4bf, transparent 30%);"></div>
 	<div class="pointer-events-none absolute -right-14 top-24 size-44 rounded-full border-[18px] border-white/35"></div>
 	<div class="pointer-events-none absolute -left-20 bottom-28 size-56 rounded-full border-[22px] border-white/25"></div>
 
-	<div class="relative flex items-center justify-between px-4 pt-4 sm:px-6">
+	<div class="relative flex items-center justify-between px-3 pt-3 sm:px-6 sm:pt-4">
 		<div class="flex items-center gap-2">
 			<div class="grid size-10 place-items-center rounded-2xl bg-[#1b1d3a] text-[#ffc857] shadow-sm">
 				<Sparkle size={20} weight="fill" />
@@ -52,7 +52,7 @@
 	</div>
 
 	<div class="relative px-4 pt-4 sm:px-6">
-		<div class="rounded-[1.75rem] bg-gradient-to-br from-white/85 to-white/45 p-2 ring-1 ring-black/5">
+		<div class="rounded-[1.5rem] sm:rounded-[1.75rem] bg-gradient-to-br from-white/85 to-white/45 p-1.5 sm:p-2 ring-1 ring-black/5">
 			<LegendaryHeroScene child={recap.child} archetype={recap.archetype} />
 		</div>
 	</div>
@@ -75,7 +75,7 @@
 		</div>
 	</div>
 
-	<div class="relative z-10 mx-4 mt-7 rounded-[1.5rem] border border-black/5 bg-white/90 p-3.5 shadow-sm sm:mx-6">
+	<div class="relative z-10 mx-3 mt-6 rounded-[1.35rem] sm:mx-6 sm:mt-7 sm:rounded-[1.5rem] border border-black/5 bg-white/90 p-3 shadow-sm sm:p-3.5 sm:mx-6">
 		<div class="grid grid-cols-[auto_1fr] gap-3">
 			<div class="grid size-14 place-items-center rounded-2xl bg-[#1b1d3a] text-white ring-4 ring-[#ffe39a]">
 				<span class="text-[0.56rem] font-black uppercase tracking-wider text-[#ffc857]">Level</span>
@@ -94,7 +94,7 @@
 		</div>
 	</div>
 
-	<div class="relative z-10 mx-4 mt-3 grid grid-cols-2 gap-2 sm:mx-6 sm:grid-cols-4 sm:gap-3">
+	<div class="relative z-10 mx-3 mt-3 grid grid-cols-2 gap-2 sm:mx-6 sm:grid-cols-4 sm:gap-3">
 		{#each [
 			{ icon: Star, label: 'Bintang', value: recap.stats.stars, tone: '#fff4cf' },
 			{ icon: Fire, label: 'Streak', value: recap.stats.streak, tone: '#ffe8df' },
@@ -112,7 +112,7 @@
 		{/each}
 	</div>
 
-	<div class="relative z-10 mx-4 mt-3 grid gap-3 sm:mx-6 sm:grid-cols-[1.15fr_0.85fr]">
+	<div class="relative z-10 mx-3 mt-3 grid gap-2.5 sm:mx-6 sm:grid-cols-[1.15fr_0.85fr] sm:gap-3">
 		<div class="rounded-[1.5rem] border border-black/5 bg-white/90 p-3.5 shadow-sm">
 			<div class="flex items-center justify-between gap-3">
 				<div class="min-w-0">
@@ -138,7 +138,7 @@
 		</div>
 	</div>
 
-	<div class="relative z-10 mx-4 my-3 flex items-center justify-around gap-2 rounded-[1.35rem] bg-[#1b1d3a] px-2 py-3 text-white sm:mx-6">
+	<div class="relative z-10 mx-3 my-3 flex items-center justify-around gap-1.5 rounded-[1.2rem] sm:mx-6 sm:gap-2 sm:rounded-[1.35rem] bg-[#1b1d3a] px-2 py-3 text-white sm:mx-6">
 		<div class="flex items-center gap-1.5 text-[0.6rem] font-extrabold sm:text-xs"><GraduationCap size={15} class="text-[#ffc857]" /><span>Belajar mudah</span></div>
 		<div class="hidden text-white/20 sm:block">•</div>
 		<div class="flex items-center gap-1.5 text-[0.6rem] font-extrabold sm:text-xs"><GameController size={15} class="text-[#ffc857]" /><span>Tantangan seru</span></div>
