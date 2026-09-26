@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Archetype, Child } from '$lib/types';
 	import Avatar from './Avatar.svelte';
+	import heroKids from '$lib/illustrations/hero-kids.svg';
 
 	let { child, archetype }: { child: Child; archetype: Archetype } = $props();
 
@@ -184,6 +185,12 @@
 		</g>
 	</svg>
 
+	<!-- Storybook illustration layer: real vector artwork, sharp at every mobile breakpoint. -->
+	<div class="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] overflow-hidden opacity-95">
+		<img src={heroKids} alt="" class="absolute bottom-[-16%] left-1/2 w-[145%] max-w-none -translate-x-1/2 drop-shadow-[0_18px_30px_rgba(20,34,70,0.18)]" aria-hidden="true" />
+		<div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/10 via-white/0 to-transparent"></div>
+	</div>
+
 	<!-- Main Character Stage Composite -->
 	<div class="absolute inset-0 flex items-center justify-center">
 		<!-- Central Hero Kid Avatar & Pedestal -->
@@ -195,8 +202,8 @@
 			></div>
 
 			<!-- Dynamic Hero Avatar Disc -->
-			<div class="relative flex size-36 sm:size-40 items-center justify-center rounded-full bg-white shadow-2xl ring-8 ring-amber-300/80">
-				<Avatar code={child.avatar} size={110} />
+			<div class="relative flex size-36 items-center justify-center rounded-full bg-white/95 shadow-2xl ring-[7px] ring-amber-300/90 sm:size-44 sm:ring-8">
+				<Avatar code={child.avatar} size={116} />
 
 				<!-- Victory Raised Fist Badge -->
 				<div class="absolute -top-1 -right-1 flex size-11 items-center justify-center rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 text-ink shadow-lg ring-3 ring-white">
@@ -223,7 +230,7 @@
 		</div>
 
 		<!-- Cute Companion Mascot: Flying Robot Buddy with Gold Crown & Open Book -->
-		<div class="absolute right-3 top-10 sm:right-8 sm:top-8 flex flex-col items-center anim-wiggle">
+		<div class="absolute right-2 top-8 sm:right-8 sm:top-8 flex flex-col items-center anim-wiggle">
 			<!-- Mascot Floating Glow -->
 			<div class="relative flex flex-col items-center">
 				<!-- Gold Crown on Mascot -->
@@ -232,7 +239,7 @@
 				</svg>
 
 				<!-- Robot Head & Face -->
-				<div class="relative flex size-14 items-center justify-center rounded-2xl bg-white shadow-xl ring-3 ring-sky-300">
+				<div class="relative flex size-16 items-center justify-center rounded-[1.25rem] bg-white shadow-xl ring-3 ring-sky-300">
 					<!-- Blue Robot Visor & Happy Eyes -->
 					<div class="flex h-7 w-11 items-center justify-around rounded-xl bg-night px-2">
 						<div class="size-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]"></div>
