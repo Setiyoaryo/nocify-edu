@@ -41,16 +41,30 @@
 >
 	<div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(255,255,255,.8),transparent_35%),radial-gradient(circle_at_95%_45%,rgba(255,220,120,.22),transparent_34%)]"></div>
 
-	<!-- Hero artwork: native responsive SVG composition, so it stays sharp and reliable on mobile. -->
-	<div class="relative overflow-hidden rounded-[1.75rem] border-2 border-[#efc65f] bg-[#0f4c81] shadow-inner">
-		<LegendaryHeroScene child={recap.child} archetype={recap.archetype} />
-		<div class="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/10 to-transparent"></div>
-		<div class="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border-2 border-[#f3c85b] bg-white/95 px-3 py-1.5 text-[0.66rem] font-black text-[#34405a] shadow-lg sm:right-4 sm:top-4">
-			<CalendarBlank size={13} weight="bold" class="text-[#c48a12]" />
-			{recap.archetype.date_formatted}
+	<!-- 1. Dedicated Top Header Row (NO OVERLAPPING) -->
+	<div class="relative z-20 flex items-center justify-between px-3 pt-2.5 pb-1.5 border-b border-black/5">
+		<div class="flex items-center gap-1.5">
+			<span class="flex size-7 items-center justify-center rounded-xl bg-amber-400 text-black font-black text-xs shadow-xs">👑</span>
+			<div>
+				<span class="font-display text-xs font-black tracking-wider text-primary-deep uppercase">EDUPPLAY</span>
+				<span class="block text-[0.56rem] font-bold text-ink-soft leading-none">Belajar Jadi Lebih Seru</span>
+			</div>
+		</div>
+		<div class="flex items-center gap-1 rounded-full border border-amber-300 bg-white px-2.5 py-0.5 text-[0.64rem] font-black text-ink shadow-2xs">
+			<CalendarBlank size={12} weight="bold" class="text-amber-600" />
+			<span>{recap.archetype.date_formatted}</span>
 		</div>
 	</div>
 
+	<!-- Motto Sub-Bar -->
+	<p class="relative z-20 px-3 py-0.5 text-[0.6rem] font-extrabold italic text-ink-soft text-center">
+		"Terus Belajar Terus Berkembang Jadi Versi Terbaikmu!"
+	</p>
+
+	<!-- 2. Hero artwork stage -->
+	<div class="relative overflow-hidden rounded-[1.75rem] border-2 border-[#efc65f] bg-[#0f4c81] shadow-inner mt-0.5">
+		<LegendaryHeroScene child={recap.child} archetype={recap.archetype} />
+	</div>
 	<!-- Dynamic collectible rarity banner -->
 	<div class="relative z-10 -mt-8 px-4 sm:-mt-10 sm:px-6">
 		<div class="flex items-center justify-center gap-0">
