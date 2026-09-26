@@ -111,6 +111,14 @@ export interface Archetype {
 	tier: 'starter' | 'rare' | 'epic' | 'legendary';
 	tier_name: string;
 	next_tier_hint: string;
+	banner: string;
+	sub_banner: string;
+	next_tier_name: string;
+	progress_percent: number;
+	peer_percentile: number;
+	quote: string;
+	motto: string;
+	date_formatted: string;
 }
 
 export interface ChildRecap {

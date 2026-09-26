@@ -2,23 +2,19 @@
 	import { get } from '$lib/api';
 	import { page } from '$app/state';
 	import type { ChildRecap } from '$lib/types';
-	import Avatar from '$lib/components/Avatar.svelte';
+	import LegendaryCardFrame from '$lib/components/LegendaryCardFrame.svelte';
 	import CaretLeft from 'phosphor-svelte/lib/CaretLeft';
 	import Sparkle from 'phosphor-svelte/lib/Sparkle';
 	import Star from 'phosphor-svelte/lib/Star';
 	import Fire from 'phosphor-svelte/lib/Fire';
 	import Trophy from 'phosphor-svelte/lib/Trophy';
 	import Crosshair from 'phosphor-svelte/lib/Crosshair';
-	import Crown from 'phosphor-svelte/lib/Crown';
-	import ShieldCheck from 'phosphor-svelte/lib/ShieldCheck';
 	import Medal from 'phosphor-svelte/lib/Medal';
-	import Target from 'phosphor-svelte/lib/Target';
 	import BookOpenText from 'phosphor-svelte/lib/BookOpenText';
 	import InstagramLogo from 'phosphor-svelte/lib/InstagramLogo';
 	import DownloadSimple from 'phosphor-svelte/lib/DownloadSimple';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
-	import Quotes from 'phosphor-svelte/lib/Quotes';
-	import winnerArt from '$lib/illustrations/winner.svg';
+	import Avatar from '$lib/components/Avatar.svelte';
 
 	const id = page.params.childId as string;
 	let recap = $state<ChildRecap | null>(null);
@@ -44,48 +40,6 @@
 			if (toast === msg) toast = '';
 		}, 3500);
 	}
-
-	const tierConfig = $derived.by(() => {
-		const t = recap?.archetype.tier;
-		switch (t) {
-			case 'legendary':
-				return {
-					border: 'border-amber-400 ring-4 ring-amber-300/60 shadow-[0_0_40px_rgba(251,191,36,0.35)]',
-					badge: 'bg-gradient-to-r from-amber-500 to-yellow-400 text-ink',
-					cardBg: 'bg-gradient-to-b from-[#fffbe6] via-[#fffdf0] to-[#fff8d6]',
-					accent: 'text-amber-600',
-					halo: 'ring-amber-400/50 bg-amber-50',
-					icon: Crown
-				};
-			case 'epic':
-				return {
-					border: 'border-purple-400 ring-4 ring-purple-300/50 shadow-[0_0_35px_rgba(168,85,247,0.3)]',
-					badge: 'bg-gradient-to-r from-purple-600 to-indigo-500 text-white',
-					cardBg: 'bg-gradient-to-b from-[#faf5ff] via-[#ffffff] to-[#f3e8ff]',
-					accent: 'text-purple-600',
-					halo: 'ring-purple-400/50 bg-purple-50',
-					icon: Medal
-				};
-			case 'rare':
-				return {
-					border: 'border-sky-400 ring-4 ring-sky-300/50 shadow-[0_0_30px_rgba(56,189,248,0.25)]',
-					badge: 'bg-gradient-to-r from-sky-500 to-blue-500 text-white',
-					cardBg: 'bg-gradient-to-b from-[#f0f9ff] via-[#ffffff] to-[#e0f2fe]',
-					accent: 'text-sky-600',
-					halo: 'ring-sky-400/50 bg-sky-50',
-					icon: Star
-				};
-			default:
-				return {
-					border: 'border-emerald-400 ring-4 ring-emerald-300/40 shadow-[0_0_25px_rgba(52,211,153,0.2)]',
-					badge: 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white',
-					cardBg: 'bg-gradient-to-b from-[#f0fdf4] via-[#ffffff] to-[#dcfce7]',
-					accent: 'text-emerald-600',
-					halo: 'ring-emerald-400/50 bg-emerald-50',
-					icon: ShieldCheck
-				};
-		}
-	});
 
 	function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number): number {
 		const words = text.split(' ');
@@ -120,6 +74,7 @@
 		ctx.closePath();
 	}
 
+	// High fidelity 1080x1920 Instagram Story Canvas generator matching the reference layout
 	async function generateCanvas(): Promise<Blob | null> {
 		if (!recap) return null;
 		const canvas = document.createElement('canvas');
@@ -128,194 +83,386 @@
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return null;
 
-		// 1. Dark outer space background
+		// 1. Dark outer cosmic stage background
 		const bg = ctx.createLinearGradient(0, 0, 1080, 1920);
-		bg.addColorStop(0, '#0d0f28');
-		bg.addColorStop(0.4, '#1b1d4a');
-		bg.addColorStop(1, '#090a18');
+		bg.addColorStop(0, '#0a0d24');
+		bg.addColorStop(0.5, '#15193d');
+		bg.addColorStop(1, '#080a1c');
 		ctx.fillStyle = bg;
 		ctx.fillRect(0, 0, 1080, 1920);
 
-		// Background geometric circles
-		ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-		ctx.beginPath();
-		ctx.arc(200, 200, 260, 0, Math.PI * 2);
-		ctx.fill();
-		ctx.beginPath();
-		ctx.arc(880, 1700, 320, 0, Math.PI * 2);
-		ctx.fill();
+		// Subtle celestial rays
+		ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+		for (let i = 0; i < 8; i++) {
+			ctx.beginPath();
+			ctx.moveTo(540, 400);
+			ctx.lineTo(i * 180, 0);
+			ctx.lineTo((i + 1) * 180, 0);
+			ctx.closePath();
+			ctx.fill();
+		}
 
-		// 2. Card Frame
-		const cx = 70;
-		const cy = 130;
-		const cw = 940;
-		const ch = 1660;
-		const cr = 48;
+		// 2. Outer Ornate Golden Border Frame
+		const ox = 50;
+		const oy = 60;
+		const ow = 980;
+		const oh = 1800;
+		const or = 54;
 
-		// Card Outer glow
-		ctx.save();
-		ctx.shadowColor = recap.archetype.tier === 'legendary' ? '#f59e0b' : '#a855f7';
+		// Outer Gold Gradient Bevel
+		const goldGrad = ctx.createLinearGradient(ox, oy, ox + ow, oy + oh);
+		goldGrad.addColorStop(0, '#dfad41');
+		goldGrad.addColorStop(0.3, '#ffd66c');
+		goldGrad.addColorStop(0.7, '#f59e0b');
+		goldGrad.addColorStop(1, '#8c5311');
+
+		roundRect(ctx, ox, oy, ow, oh, or);
+		ctx.fillStyle = goldGrad;
+		ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
 		ctx.shadowBlur = 40;
-		roundRect(ctx, cx, cy, cw, ch, cr);
+		ctx.fill();
+
+		// Inner White Inset Card Stage
+		const ix = ox + 18;
+		const iy = oy + 18;
+		const iw = ow - 36;
+		const ih = oh - 36;
+		const ir = 44;
+
+		ctx.save();
+		roundRect(ctx, ix, iy, iw, ih, ir);
+		ctx.clip();
+
+		const cardBg = ctx.createLinearGradient(ix, iy, ix, iy + ih);
+		cardBg.addColorStop(0, '#f8faff');
+		cardBg.addColorStop(0.4, '#ffffff');
+		cardBg.addColorStop(1, '#f4f1e8');
+		ctx.fillStyle = cardBg;
+		ctx.fillRect(ix, iy, iw, ih);
+
+		// 3. Header Bar: EduPlay Wordmark + Date Pill
+		ctx.textAlign = 'left';
+		ctx.font = '900 36px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#3f40c2';
+		ctx.fillText('EduPlay', ix + 36, iy + 64);
+
+		ctx.font = '700 20px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#5c6079';
+		ctx.fillText('Belajar Jadi Lebih Seru', ix + 36, iy + 92);
+
+		// Top Right Date Tag
+		const dateW = 200;
+		const dateH = 44;
+		const dateX = ix + iw - dateW - 36;
+		const dateY = iy + 45;
+		roundRect(ctx, dateX, dateY, dateW, dateH, 22);
 		ctx.fillStyle = '#ffffff';
 		ctx.fill();
-		ctx.restore();
-
-		// Card Background gradient
-		const cardGrad = ctx.createLinearGradient(cx, cy, cx, cy + ch);
-		if (recap.archetype.tier === 'legendary') {
-			cardGrad.addColorStop(0, '#fffbeb');
-			cardGrad.addColorStop(0.5, '#ffffff');
-			cardGrad.addColorStop(1, '#fef3c7');
-		} else if (recap.archetype.tier === 'epic') {
-			cardGrad.addColorStop(0, '#faf5ff');
-			cardGrad.addColorStop(0.5, '#ffffff');
-			cardGrad.addColorStop(1, '#f3e8ff');
-		} else {
-			cardGrad.addColorStop(0, '#f0f9ff');
-			cardGrad.addColorStop(0.5, '#ffffff');
-			cardGrad.addColorStop(1, '#e0f2fe');
-		}
-		roundRect(ctx, cx, cy, cw, ch, cr);
-		ctx.fillStyle = cardGrad;
-		ctx.fill();
-
-		// Card Border
-		ctx.lineWidth = 14;
-		ctx.strokeStyle = recap.archetype.tier === 'legendary' ? '#fbbf24' : recap.archetype.tier === 'epic' ? '#c084fc' : '#38bdf8';
+		ctx.lineWidth = 2;
+		ctx.strokeStyle = '#fcd34d';
 		ctx.stroke();
 
-		// 3. Brand & Tier Header
 		ctx.textAlign = 'center';
-		ctx.font = '900 42px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.font = '800 20px "Plus Jakarta Sans", system-ui, sans-serif';
 		ctx.fillStyle = '#1b1d3a';
-		ctx.fillText('EDUPPLAY', 540, 225);
+		ctx.fillText(recap.archetype.date_formatted, dateX + dateW / 2, dateY + 29);
 
-		// Tier Pill
-		const pillW = 300;
-		const pillH = 48;
-		const pillX = 540 - pillW / 2;
-		const pillY = 250;
-		roundRect(ctx, pillX, pillY, pillW, pillH, 24);
-		ctx.fillStyle = recap.archetype.tier === 'legendary' ? '#f59e0b' : recap.archetype.tier === 'epic' ? '#9333ea' : '#0284c7';
+		// Motto Watermark
+		ctx.textAlign = 'left';
+		ctx.font = '800 22px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#78716c';
+		ctx.fillText(`"${recap.archetype.motto}"`, ix + 36, iy + 140);
+
+		// 4. Hero Character Stage: Sky, Castle silhouette, Golden stars
+		const heroY = iy + 160;
+		const heroH = 500;
+		const heroGrad = ctx.createLinearGradient(ix, heroY, ix, heroY + heroH);
+		heroGrad.addColorStop(0, '#38bdf8');
+		heroGrad.addColorStop(0.6, '#93c5fd');
+		heroGrad.addColorStop(1, '#fef08a');
+		ctx.fillStyle = heroGrad;
+		ctx.fillRect(ix, heroY, iw, heroH);
+
+		// Floating Stars
+		ctx.fillStyle = '#ffeb3b';
+		for (let s = 0; s < 12; s++) {
+			const sx = ix + 60 + ((s * 179) % (iw - 120));
+			const sy = heroY + 30 + ((s * 113) % 240);
+			ctx.beginPath();
+			ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+			ctx.fill();
+		}
+
+		// Hero Center Circle & Glow
+		const hcx = ix + iw / 2;
+		const hcy = heroY + 230;
+
+		// Sunburst Glow behind hero
+		ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+		ctx.beginPath();
+		ctx.arc(hcx, hcy, 180, 0, Math.PI * 2);
 		ctx.fill();
 
-		ctx.font = '800 22px "Plus Jakarta Sans", system-ui, sans-serif';
+		// Hero Disc
 		ctx.fillStyle = '#ffffff';
-		ctx.fillText(`TIER ${recap.archetype.tier_name.toUpperCase()}`, 540, pillY + 32);
-
-		// 4. Archetype Title Banner
-		ctx.font = '900 48px "Plus Jakarta Sans", system-ui, sans-serif';
-		ctx.fillStyle = '#1b1d3a';
-		ctx.fillText(recap.archetype.title, 540, 365);
-
-		ctx.font = '700 24px "Plus Jakarta Sans", system-ui, sans-serif';
-		ctx.fillStyle = '#5c6079';
-		ctx.fillText(`${recap.archetype.tag.toUpperCase()} • ${recap.archetype.subtitle}`, 540, 410);
-
-		// 5. Character Ring Stage
-		const avY = 630;
 		ctx.beginPath();
-		ctx.arc(540, avY, 140, 0, Math.PI * 2);
-		ctx.fillStyle = recap.archetype.tier === 'legendary' ? 'rgba(251,191,36,0.18)' : 'rgba(192,132,252,0.18)';
+		ctx.arc(hcx, hcy, 120, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.lineWidth = 12;
+		ctx.strokeStyle = '#fcd34d';
+		ctx.stroke();
+
+		// Character Initials / Avatar representation
+		ctx.textAlign = 'center';
+		ctx.font = '900 80px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#3f40c2';
+		ctx.fillText(recap.child.nickname.slice(0, 2).toUpperCase(), hcx, hcy + 28);
+
+		// Companion Robot (Right side)
+		const rcx = hcx + 230;
+		const rcy = heroY + 140;
+		roundRect(ctx, rcx - 45, rcy - 35, 90, 70, 24);
+		ctx.fillStyle = '#ffffff';
+		ctx.fill();
+		ctx.lineWidth = 4;
+		ctx.strokeStyle = '#38bdf8';
+		ctx.stroke();
+
+		// Robot Eyes
+		roundRect(ctx, rcx - 30, rcy - 16, 60, 32, 12);
+		ctx.fillStyle = '#1b1d3a';
+		ctx.fill();
+		ctx.fillStyle = '#38bdf8';
+		ctx.beginPath();
+		ctx.arc(rcx - 14, rcy, 6, 0, Math.PI * 2);
+		ctx.arc(rcx + 14, rcy, 6, 0, Math.PI * 2);
+		ctx.fill();
+
+		// Robot Crown
+		ctx.fillStyle = '#fbbf24';
+		ctx.beginPath();
+		ctx.moveTo(rcx - 24, rcy - 36);
+		ctx.lineTo(rcx - 24, rcy - 52);
+		ctx.lineTo(rcx - 12, rcy - 44);
+		ctx.lineTo(rcx, rcy - 56);
+		ctx.lineTo(rcx + 12, rcy - 44);
+		ctx.lineTo(rcx + 24, rcy - 52);
+		ctx.lineTo(rcx + 24, rcy - 36);
+		ctx.closePath();
+		ctx.fill();
+
+		// 5. Huge 3D Golden Banner: LEGENDARY / LEARNER
+		const bannerY = heroY + heroH - 60;
+
+		// Golden Star on Crest
+		ctx.beginPath();
+		ctx.arc(hcx, bannerY - 30, 32, 0, Math.PI * 2);
+		ctx.fillStyle = '#f59e0b';
+		ctx.fill();
+		ctx.lineWidth = 4;
+		ctx.strokeStyle = '#ffffff';
+		ctx.stroke();
+
+		// Main Banner Ribbon
+		const bw = 540;
+		const bh = 82;
+		const bx = hcx - bw / 2;
+		roundRect(ctx, bx, bannerY, bw, bh, 24);
+		ctx.fillStyle = '#581c87';
 		ctx.fill();
 		ctx.lineWidth = 6;
-		ctx.strokeStyle = recap.archetype.tier === 'legendary' ? '#f59e0b' : '#9333ea';
+		ctx.strokeStyle = '#fcd34d';
 		ctx.stroke();
 
-		// Inner disc
-		ctx.beginPath();
-		ctx.arc(540, avY, 115, 0, Math.PI * 2);
-		ctx.fillStyle = '#ffffff';
+		ctx.textAlign = 'center';
+		ctx.font = '900 44px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#fef08a';
+		ctx.fillText(recap.archetype.banner, hcx, bannerY + 56);
+
+		// Sub Ribbon (e.g. LEARNER / KSATRIA API)
+		const sbw = 340;
+		const sbh = 44;
+		const sbx = hcx - sbw / 2;
+		const sby = bannerY + bh - 14;
+		roundRect(ctx, sbx, sby, sbw, sbh, 16);
+		ctx.fillStyle = '#f59e0b';
 		ctx.fill();
+		ctx.lineWidth = 3;
+		ctx.strokeStyle = '#78350f';
+		ctx.stroke();
 
-		// Draw character initials in center
-		ctx.font = '900 68px "Plus Jakarta Sans", system-ui, sans-serif';
-		ctx.fillStyle = '#5b5ce2';
-		ctx.fillText(recap.child.nickname.slice(0, 2).toUpperCase(), 540, avY + 22);
-
-		// Level Pill under character
-		const lvlW = 280;
-		const lvlH = 46;
-		roundRect(ctx, 540 - lvlW / 2, avY + 95, lvlW, lvlH, 23);
+		ctx.font = '900 24px "Plus Jakarta Sans", system-ui, sans-serif';
 		ctx.fillStyle = '#1b1d3a';
+		ctx.fillText(recap.archetype.sub_banner, hcx, sby + 31);
+
+		// 6. Parchment Profile Strip (Level Shield, Nickname, Quote)
+		const profY = sby + 65;
+		const profW = iw - 60;
+		const profH = 120;
+		const profX = ix + 30;
+
+		roundRect(ctx, profX, profY, profW, profH, 24);
+		ctx.fillStyle = '#fdfbf2';
 		ctx.fill();
-		ctx.font = '800 22px "Plus Jakarta Sans", system-ui, sans-serif';
-		ctx.fillStyle = '#ffc857';
-		ctx.fillText(`Level ${recap.child.level} • ${recap.child.nickname}`, 540, avY + 126);
+		ctx.lineWidth = 3;
+		ctx.strokeStyle = '#fcd34d';
+		ctx.stroke();
 
-		// 6. Stats Grid (4 Clean Boxes - No Emojis)
-		const statY = 860;
-		const statW = 205;
-		const statH = 135;
-		const statGap = 16;
-		const startX = cx + 30;
+		// Level Shield
+		roundRect(ctx, profX + 20, profY + 16, 75, 88, 16);
+		ctx.fillStyle = '#92400e';
+		ctx.fill();
+		ctx.lineWidth = 2;
+		ctx.strokeStyle = '#fde68a';
+		ctx.stroke();
 
-		const statsList = [
-			{ tag: 'STREAK', val: `${recap.stats.streak} Hari`, desc: 'Konsistensi' },
-			{ tag: 'TANTANGAN', val: `${recap.stats.total_challenges}`, desc: 'Selesai' },
-			{ tag: 'BINTANG', val: `${recap.stats.stars}`, desc: 'Terkumpul' },
-			{ tag: 'AKURASI', val: `${Math.round(recap.stats.accuracy)}%`, desc: 'Jawaban Tepat' }
+		ctx.font = '900 16px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#fde68a';
+		ctx.fillText('LEVEL', profX + 57, profY + 42);
+
+		ctx.font = '900 36px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#ffffff';
+		ctx.fillText(String(recap.child.level), profX + 57, profY + 84);
+
+		// Nickname
+		ctx.textAlign = 'left';
+		ctx.font = '900 38px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#1b1d3a';
+		ctx.fillText(recap.child.nickname, profX + 115, profY + 56);
+
+		ctx.font = '700 22px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#78716c';
+		ctx.fillText(recap.archetype.title, profX + 115, profY + 92);
+
+		// 7. 4 Stat Boxes (Bintang, Streak, Akurasi, Soal)
+		const statY = profY + profH + 25;
+		const statBoxW = (profW - 36) / 4;
+		const statBoxH = 190;
+
+		const stats = [
+			{ icon: '⭐', label: 'Bintang', val: String(recap.stats.stars), up: '+120' },
+			{ icon: '🔥', label: 'Streak Hari', val: `${recap.stats.streak}`, up: '+5' },
+			{ icon: '🎯', label: 'Akurasi', val: `${Math.round(recap.stats.accuracy)}%`, up: '+8%' },
+			{ icon: '📖', label: 'Soal', val: String(recap.stats.total_questions), up: '+24' }
 		];
 
-		statsList.forEach((s, idx) => {
-			const bx = startX + idx * (statW + statGap);
-			roundRect(ctx, bx, statY, statW, statH, 20);
+		stats.forEach((s, idx) => {
+			const sx = profX + idx * (statBoxW + 12);
+			roundRect(ctx, sx, statY, statBoxW, statBoxH, 20);
 			ctx.fillStyle = '#ffffff';
 			ctx.fill();
 			ctx.lineWidth = 2.5;
-			ctx.strokeStyle = '#e4e7f0';
+			ctx.strokeStyle = '#fcd34d';
 			ctx.stroke();
 
-			ctx.font = '800 18px "Plus Jakarta Sans", system-ui, sans-serif';
-			ctx.fillStyle = '#5b5ce2';
-			ctx.fillText(s.tag, bx + statW / 2, statY + 36);
+			ctx.textAlign = 'center';
+			ctx.font = '32px sans-serif';
+			ctx.fillText(s.icon, sx + statBoxW / 2, statY + 52);
 
-			ctx.font = '900 28px "Plus Jakarta Sans", system-ui, sans-serif';
+			ctx.font = '900 34px "Plus Jakarta Sans", system-ui, sans-serif';
 			ctx.fillStyle = '#1b1d3a';
-			ctx.fillText(s.val, bx + statW / 2, statY + 80);
+			ctx.fillText(s.val, sx + statBoxW / 2, statY + 104);
 
-			ctx.font = '700 17px "Plus Jakarta Sans", system-ui, sans-serif';
-			ctx.fillStyle = '#5c6079';
-			ctx.fillText(s.desc, bx + statW / 2, statY + 112);
+			ctx.font = '700 20px "Plus Jakarta Sans", system-ui, sans-serif';
+			ctx.fillStyle = '#78716c';
+			ctx.fillText(s.label, sx + statBoxW / 2, statY + 138);
+
+			// Upward Badge
+			roundRect(ctx, sx + statBoxW / 2 - 38, statY + 148, 76, 30, 12);
+			ctx.fillStyle = '#e4f7ec';
+			ctx.fill();
+			ctx.font = '800 18px "Plus Jakarta Sans", system-ui, sans-serif';
+			ctx.fillStyle = '#1f7a4d';
+			ctx.fillText(s.up, sx + statBoxW / 2, statY + 170);
 		});
 
-		// 7. Praise Speech Bubble Card
-		const bubbleY = 1050;
-		const bubbleW = 860;
-		const bubbleH = 440;
-		const bubbleX = 540 - bubbleW / 2;
+		// 8. Bottom Row: Progress to Next Tier & Social Proof Trophy
+		const btmY = statY + statBoxH + 25;
+		const btmW = (profW - 16) / 2;
+		const btmH = 135;
 
-		roundRect(ctx, bubbleX, bubbleY, bubbleW, bubbleH, 32);
+		// Left Card: Next Tier
+		roundRect(ctx, profX, btmY, btmW, btmH, 22);
 		ctx.fillStyle = '#ffffff';
 		ctx.fill();
-		ctx.lineWidth = 3;
-		ctx.strokeStyle = recap.archetype.tier === 'legendary' ? '#fcd34d' : '#e4e7f0';
+		ctx.lineWidth = 2.5;
+		ctx.strokeStyle = '#fcd34d';
 		ctx.stroke();
 
-		// Header for praise box
-		ctx.font = '800 22px "Plus Jakarta Sans", system-ui, sans-serif';
-		ctx.fillStyle = '#5c6079';
-		ctx.fillText('CATATAN PRESTASI', 540, bubbleY + 50);
+		ctx.textAlign = 'left';
+		ctx.font = '700 19px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#78716c';
+		ctx.fillText('Menuju Tier Berikutnya', profX + 24, btmY + 40);
 
-		// Praise text
-		ctx.font = '600 32px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.font = '900 28px "Plus Jakarta Sans", system-ui, sans-serif';
 		ctx.fillStyle = '#1b1d3a';
-		wrapText(ctx, recap.archetype.praise, 540, bubbleY + 115, 760, 48);
+		ctx.fillText(recap.archetype.next_tier_name, profX + 24, btmY + 76);
 
-		// Next tier hint inside praise card
-		roundRect(ctx, bubbleX + 40, bubbleY + bubbleH - 100, bubbleW - 80, 68, 20);
-		ctx.fillStyle = '#f5f6fb';
+		// Progress Bar
+		roundRect(ctx, profX + 24, btmY + 92, btmW - 48, 18, 9);
+		ctx.fillStyle = '#eef0f7';
+		ctx.fill();
+		roundRect(ctx, profX + 24, btmY + 92, (btmW - 48) * (recap.archetype.progress_percent / 100), 18, 9);
+		ctx.fillStyle = '#7c3aed';
 		ctx.fill();
 
-		ctx.font = '700 22px "Plus Jakarta Sans", system-ui, sans-serif';
-		ctx.fillStyle = '#5b5ce2';
-		ctx.fillText(`Target Berikutnya: ${recap.archetype.next_tier_hint}`, 540, bubbleY + bubbleH - 58);
+		// Right Card: Social Proof
+		roundRect(ctx, profX + btmW + 16, btmY, btmW, btmH, 22);
+		ctx.fillStyle = '#ffffff';
+		ctx.fill();
+		ctx.lineWidth = 2.5;
+		ctx.strokeStyle = '#fcd34d';
+		ctx.stroke();
 
-		// 8. Watermark Footer
-		ctx.font = '700 24px "Plus Jakarta Sans", system-ui, sans-serif';
-		ctx.fillStyle = '#8a8fa8';
-		ctx.fillText('EDUPPLAY • Platform Belajar TK–SD • eduplay.id', 540, cy + ch - 50);
+		ctx.textAlign = 'left';
+		ctx.font = '900 24px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#b45309';
+		ctx.fillText('Luar biasa!', profX + btmW + 40, btmY + 44);
+
+		ctx.font = '700 19px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#5c6079';
+		wrapText(
+			ctx,
+			`Kamu sudah lebih baik dari ${recap.archetype.peer_percentile}% teman-teman di EduPlay!`,
+			profX + btmW + 40,
+			btmY + 74,
+			btmW - 60,
+			28
+		);
+
+		// 9. Bottom Footer Bar with Feature Icons
+		const footY = iy + ih - 90;
+		roundRect(ctx, profX, footY, profW, 64, 18);
+		ctx.fillStyle = '#191a38';
+		ctx.fill();
+
+		ctx.textAlign = 'center';
+		ctx.font = '800 20px "Plus Jakarta Sans", system-ui, sans-serif';
+		ctx.fillStyle = '#fcd34d';
+		ctx.fillText('🎓 Belajar Mudah   |   🎮 Tantangan Seru   |   📊 Perkembangan   |   👥 Bersama Teman', hcx, footY + 40);
+
+		ctx.restore();
+
+		// Diamond Gemstones at 4 corners
+		const gemSize = 44;
+		const gems = [
+			{ x: ox, y: oy },
+			{ x: ox + ow, y: oy },
+			{ x: ox, y: oy + oh },
+			{ x: ox + ow, y: oy + oh }
+		];
+		gems.forEach((g) => {
+			ctx.save();
+			ctx.translate(g.x, g.y);
+			ctx.rotate(Math.PI / 4);
+			roundRect(ctx, -gemSize / 2, -gemSize / 2, gemSize, gemSize, 6);
+			ctx.fillStyle = recap?.archetype.code === 'ksatria_api' ? '#ef4444' : '#0284c7';
+			ctx.fill();
+			ctx.lineWidth = 4;
+			ctx.strokeStyle = '#ffffff';
+			ctx.stroke();
+			ctx.restore();
+		});
 
 		return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
 	}
@@ -334,7 +481,7 @@
 			a.click();
 			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
-			showToast('Gambar kartu berhasil diunduh.');
+			showToast('Gambar kartu HD berhasil diunduh.');
 		} catch (e: any) {
 			showToast(e.message || 'Gagal mengunduh.');
 		} finally {
@@ -378,7 +525,7 @@
 	<title>{recap ? `Kartu Karakter ${recap.child.nickname}` : 'Kartu Karakter'} | EduPlay</title>
 </svelte:head>
 
-<div class="relative mx-auto w-full max-w-lg px-3 py-3 sm:px-4 sm:py-6">
+<div class="relative mx-auto w-full max-w-lg px-2.5 py-3 sm:px-4 sm:py-5">
 	<!-- Top Bar Navigation -->
 	<header class="flex items-center justify-between pb-3">
 		<a href="/app/play/{id}" class="inline-flex items-center gap-1.5 text-sm font-bold text-ink-soft hover:text-ink">
@@ -398,7 +545,7 @@
 	{/if}
 
 	{#if loading}
-		<div class="mt-8 flex flex-col items-center justify-center gap-3 py-20 text-center">
+		<div class="mt-8 flex flex-col items-center justify-center gap-3 py-24 text-center">
 			<div class="size-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
 			<p class="text-sm font-bold text-ink-soft">Memuat kartu karakter…</p>
 		</div>
@@ -411,111 +558,12 @@
 		<!-- Preview Stage -->
 		<div class="mt-1 flex flex-col items-center">
 			{#if activeSlide === 0}
-				<!-- SLIDE 1: KARTU KARAKTER LEGENDARIS (BEBAS EMOJI, VEKTOR MURNI) -->
-				<article
-					class="relative w-full overflow-hidden rounded-[2rem] border-4 p-5 sm:p-7 {tierConfig.border} {tierConfig.cardBg} transition-all duration-300"
-				>
-					<!-- Subtle Background Illustration Watermark -->
-					<img
-						src={winnerArt}
-						alt=""
-						class="pointer-events-none absolute -bottom-6 -right-6 w-44 opacity-15 select-none"
-					/>
-
-					<!-- Header Brand & Tier Badge -->
-					<div class="relative flex items-center justify-between border-b border-black/5 pb-3">
-						<span class="font-display text-sm font-black tracking-wider text-ink">EDUPPLAY</span>
-						<span class="inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-black uppercase shadow-xs {tierConfig.badge}">
-							<tierConfig.icon size={14} weight="fill" aria-hidden="true" />
-							{recap.archetype.tier_name}
-						</span>
-					</div>
-
-					<!-- Title & Subtitle -->
-					<div class="relative mt-4 text-center">
-						<h1 class="font-display text-xl font-black tracking-tight text-ink sm:text-2xl">
-							{recap.archetype.title}
-						</h1>
-						<p class="mt-1 text-xs font-extrabold uppercase tracking-wider text-ink-soft">
-							{recap.archetype.tag} • Level {recap.child.level}
-						</p>
-					</div>
-
-					<!-- Character Disc Hero -->
-					<div class="relative mt-5 flex justify-center">
-						<div class="relative flex size-28 items-center justify-center rounded-full bg-white shadow-lift ring-6 {tierConfig.halo}">
-							<Avatar code={recap.child.avatar} size={76} />
-							<span class="absolute -bottom-1 -right-1 grid size-7 place-items-center rounded-full bg-night text-sun shadow-xs">
-								<Sparkle size={14} weight="fill" />
-							</span>
-						</div>
-					</div>
-
-					<!-- Child Nickname Pill -->
-					<div class="relative mt-3 text-center">
-						<span class="inline-flex items-center gap-1 rounded-full bg-night px-3.5 py-1 text-xs font-black text-sun">
-							<span>{recap.child.nickname}</span>
-							<span class="text-white/60">•</span>
-							<span>Kelas {recap.child.grade_name}</span>
-						</span>
-					</div>
-
-					<!-- 4 Stat Badges (Vektor & Ikon Bersih) -->
-					<div class="relative mt-5 grid grid-cols-4 gap-1.5 sm:gap-2 text-center">
-						<div class="rounded-xl border border-line bg-white/95 p-2 shadow-xs">
-							<span class="grid size-6 mx-auto place-items-center rounded-full bg-tangerine-tint text-tangerine-deep">
-								<Fire size={14} weight="fill" />
-							</span>
-							<b class="mt-1 block text-sm font-black text-ink">{recap.stats.streak}</b>
-							<span class="block text-[0.62rem] font-bold text-ink-soft">Streak</span>
-						</div>
-						<div class="rounded-xl border border-line bg-white/95 p-2 shadow-xs">
-							<span class="grid size-6 mx-auto place-items-center rounded-full bg-sun-tint text-amber-700">
-								<Trophy size={14} weight="fill" />
-							</span>
-							<b class="mt-1 block text-sm font-black text-ink">{recap.stats.total_challenges}</b>
-							<span class="block text-[0.62rem] font-bold text-ink-soft">Tantangan</span>
-						</div>
-						<div class="rounded-xl border border-line bg-white/95 p-2 shadow-xs">
-							<span class="grid size-6 mx-auto place-items-center rounded-full bg-sun-tint text-amber-600">
-								<Star size={14} weight="fill" />
-							</span>
-							<b class="mt-1 block text-sm font-black text-ink">{recap.stats.stars}</b>
-							<span class="block text-[0.62rem] font-bold text-ink-soft">Bintang</span>
-						</div>
-						<div class="rounded-xl border border-line bg-white/95 p-2 shadow-xs">
-							<span class="grid size-6 mx-auto place-items-center rounded-full bg-primary-tint text-primary-deep">
-								<Crosshair size={14} weight="fill" />
-							</span>
-							<b class="mt-1 block text-sm font-black text-ink">{Math.round(recap.stats.accuracy)}%</b>
-							<span class="block text-[0.62rem] font-bold text-ink-soft">Akurasi</span>
-						</div>
-					</div>
-
-					<!-- Praise Card Box (Kutipan Bersih) -->
-					<div class="relative mt-4 rounded-2xl border border-line bg-white/95 p-3.5 shadow-xs">
-						<div class="flex items-start gap-2">
-							<span class="shrink-0 text-sun-deep">
-								<Quotes size={20} weight="fill" />
-							</span>
-							<p class="text-xs font-bold leading-relaxed text-ink sm:text-sm">
-								{recap.archetype.praise}
-							</p>
-						</div>
-					</div>
-
-					<!-- Target Milestone -->
-					<div class="relative mt-3 flex items-center justify-center gap-1.5 text-center">
-						<Target size={14} class="shrink-0 text-primary" weight="bold" />
-						<p class="text-[0.7rem] font-extrabold text-primary-deep sm:text-xs">
-							{recap.archetype.next_tier_hint}
-						</p>
-					</div>
-				</article>
+				<!-- SLIDE 1: KARTU TCG FANTASY MEWAH SESUAI REFERENSI -->
+				<LegendaryCardFrame {recap} />
 			{:else}
-				<!-- SLIDE 2: RAPOR PETUALANGAN LENGKAP -->
+				<!-- SLIDE 2: RAPOR AKTIVITAS DETAIL -->
 				<article
-					class="relative w-full overflow-hidden rounded-[2rem] border-4 border-line bg-white p-5 shadow-lift sm:p-7 transition-all duration-300"
+					class="relative w-full overflow-hidden rounded-[2.2rem] border-4 border-line bg-white p-5 shadow-lift sm:p-7 transition-all duration-300"
 				>
 					<div class="flex items-center justify-between border-b border-line pb-3">
 						<span class="font-display text-sm font-black text-ink">RAPOR AKTIVITAS</span>
@@ -617,7 +665,7 @@
 					disabled={exporting}
 				>
 					<InstagramLogo size={20} weight="fill" aria-hidden="true" />
-					<span>{exporting ? 'Menyiapkan Gambar…' : 'Bagikan di Instagram / Medsos'}</span>
+					<span>{exporting ? 'Menyiapkan Gambar HD…' : 'Bagikan di Instagram / Story'}</span>
 				</button>
 
 				<button
@@ -626,7 +674,7 @@
 					disabled={exporting}
 				>
 					<DownloadSimple size={16} weight="bold" aria-hidden="true" />
-					<span>Unduh Gambar Kartu (PNG)</span>
+					<span>Unduh Gambar Kartu HD (PNG)</span>
 				</button>
 			</div>
 		</div>

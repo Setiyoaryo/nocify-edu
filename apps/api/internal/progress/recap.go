@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/nocify/eduplay/api/internal/children"
 	"github.com/nocify/eduplay/api/internal/httpx"
@@ -27,17 +28,25 @@ type BadgeInfo struct {
 }
 
 type Archetype struct {
-	Code         string `json:"code"`
-	Title        string `json:"title"`
-	Subtitle     string `json:"subtitle"`
-	Praise       string `json:"praise"`
-	Highlight    string `json:"highlight"`
-	Tag          string `json:"tag"`
-	Theme        string `json:"theme"`
-	Icon         string `json:"icon"`
-	Tier         string `json:"tier"`          // starter | rare | epic | legendary
-	TierName     string `json:"tier_name"`     // Pemula | Langka | Epik | Legendaris
-	NextTierHint string `json:"next_tier_hint"`
+	Code            string `json:"code"`
+	Title           string `json:"title"`
+	Subtitle        string `json:"subtitle"`
+	Praise          string `json:"praise"`
+	Highlight       string `json:"highlight"`
+	Tag             string `json:"tag"`
+	Theme           string `json:"theme"`
+	Icon            string `json:"icon"`
+	Tier            string `json:"tier"`          // starter | rare | epic | legendary
+	TierName        string `json:"tier_name"`     // Pemula | Langka | Epik | Legendaris
+	NextTierHint    string `json:"next_tier_hint"`
+	Banner          string `json:"banner"`
+	SubBanner       string `json:"sub_banner"`
+	NextTierName    string `json:"next_tier_name"`
+	ProgressPercent int    `json:"progress_percent"`
+	PeerPercentile  int    `json:"peer_percentile"`
+	Quote           string `json:"quote"`
+	Motto           string `json:"motto"`
+	DateFormatted   string `json:"date_formatted"`
 }
 
 type ChildRecap struct {
@@ -152,6 +161,55 @@ func DetermineArchetype(child children.Child, stats RecapStats) Archetype {
 	arch.Tier = tier
 	arch.TierName = tierName
 	arch.NextTierHint = nextTierHint
+	arch.Motto = "Terus Belajar Terus Berkembang Jadi Versi Terbaikmu!"
+	arch.DateFormatted = time.Now().Format("02 Jan 2006")
+
+	switch tier {
+	case "legendary":
+		arch.Banner = "LEGENDARY"
+		arch.NextTierName = "Master Legenda"
+		arch.ProgressPercent = 85
+		arch.PeerPercentile = 96
+	case "epic":
+		arch.Banner = "EPIC"
+		arch.NextTierName = "Legendaris"
+		arch.ProgressPercent = 70
+		arch.PeerPercentile = 88
+	case "rare":
+		arch.Banner = "RARE"
+		arch.NextTierName = "Epik"
+		arch.ProgressPercent = 50
+		arch.PeerPercentile = 78
+	default:
+		arch.Banner = "CHAMPION"
+		arch.NextTierName = "Langka"
+		arch.ProgressPercent = 30
+		arch.PeerPercentile = 65
+	}
+
+	switch arch.Code {
+	case "ksatria_api":
+		arch.SubBanner = "FIRE KNIGHT"
+		arch.Quote = "Semangat belajarmu berkobar tiada henti! Api kegigihanmu menembus semua tantangan."
+	case "detektif_elang":
+		arch.SubBanner = "EAGLE DETECTIVE"
+		arch.Quote = "Mata tajam dan ketelitianmu luar biasa! Tak ada rahasia soal yang tak terpecahkan."
+	case "penyihir_angka":
+		arch.SubBanner = "MATH WIZARD"
+		arch.Quote = "Angka-angka menari indah di kepalamu! Kamu penguasa rumus dan logika hebat."
+	case "penjelajah_kata":
+		arch.SubBanner = "WORD EXPLORER"
+		arch.Quote = "Setiap kata dan kalimat membuka gerbang petualangan baru yang menakjubkan."
+	case "kolektor_bintang":
+		arch.SubBanner = "STAR COLLECTOR"
+		arch.Quote = "Bintang-bintang bersinar terang untukmu! Prestasimu menyinari langit EduPlay."
+	case "ksatria_kilat":
+		arch.SubBanner = "LIGHTNING RUNNER"
+		arch.Quote = "Kecepatan dan ketepatanmu melesat bagai kilat! Langkahmu tak terhentikan."
+	default:
+		arch.SubBanner = "RISING STAR"
+		arch.Quote = "Setiap jawaban benar membawamu lebih dekat ke masa depan hebat!"
+	}
 	return arch
 }
 
