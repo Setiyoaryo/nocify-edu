@@ -1,16 +1,12 @@
 <script lang="ts">
 	import type { ChildRecap } from '$lib/types';
-	import LegendaryHeroScene from './LegendaryHeroScene.svelte';
+	import generatedHero from '$lib/generated/legendaryHeroData';
 	import Star from 'phosphor-svelte/lib/Star';
 	import Fire from 'phosphor-svelte/lib/Fire';
 	import Target from 'phosphor-svelte/lib/Target';
 	import BookOpen from 'phosphor-svelte/lib/BookOpen';
 	import Sparkle from 'phosphor-svelte/lib/Sparkle';
 	import CalendarBlank from 'phosphor-svelte/lib/CalendarBlank';
-	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
-	import GameController from 'phosphor-svelte/lib/GameController';
-	import ChartBar from 'phosphor-svelte/lib/ChartBar';
-	import UsersThree from 'phosphor-svelte/lib/UsersThree';
 	import Trophy from 'phosphor-svelte/lib/Trophy';
 	import PenNib from 'phosphor-svelte/lib/PenNib';
 
@@ -18,137 +14,134 @@
 
 	const theme = $derived.by(() => {
 		switch (recap.archetype.code) {
-			case 'ksatria_api': return { accent: '#ff7a45', soft: '#fff1e9', deep: '#8f2d16', banner: 'from-[#7c2d12] via-[#ea580c] to-[#f59e0b]' };
-			case 'detektif_elang': return { accent: '#38bdf8', soft: '#e8f7ff', deep: '#155e75', banner: 'from-[#0c4a6e] via-[#0284c7] to-[#38bdf8]' };
-			case 'penyihir_angka': return { accent: '#a855f7', soft: '#f4e8ff', deep: '#6b21a8', banner: 'from-[#581c87] via-[#9333ea] to-[#c084fc]' };
-			case 'penjelajah_kata': return { accent: '#34d399', soft: '#e7fff5', deep: '#065f46', banner: 'from-[#065f46] via-[#059669] to-[#34d399]' };
-			default: return { accent: '#f59e0b', soft: '#fff7dc', deep: '#92400e', banner: 'from-[#7c2d12] via-[#f59e0b] to-[#fcd34d]' };
+			case 'ksatria_api':
+				return { deep: '#9a3412', accent: '#fb923c', soft: '#fff0e6', banner: 'from-[#7c2d12] via-[#ea580c] to-[#f59e0b]' };
+			case 'detektif_elang':
+				return { deep: '#075985', accent: '#38bdf8', soft: '#e8f7ff', banner: 'from-[#123a7a] via-[#2563eb] to-[#38bdf8]' };
+			case 'penyihir_angka':
+				return { deep: '#6b21a8', accent: '#c084fc', soft: '#f4e8ff', banner: 'from-[#4c1d95] via-[#7c3aed] to-[#c084fc]' };
+			case 'penjelajah_kata':
+				return { deep: '#065f46', accent: '#34d399', soft: '#e7fff5', banner: 'from-[#064e3b] via-[#059669] to-[#34d399]' };
+			default:
+				return { deep: '#92400e', accent: '#f59e0b', soft: '#fff7dc', banner: 'from-[#7c2d12] via-[#f59e0b] to-[#fcd34d]' };
 		}
 	});
+
+	const stats = $derived([
+		{ icon: Star, label: 'Bintang', value: recap.stats.stars, tone: '#fff4cf' },
+		{ icon: Fire, label: 'Streak', value: recap.stats.streak, tone: '#ffe8df' },
+		{ icon: Target, label: 'Akurasi', value: `${Math.round(recap.stats.accuracy)}%`, tone: '#e8f7ff' },
+		{ icon: BookOpen, label: 'Soal', value: recap.stats.total_questions, tone: '#efeaff' }
+	]);
 </script>
 
 <article
-	class="relative w-full overflow-hidden rounded-[1.75rem] sm:rounded-[2.25rem] border border-white/80 bg-[#fffaf0] shadow-[0_24px_60px_rgba(27,29,58,0.20)]"
-	style="--accent:{theme.accent}; --soft:{theme.soft}; --deep:{theme.deep};"
+	class="relative mx-auto w-full max-w-[430px] overflow-hidden rounded-[2rem] border-[3px] border-[#e7b84b] bg-[#fffaf0] shadow-[0_22px_55px_rgba(27,29,58,0.18)] sm:rounded-[2.5rem]"
+	style="--deep:{theme.deep}; --accent:{theme.accent};"
 >
-	<div class="pointer-events-none absolute inset-0 opacity-70" style="background:radial-gradient(circle at 10% 0%, var(--soft), transparent 35%),radial-gradient(circle at 95% 20%, #fff4bf, transparent 30%);"></div>
-	<div class="pointer-events-none absolute -right-14 top-24 size-44 rounded-full border-[18px] border-white/35"></div>
-	<div class="pointer-events-none absolute -left-20 bottom-28 size-56 rounded-full border-[22px] border-white/25"></div>
+	<div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(255,255,255,.8),transparent_35%),radial-gradient(circle_at_95%_45%,rgba(255,220,120,.22),transparent_34%)]"></div>
 
-	<div class="relative flex items-center justify-between px-3 pt-3 sm:px-6 sm:pt-4">
-		<div class="flex items-center gap-2">
-			<div class="grid size-10 place-items-center rounded-2xl bg-[#1b1d3a] text-[#ffc857] shadow-sm">
-				<Sparkle size={20} weight="fill" />
-			</div>
-			<div>
-				<div class="font-display text-base font-black text-[#3f40c2]">EduPlay</div>
-				<div class="text-[0.62rem] font-bold text-[#6b7087]">Belajar jadi lebih seru</div>
-			</div>
-		</div>
-		<div class="inline-flex items-center gap-1.5 rounded-full border border-black/5 bg-white/90 px-3 py-1.5 text-[0.65rem] font-black text-[#4b5068] shadow-sm">
-			<CalendarBlank size={13} weight="bold" />
+	<!-- Generated hero artwork: cropped intentionally so the live data below remains dynamic. -->
+	<div class="relative overflow-hidden bg-[#1b5fc9] aspect-[1.45]">
+		<img
+			src={generatedHero}
+			alt=""
+			class="absolute inset-0 h-full w-full object-cover object-top"
+			aria-hidden="true"
+		/>
+		<div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fffaf0] via-[#fffaf0]/15 to-transparent"></div>
+
+		<div class="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border-2 border-[#f3c85b] bg-white/95 px-3 py-1.5 text-[0.66rem] font-black text-[#34405a] shadow-lg sm:right-4 sm:top-4">
+			<CalendarBlank size={13} weight="bold" class="text-[#c48a12]" />
 			{recap.archetype.date_formatted}
 		</div>
 	</div>
 
-	<div class="relative px-4 pt-4 sm:px-6">
-		<div class="rounded-[1.5rem] sm:rounded-[1.75rem] bg-gradient-to-br from-white/85 to-white/45 p-1.5 sm:p-2 ring-1 ring-black/5">
-			<LegendaryHeroScene child={recap.child} archetype={recap.archetype} />
-		</div>
-	</div>
-
-	<div class="relative z-10 -mt-7 flex flex-col items-center px-4 sm:-mt-9">
-		<div class="flex items-center gap-[-4px]">
-			<span class="h-5 w-20 origin-right -rotate-6 rounded-full bg-gradient-to-r from-transparent via-[#f6c453] to-[#c47a10] shadow-sm"></span>
-			<div class="relative rounded-[1.35rem] bg-gradient-to-br {theme.banner} px-7 py-3 shadow-[0_10px_24px_rgba(74,44,8,0.28)] ring-4 ring-[#ffe39a]">
-				<div class="absolute -top-3 left-1/2 -translate-x-1/2 grid size-9 place-items-center rounded-full bg-gradient-to-br from-[#fff6a7] to-[#f3a400] text-[#8b5d00] shadow-md ring-2 ring-white">
+	<!-- Dynamic collectible rarity banner -->
+	<div class="relative z-10 -mt-8 px-4 sm:-mt-10 sm:px-6">
+		<div class="flex items-center justify-center gap-0">
+			<span class="h-7 w-14 -rotate-6 rounded-l-full bg-gradient-to-r from-transparent via-[#e6b547] to-[#ad7410] shadow-md sm:w-20"></span>
+			<div class="relative min-w-0 rounded-[1.45rem] bg-gradient-to-r {theme.banner} px-6 py-3 shadow-[0_12px_26px_rgba(74,44,8,0.28)] ring-4 ring-[#ffe7a0] sm:px-9">
+				<div class="absolute -top-4 left-1/2 grid size-10 -translate-x-1/2 place-items-center rounded-full bg-gradient-to-br from-[#fff8ad] to-[#efa914] text-[#7e5900] shadow-lg ring-2 ring-white">
 					<Star size={18} weight="fill" />
 				</div>
-				<div class="pt-1 text-center font-display text-xl font-black tracking-[0.08em] text-white drop-shadow sm:text-2xl">
+				<div class="pt-1 text-center font-display text-[clamp(1rem,5vw,1.55rem)] font-black tracking-[0.08em] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,.4)]">
 					{recap.archetype.banner}
 				</div>
-				<div class="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#fff1a6] via-[#ffd45c] to-[#f0a71e] px-5 py-1 text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#5b4213] shadow-md ring-1 ring-[#c98914]">
+				<div class="absolute -bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-[#bf8614] bg-gradient-to-r from-[#fff2ab] via-[#ffd45a] to-[#f0a71e] px-4 py-1 text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#5b4213] shadow-md whitespace-nowrap sm:text-[0.64rem]">
 					{recap.archetype.sub_banner}
 				</div>
 			</div>
-			<span class="h-5 w-20 origin-left rotate-6 rounded-full bg-gradient-to-l from-transparent via-[#f6c453] to-[#c47a10] shadow-sm"></span>
+			<span class="h-7 w-14 rotate-6 rounded-r-full bg-gradient-to-l from-transparent via-[#e6b547] to-[#ad7410] shadow-md sm:w-20"></span>
 		</div>
 	</div>
 
-	<div class="relative z-10 mx-3 mt-6 rounded-[1.35rem] sm:mx-6 sm:mt-7 sm:rounded-[1.5rem] border border-black/5 bg-white/90 p-3 shadow-sm sm:p-3.5 sm:mx-6">
-		<div class="grid grid-cols-[auto_1fr] gap-3">
-			<div class="grid size-14 place-items-center rounded-2xl bg-[#1b1d3a] text-white ring-4 ring-[#ffe39a]">
-				<span class="text-[0.56rem] font-black uppercase tracking-wider text-[#ffc857]">Level</span>
-				<span class="font-display text-xl font-black leading-none">{recap.child.level}</span>
-			</div>
-			<div class="min-w-0">
-				<div class="truncate font-display text-xl font-black text-[#1b1d3a]">{recap.child.nickname}</div>
-				<div class="mt-0.5 flex items-center gap-1.5 text-xs font-bold text-[#6b7087]">
-					<PenNib size={12} class="text-[var(--deep)]" />
-					{recap.archetype.title}
+	<div class="relative z-10 px-3 pt-8 sm:px-6 sm:pt-10">
+		<section class="rounded-[1.45rem] border border-[#ecd696] bg-gradient-to-b from-[#fffdf7] to-[#fff7df] p-3.5 shadow-sm sm:p-4">
+			<div class="grid grid-cols-[auto_1fr] items-center gap-3 sm:gap-4">
+				<div class="grid size-[4.4rem] place-items-center rounded-2xl bg-gradient-to-b from-[#7a3f0c] to-[#b96c13] text-white shadow-md ring-4 ring-[#ffd86b] sm:size-[4.8rem]">
+					<span class="text-[0.54rem] font-black uppercase tracking-wider text-[#ffe9a6]">Level</span>
+					<span class="font-display text-2xl font-black leading-none sm:text-3xl">{recap.child.level}</span>
 				</div>
-				<p class="mt-2 text-xs font-semibold leading-relaxed text-[#53586e] sm:text-sm">
-					“{recap.archetype.quote}”
+				<div class="min-w-0">
+					<div class="truncate font-display text-[1.3rem] font-black text-[#1b1d3a] sm:text-2xl">{recap.child.nickname}</div>
+					<div class="mt-1 flex items-center gap-1.5 text-[0.7rem] font-extrabold text-[#5d6479] sm:text-xs">
+						<PenNib size={12} class="text-[var(--deep)]" />
+						<span class="truncate">{recap.archetype.title}</span>
+					</div>
+					<p class="mt-2 line-clamp-2 text-[0.68rem] font-semibold leading-relaxed text-[#6a6f81] sm:text-xs">
+						“{recap.archetype.quote}”
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+			{#each stats as stat}
+				{@const Icon = stat.icon}
+				<div class="min-w-0 rounded-[1.2rem] border border-black/5 bg-white p-3 shadow-sm sm:p-3.5">
+					<div class="grid size-9 place-items-center rounded-2xl sm:size-10" style="background:{stat.tone}; color:var(--deep);">
+						<Icon size={18} weight="fill" />
+					</div>
+					<div class="mt-2 truncate font-display text-xl font-black text-[#1b1d3a] sm:text-2xl">{stat.value}</div>
+					<div class="mt-0.5 text-[0.64rem] font-extrabold uppercase tracking-wider text-[#72778a]">{stat.label}</div>
+				</div>
+			{/each}
+		</section>
+
+		<section class="mt-3 grid gap-2.5 sm:grid-cols-[1.1fr_0.9fr] sm:gap-3">
+			<div class="rounded-[1.45rem] border border-black/5 bg-white p-3.5 shadow-sm sm:p-4">
+				<div class="flex items-center justify-between gap-3">
+					<div class="min-w-0">
+						<div class="text-[0.65rem] font-black uppercase tracking-wider text-[#7d8295]">Menuju tier berikutnya</div>
+						<div class="mt-1 truncate font-display text-lg font-black text-[#1b1d3a]">{recap.archetype.next_tier_name}</div>
+					</div>
+					<div class="rounded-xl bg-[#f0e9ff] px-2.5 py-1 text-xs font-black text-[#6d28d9]">{recap.archetype.progress_percent}%</div>
+				</div>
+				<div class="mt-2.5 h-3 overflow-hidden rounded-full bg-[#eeeaf6]">
+					<div class="h-full rounded-full bg-gradient-to-r from-[#6d28d9] via-[#a855f7] to-[#f59e0b]" style="width:{Math.max(3, Math.min(100, recap.archetype.progress_percent))}%"></div>
+				</div>
+			</div>
+
+			<div class="rounded-[1.45rem] border border-[#eedb9d] bg-gradient-to-r from-[#fff7d6] to-[#fffef5] p-3.5 shadow-sm sm:p-4">
+				<div class="flex items-center gap-2.5">
+					<div class="grid size-10 shrink-0 place-items-center rounded-2xl bg-white text-[#c98700] shadow-sm ring-1 ring-[#f2d98b]">
+						<Trophy size={20} weight="fill" />
+					</div>
+					<div class="text-sm font-black text-[#935b00]">Luar biasa!</div>
+				</div>
+				<p class="mt-2 text-xs font-bold leading-relaxed text-[#635c49]">
+					Kamu sudah lebih baik dari {recap.archetype.peer_percentile}% teman-teman di EduPlay!
 				</p>
 			</div>
-		</div>
-	</div>
+		</section>
 
-	<div class="relative z-10 mx-3 mt-3 grid grid-cols-2 gap-2 sm:mx-6 sm:grid-cols-4 sm:gap-3">
-		{#each [
-			{ icon: Star, label: 'Bintang', value: recap.stats.stars, tone: '#fff4cf' },
-			{ icon: Fire, label: 'Streak', value: recap.stats.streak, tone: '#ffe8df' },
-			{ icon: Target, label: 'Akurasi', value: `${Math.round(recap.stats.accuracy)}%`, tone: '#e8f7ff' },
-			{ icon: BookOpen, label: 'Soal', value: recap.stats.total_questions, tone: '#efeaff' }
-		] as stat}
-			{@const Icon = stat.icon}
-			<div class="rounded-[1.25rem] border border-black/5 bg-white/90 p-3 shadow-sm">
-				<div class="grid size-9 place-items-center rounded-2xl" style="background:{stat.tone}; color:var(--deep);">
-					<Icon size={18} weight="fill" />
-				</div>
-				<div class="mt-2 font-display text-xl font-black text-[#1b1d3a]">{stat.value}</div>
-				<div class="text-[0.68rem] font-extrabold uppercase tracking-wider text-[#6b7087]">{stat.label}</div>
-			</div>
-		{/each}
-	</div>
-
-	<div class="relative z-10 mx-3 mt-3 grid gap-2.5 sm:mx-6 sm:grid-cols-[1.15fr_0.85fr] sm:gap-3">
-		<div class="rounded-[1.5rem] border border-black/5 bg-white/90 p-3.5 shadow-sm">
-			<div class="flex items-center justify-between gap-3">
-				<div class="min-w-0">
-					<div class="text-[0.68rem] font-black uppercase tracking-wider text-[#7a7f95]">Menuju tier berikutnya</div>
-					<div class="mt-1 truncate font-display text-lg font-black text-[#1b1d3a]">{recap.archetype.next_tier_name}</div>
-				</div>
-				<div class="rounded-xl bg-[#f0e9ff] px-2.5 py-1 text-xs font-black text-[#6d28d9]">{recap.archetype.progress_percent}%</div>
-			</div>
-			<div class="mt-2 h-2.5 overflow-hidden rounded-full bg-[#eeeaf6]">
-				<div class="h-full rounded-full bg-gradient-to-r from-[#7c3aed] to-[#f59e0b]" style="width:{Math.max(3, Math.min(100, recap.archetype.progress_percent))}%"></div>
+		<div class="pb-3 pt-3 sm:pb-4">
+			<div class="flex items-center justify-center gap-2 text-[0.66rem] font-extrabold text-[#777b8f]">
+				<Sparkle size={13} weight="fill" class="text-[#e5ae28]" />
+				<span>Terus belajar, terus berkembang.</span>
+				<Sparkle size={13} weight="fill" class="text-[#e5ae28]" />
 			</div>
 		</div>
-		<div class="rounded-[1.5rem] border border-black/5 bg-[#fff8dd] p-3.5 shadow-sm">
-			<div class="flex items-center gap-2">
-				<div class="grid size-9 place-items-center rounded-xl bg-white text-[#d99000] shadow-sm">
-					<Trophy size={18} weight="fill" />
-				</div>
-				<div class="text-xs font-black text-[#955f00]">Luar biasa!</div>
-			</div>
-			<p class="mt-2 text-xs font-bold leading-relaxed text-[#675f4c]">
-				Kamu sudah lebih baik dari {recap.archetype.peer_percentile}% teman-teman di EduPlay!
-			</p>
-		</div>
-	</div>
-
-	<div class="relative z-10 mx-3 my-3 flex items-center justify-around gap-1.5 rounded-[1.2rem] sm:mx-6 sm:gap-2 sm:rounded-[1.35rem] bg-[#1b1d3a] px-2 py-3 text-white sm:mx-6">
-		<div class="flex items-center gap-1.5 text-[0.6rem] font-extrabold sm:text-xs"><GraduationCap size={15} class="text-[#ffc857]" /><span>Belajar mudah</span></div>
-		<div class="hidden text-white/20 sm:block">•</div>
-		<div class="flex items-center gap-1.5 text-[0.6rem] font-extrabold sm:text-xs"><GameController size={15} class="text-[#ffc857]" /><span>Tantangan seru</span></div>
-		<div class="hidden text-white/20 sm:block">•</div>
-		<div class="flex items-center gap-1.5 text-[0.6rem] font-extrabold sm:text-xs"><ChartBar size={15} class="text-[#ffc857]" /><span>Perkembangan</span></div>
-		<div class="hidden text-white/20 sm:block">•</div>
-		<div class="hidden items-center gap-1.5 text-[0.6rem] font-extrabold sm:flex sm:text-xs"><UsersThree size={15} class="text-[#ffc857]" /><span>Bersama teman</span></div>
 	</div>
 </article>
-
-<style>
-	article { isolation: isolate; }
-</style>
