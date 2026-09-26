@@ -28,25 +28,25 @@ type BadgeInfo struct {
 }
 
 type Archetype struct {
-	Code         string `json:"code"`
-	Title        string `json:"title"`
-	Subtitle     string `json:"subtitle"`
-	Praise       string `json:"praise"`
-	Highlight    string `json:"highlight"`
-	Tag          string `json:"tag"`
-	Theme        string `json:"theme"`
-	Icon         string `json:"icon"`
-	Tier         string `json:"tier"`          // starter | rare | epic | legendary
-	TierName     string `json:"tier_name"`     // Pemula | Langka | Epik | Legendaris
-	NextTierHint string `json:"next_tier_hint"`
-	Banner       string `json:"banner"`
-	SubBanner    string `json:"sub_banner"`
-	NextTierName string `json:"next_tier_name"`
+	Code            string `json:"code"`
+	Title           string `json:"title"`
+	Subtitle        string `json:"subtitle"`
+	Praise          string `json:"praise"`
+	Highlight       string `json:"highlight"`
+	Tag             string `json:"tag"`
+	Theme           string `json:"theme"`
+	Icon            string `json:"icon"`
+	Tier            string `json:"tier"`      // starter | rare | epic | legendary
+	TierName        string `json:"tier_name"` // Pemula | Langka | Epik | Legendaris
+	NextTierHint    string `json:"next_tier_hint"`
+	Banner          string `json:"banner"`
+	SubBanner       string `json:"sub_banner"`
+	NextTierName    string `json:"next_tier_name"`
 	ProgressPercent int    `json:"progress_percent"`
 	PeerPercentile  int    `json:"peer_percentile"`
-	Quote        string `json:"quote"`
-	Motto        string `json:"motto"`
-	DateFormatted string `json:"date_formatted"`
+	Quote           string `json:"quote"`
+	Motto           string `json:"motto"`
+	DateFormatted   string `json:"date_formatted"`
 }
 
 type ChildRecap struct {
