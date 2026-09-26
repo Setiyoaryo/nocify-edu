@@ -119,13 +119,18 @@
 		</main>
 
 		{#if !inChallenge}
-			<nav class="safe-bottom fixed inset-x-0 bottom-0 z-20 border-t border-line bg-paper" aria-label="Menu anak">
-				<ul class="mx-auto grid max-w-md grid-cols-3">
+			<nav class="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/95 backdrop-blur-sm shadow-card" aria-label="Menu anak">
+				<ul class="mx-auto grid max-w-md grid-cols-4 px-1 py-1">
 					{#each tabs as t}
 						{@const active = page.url.pathname === t.href}
 						<li>
-							<a href={t.href} aria-current={active ? 'page' : undefined} class="flex min-h-16 flex-col items-center justify-center gap-0.5 font-extrabold {active ? 'text-primary' : 'text-ink-soft'}">
-								<t.icon size={28} weight={active ? 'fill' : 'regular'} aria-hidden="true" />{t.label}
+							<a
+								href={t.href}
+								aria-current={active ? 'page' : undefined}
+								class="flex min-h-[3.75rem] flex-col items-center justify-center gap-1 py-1 text-center transition-colors {active ? 'text-primary font-black' : 'text-ink-soft hover:text-ink font-semibold'}"
+							>
+								<t.icon size={24} weight={active ? 'fill' : 'bold'} aria-hidden="true" />
+								<span class="text-[0.72rem] leading-none tracking-tight">{t.label}</span>
 							</a>
 						</li>
 					{/each}

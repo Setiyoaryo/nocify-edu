@@ -24,7 +24,7 @@ test('app pages never overflow horizontally', async ({ page }, info) => {
 	await page.waitForURL(/challenge/);
 	const challengeUrl = page.url();
 
-	const paths = ['/app/parent', `/app/parent/children/${cid}`, '/app/parent/children', '/app/parent/subscription', childUrl, challengeUrl];
+	const paths = ['/app/parent', `/app/parent/children/${cid}`, '/app/parent/children', '/app/parent/subscription', childUrl, `${childUrl}/card`, challengeUrl];
 	for (const w of widths) {
 		await page.setViewportSize({ width: w, height: 900 });
 		for (const p of paths) {
