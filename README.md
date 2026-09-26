@@ -46,6 +46,21 @@ docker compose -f infra/compose/compose.yaml exec -T api eduplay user --email ad
 
 Update later with `git pull` and the same `up -d --build --wait`. For real users use `compose.prod.yaml` (see docs/operations.md).
 
+**With a domain and HTTPS:** point the domain's DNS A record at the VPS, open ports 80 and 443, and use:
+
+```bash
+cat > infra/compose/.env <<'ENV'
+DOMAIN=test.example.com
+ACME_EMAIL=you@example.com
+PUBLIC_URL=https://test.example.com
+PAYMENT_PROVIDER=mock
+PAYMENT_SECRET=test-only-secret
+ENV
+docker compose -f infra/compose/compose.yaml -f infra/compose/compose.domain.yaml up -d --build --wait
+```
+
+Use the same two `-f` flags for every later `docker compose` command (`exec`, `logs`, `pull`, `down`).
+
 ## Tests
 
 | Command | What |

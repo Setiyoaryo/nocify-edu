@@ -1,0 +1,41 @@
+# Test stack on a real domain with automatic HTTPS (Let's Encrypt).
+# Layer it on top of compose.yaml:
+#   docker compose -f infra/compose/compose.yaml -f infra/compose/compose.domain.yaml up -d --build --wait
+# Needs in infra/compose/.env:  DOMAIN, ACME_EMAIL, PUBLIC_URL=https://$DOMAIN
+# The DNS A record of DOMAIN must point at this server, and ports 80 and 443 must be open.
+# Still a test stack (dev database password, SeaweedFS, test payments); use compose.prod.yaml for real users.
+
+services:
+  proxy:
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      # Only route this stack's containers (compose.yaml sets `name: eduplay-dev`).
+      - --providers.docker.constraints=Label(`com.docker.compose.project`,`eduplay-dev`)
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.le.acme.tlschallenge=true
+      - --certificatesresolvers.le.acme.email=${ACME_EMAIL:?set ACME_EMAIL in infra/compose/.env}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+    ports: !override
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+
+  api:
+    labels:
+      - traefik.http.routers.api.rule=Host(`${DOMAIN:?set DOMAIN in infra/compose/.env}`) && PathPrefix(`/api`)
+      - traefik.http.routers.api.entrypoints=websecure
+      - traefik.http.routers.api.tls.certresolver=le
+
+  web:
+    labels:
+      - traefik.http.routers.web.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.web.entrypoints=websecure
+      - traefik.http.routers.web.tls.certresolver=le
+
+volumes:
+  letsencrypt:
