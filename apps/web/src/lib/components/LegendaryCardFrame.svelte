@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ChildRecap } from '$lib/types';
-	import generatedHero from '$lib/generated/legendaryHeroData';
+	import LegendaryHeroScene from './LegendaryHeroScene.svelte';
 	import Star from 'phosphor-svelte/lib/Star';
 	import Fire from 'phosphor-svelte/lib/Fire';
 	import Target from 'phosphor-svelte/lib/Target';
@@ -41,16 +41,10 @@
 >
 	<div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(255,255,255,.8),transparent_35%),radial-gradient(circle_at_95%_45%,rgba(255,220,120,.22),transparent_34%)]"></div>
 
-	<!-- Generated hero artwork: cropped intentionally so the live data below remains dynamic. -->
-	<div class="relative overflow-hidden bg-[#1b5fc9] aspect-[1.45]">
-		<img
-			src={generatedHero}
-			alt=""
-			class="absolute inset-0 h-full w-full object-cover object-top"
-			aria-hidden="true"
-		/>
-		<div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fffaf0] via-[#fffaf0]/15 to-transparent"></div>
-
+	<!-- Hero artwork: native responsive SVG composition, so it stays sharp and reliable on mobile. -->
+	<div class="relative overflow-hidden rounded-[1.75rem] border-2 border-[#efc65f] bg-[#0f4c81] shadow-inner">
+		<LegendaryHeroScene child={recap.child} archetype={recap.archetype} />
+		<div class="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/10 to-transparent"></div>
 		<div class="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border-2 border-[#f3c85b] bg-white/95 px-3 py-1.5 text-[0.66rem] font-black text-[#34405a] shadow-lg sm:right-4 sm:top-4">
 			<CalendarBlank size={13} weight="bold" class="text-[#c48a12]" />
 			{recap.archetype.date_formatted}
@@ -76,7 +70,7 @@
 		</div>
 	</div>
 
-	<div class="relative z-10 px-3 pt-8 sm:px-6 sm:pt-10">
+	<div class="relative z-10 px-2.5 pt-8 sm:px-6 sm:pt-10">
 		<section class="rounded-[1.45rem] border border-[#ecd696] bg-gradient-to-b from-[#fffdf7] to-[#fff7df] p-3.5 shadow-sm sm:p-4">
 			<div class="grid grid-cols-[auto_1fr] items-center gap-3 sm:gap-4">
 				<div class="grid size-[4.4rem] place-items-center rounded-2xl bg-gradient-to-b from-[#7a3f0c] to-[#b96c13] text-white shadow-md ring-4 ring-[#ffd86b] sm:size-[4.8rem]">
