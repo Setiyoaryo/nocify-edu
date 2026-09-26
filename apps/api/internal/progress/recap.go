@@ -36,8 +36,8 @@ type Archetype struct {
 	Tag             string `json:"tag"`
 	Theme           string `json:"theme"`
 	Icon            string `json:"icon"`
-	Tier            string `json:"tier"`          // starter | rare | epic | legendary
-	TierName        string `json:"tier_name"`     // Pemula | Langka | Epik | Legendaris
+	Tier            string `json:"tier"`      // starter | rare | epic | legendary
+	TierName        string `json:"tier_name"` // Pemula | Langka | Epik | Legendaris
 	NextTierHint    string `json:"next_tier_hint"`
 	Banner          string `json:"banner"`
 	SubBanner       string `json:"sub_banner"`

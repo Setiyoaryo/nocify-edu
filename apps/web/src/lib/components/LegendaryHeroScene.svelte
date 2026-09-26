@@ -109,7 +109,7 @@
 	});
 </script>
 
-<div class="relative w-full overflow-hidden rounded-t-[1.6rem] aspect-[16/14]">
+<div class="relative w-full overflow-hidden rounded-[1.5rem] aspect-[4/3] sm:rounded-[1.6rem] sm:aspect-[16/13]">
 	<!-- Sky and Atmosphere Canvas -->
 	<svg viewBox="0 0 500 420" class="absolute inset-0 size-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
 		<defs>

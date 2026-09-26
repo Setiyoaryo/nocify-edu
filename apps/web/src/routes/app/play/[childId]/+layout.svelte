@@ -95,26 +95,26 @@
 {:else}
 	<div class="flex min-h-dvh flex-col">
 		<header class="sticky top-0 z-20 bg-canvas/95 backdrop-blur">
-			<div class="mx-auto flex max-w-4xl items-center gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 sm:gap-3 sm:px-4">
-				<Avatar code={ctx.child.avatar} size={46} />
+			<div class="mx-auto flex max-w-4xl items-center gap-1.5 px-2.5 pt-[max(0.65rem,env(safe-area-inset-top))] pb-2 sm:gap-3 sm:px-4">
+				<Avatar code={ctx.child.avatar} size={40} />
 				<div class="min-w-0 flex-1 leading-tight">
-					<p class="truncate text-lg font-extrabold">{ctx.child.nickname}</p>
-					<p class="text-sm font-semibold whitespace-nowrap text-ink-soft">Level {ctx.child.level}</p>
+					<p class="truncate text-[0.95rem] font-extrabold sm:text-lg">{ctx.child.nickname}</p>
+					<p class="text-xs font-semibold whitespace-nowrap text-ink-soft sm:text-sm">Level {ctx.child.level}</p>
 				</div>
 				{#if ctx.streak > 0}
-					<p class="pill hidden bg-tangerine-tint py-1.5 text-base text-tangerine-deep min-[400px]:inline-flex" aria-label="{ctx.streak} hari beruntun"><Fire size={20} weight="fill" aria-hidden="true" />{ctx.streak}</p>
+					<p class="pill hidden bg-tangerine-tint px-2 py-1 text-sm text-tangerine-deep sm:inline-flex sm:py-1.5 sm:text-base" aria-label="{ctx.streak} hari beruntun"><Fire size={20} weight="fill" aria-hidden="true" />{ctx.streak}</p>
 				{/if}
-				{#key ctx.stars}<p class="pill anim-pop bg-sun-tint py-1.5 text-base text-ink" aria-label="{ctx.stars} bintang"><Star size={20} weight="fill" class="text-sun-deep" aria-hidden="true" />{ctx.stars}</p>{/key}
-				<button class="tile grid size-11 shrink-0 place-items-center text-primary sm:size-12" onclick={() => speech.toggleMute()} aria-pressed={speech.muted} aria-label={speech.muted ? 'Nyalakan suara' : 'Matikan suara'}>
-					{#if speech.muted}<SpeakerSlash size={22} weight="bold" aria-hidden="true" />{:else}<SpeakerHigh size={22} weight="fill" aria-hidden="true" />{/if}
+				{#key ctx.stars}<p class="pill anim-pop bg-sun-tint px-2 py-1 text-sm text-ink sm:py-1.5 sm:text-base" aria-label="{ctx.stars} bintang"><Star size={20} weight="fill" class="text-sun-deep" aria-hidden="true" />{ctx.stars}</p>{/key}
+				<button class="tile grid size-10 shrink-0 place-items-center text-primary sm:size-12" onclick={() => speech.toggleMute()} aria-pressed={speech.muted} aria-label={speech.muted ? 'Nyalakan suara' : 'Matikan suara'}>
+					{#if speech.muted}<SpeakerSlash size={19} weight="bold" aria-hidden="true" />{:else}<SpeakerHigh size={19} weight="fill" aria-hidden="true" />{/if}
 				</button>
 				{#if !inChallenge}
-					<button class="tile grid size-11 shrink-0 place-items-center text-ink-soft sm:size-12" onclick={() => (gate = true)} aria-label="Keluar ke area orang tua"><SignOut size={22} weight="bold" aria-hidden="true" /></button>
+					<button class="tile grid size-10 shrink-0 place-items-center text-ink-soft sm:size-12" onclick={() => (gate = true)} aria-label="Keluar ke area orang tua"><SignOut size={19} weight="bold" aria-hidden="true" /></button>
 				{/if}
 			</div>
 		</header>
 
-		<main class="mx-auto w-full max-w-4xl flex-1 px-4 {inChallenge ? 'pb-6' : 'pb-32'}">
+		<main class="mx-auto w-full max-w-4xl flex-1 px-2.5 sm:px-4 {inChallenge ? 'pb-6' : 'pb-32'}">
 			{@render children()}
 		</main>
 

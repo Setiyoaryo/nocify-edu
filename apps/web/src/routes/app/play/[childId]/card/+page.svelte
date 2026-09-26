@@ -525,14 +525,14 @@
 	<title>{recap ? `Kartu Karakter ${recap.child.nickname}` : 'Kartu Karakter'} | EduPlay</title>
 </svelte:head>
 
-<div class="relative mx-auto w-full max-w-lg px-2.5 py-3 sm:px-4 sm:py-5">
+<div class="relative mx-auto w-full max-w-md px-2 py-2 sm:max-w-lg sm:px-4 sm:py-5">
 	<!-- Top Bar Navigation -->
-	<header class="flex items-center justify-between pb-3">
+	<header class="flex items-center justify-between pb-2 sm:pb-3">
 		<a href="/app/play/{id}" class="inline-flex items-center gap-1.5 text-sm font-bold text-ink-soft hover:text-ink">
 			<CaretLeft size={20} weight="bold" aria-hidden="true" />
 			<span>Kembali</span>
 		</a>
-		<span class="inline-flex items-center gap-1.5 rounded-full bg-paper px-3 py-1 text-xs font-black shadow-xs border border-line">
+		<span class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-paper px-3 py-1 text-xs font-black shadow-xs border border-line">
 			<Sparkle size={14} weight="fill" class="text-sun-deep" aria-hidden="true" />
 			<span>Kartu Karakter</span>
 		</span>
