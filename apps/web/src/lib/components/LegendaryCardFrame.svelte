@@ -85,34 +85,34 @@
 	</div>
 
 	<div class="relative z-10 px-2.5 pt-8 sm:px-6 sm:pt-10">
-		<section class="rounded-[1.45rem] border border-[#ecd696] bg-gradient-to-b from-[#fffdf7] to-[#fff7df] p-3.5 shadow-sm sm:p-4">
-			<div class="grid grid-cols-[auto_1fr] items-center gap-3 sm:gap-4">
-				<div class="grid size-[4.4rem] place-items-center rounded-2xl bg-gradient-to-b from-[#7a3f0c] to-[#b96c13] text-white shadow-md ring-4 ring-[#ffd86b] sm:size-[4.8rem]">
-					<span class="text-[0.54rem] font-black uppercase tracking-wider text-[#ffe9a6]">Level</span>
-					<span class="font-display text-2xl font-black leading-none sm:text-3xl">{recap.child.level}</span>
+		<section class="rounded-[1.45rem] border border-[#ecd696] bg-gradient-to-b from-[#fffdf7] to-[#fff7df] p-3 shadow-xs">
+			<div class="flex items-center gap-3">
+				<div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-b from-[#7a3f0c] to-[#b96c13] text-white shadow-sm ring-2 ring-[#ffd86b]">
+					<span class="text-[0.52rem] font-black uppercase text-[#ffe9a6]">Level</span>
+					<span class="font-display text-xl font-black leading-none">{recap.child.level}</span>
 				</div>
-				<div class="min-w-0">
-					<div class="truncate font-display text-[1.3rem] font-black text-[#1b1d3a] sm:text-2xl">{recap.child.nickname}</div>
-					<div class="mt-1 flex items-center gap-1.5 text-[0.7rem] font-extrabold text-[#5d6479] sm:text-xs">
-						<PenNib size={12} class="text-[var(--deep)]" />
-						<span class="truncate">{recap.archetype.title}</span>
+				<div class="min-w-0 flex-1">
+					<h2 class="truncate font-display text-lg font-black text-[#1b1d3a]">{recap.child.nickname}</h2>
+					<div class="flex items-center gap-1 text-[0.68rem] font-extrabold text-[var(--deep)] leading-tight">
+						<PenNib size={12} class="shrink-0" />
+						<span>{recap.archetype.title}</span>
 					</div>
-					<p class="mt-2 line-clamp-2 text-[0.68rem] font-semibold leading-relaxed text-[#6a6f81] sm:text-xs">
-						“{recap.archetype.quote}”
-					</p>
 				</div>
 			</div>
+			<p class="mt-2 text-[0.68rem] font-semibold italic leading-relaxed text-[#6a6f81] border-t border-[#ecd696]/60 pt-1.5">
+				“{recap.archetype.quote}”
+			</p>
 		</section>
 
-		<section class="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+		<section class="mt-2.5 grid grid-cols-4 gap-1 text-center">
 			{#each stats as stat}
 				{@const Icon = stat.icon}
-				<div class="min-w-0 rounded-[1.2rem] border border-black/5 bg-white p-3 shadow-sm sm:p-3.5">
-					<div class="grid size-9 place-items-center rounded-2xl sm:size-10" style="background:{stat.tone}; color:var(--deep);">
-						<Icon size={18} weight="fill" />
+				<div class="rounded-xl border border-black/5 bg-white px-1 py-2 shadow-2xs flex flex-col items-center justify-between">
+					<div class="grid size-6 place-items-center rounded-lg" style="background:{stat.tone}; color:var(--deep);">
+						<Icon size={13} weight="fill" />
 					</div>
-					<div class="mt-2 truncate font-display text-xl font-black text-[#1b1d3a] sm:text-2xl">{stat.value}</div>
-					<div class="mt-0.5 text-[0.64rem] font-extrabold uppercase tracking-wider text-[#72778a]">{stat.label}</div>
+					<div class="my-0.5 font-display text-sm font-black text-[#1b1d3a] leading-none">{stat.value}</div>
+					<div class="text-[0.62rem] font-bold text-[#62677b] leading-tight">{stat.label}</div>
 				</div>
 			{/each}
 		</section>

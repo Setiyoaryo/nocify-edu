@@ -185,25 +185,20 @@
 		</g>
 	</svg>
 
-	<!-- Storybook illustration layer: real vector artwork, sharp at every mobile breakpoint. -->
-	<div class="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] overflow-hidden opacity-95">
-		<img src={heroKids} alt="" class="absolute bottom-[-16%] left-1/2 w-[145%] max-w-none -translate-x-1/2 drop-shadow-[0_18px_30px_rgba(20,34,70,0.18)]" aria-hidden="true" />
-		<div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/10 via-white/0 to-transparent"></div>
-	</div>
 
 	<!-- Main Character Stage Composite -->
 	<div class="absolute inset-0 flex items-center justify-center">
 		<!-- Central Hero Kid Avatar & Pedestal -->
-		<div class="relative flex flex-col items-center pt-2">
+		<div class="relative flex flex-col items-center">
 			<!-- Hero Glowing Aura -->
 			<div
-				class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-48 rounded-full blur-xl"
+				class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-40 sm:size-48 rounded-full blur-xl"
 				style="background: {themeData.accentGlow};"
 			></div>
 
 			<!-- Dynamic Hero Avatar Disc -->
-			<div class="relative flex size-36 items-center justify-center rounded-full bg-white/95 shadow-2xl ring-[7px] ring-amber-300/90 sm:size-44 sm:ring-8">
-				<Avatar code={child.avatar} size={116} />
+			<div class="relative flex size-32 sm:size-36 items-center justify-center rounded-full bg-white shadow-2xl ring-6 ring-amber-300">
+				<Avatar code={child.avatar} size={88} />
 
 				<!-- Victory Raised Fist Badge -->
 				<div class="absolute -top-1 -right-1 flex size-11 items-center justify-center rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 text-ink shadow-lg ring-3 ring-white">
