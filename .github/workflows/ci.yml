@@ -39,6 +39,26 @@ jobs:
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=high
 
+  pipeline:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: { POSTGRES_USER: eduplay, POSTGRES_PASSWORD: eduplay, POSTGRES_DB: eduplay_test }
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    defaults: { run: { working-directory: services/content-pipeline } }
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen --group dev
+      - run: uv run ruff check .
+      - run: uv run mypy
+      - run: uv run pytest
+      - name: Apply content_staging migrations
+        run: uv run content-pipeline migrate
+        env: { DATABASE_URL: "postgres://eduplay:eduplay@localhost:5432/eduplay_test?sslmode=disable" }
+
   e2e:
     needs: [api, web]
     runs-on: ubuntu-latest

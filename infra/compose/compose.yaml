@@ -78,6 +78,25 @@ services:
     environment: *apienv
     depends_on: { api: { condition: service_started } }
 
+  # Content intelligence pipeline (M1). Not started by `up`: it is a batch job.
+  #   docker compose -f infra/compose/compose.yaml --profile pipeline run --rm pipeline migrate
+  #   docker compose -f infra/compose/compose.yaml --profile pipeline run --rm pipeline sources list
+  #   docker compose -f infra/compose/compose.yaml --profile pipeline run --rm pipeline crawl --limit 20
+  pipeline:
+    profiles: ["pipeline"]
+    build: { context: ../.., dockerfile: infra/docker/content-pipeline.Dockerfile }
+    environment:
+      DATABASE_URL: postgres://eduplay:eduplay@postgres:5432/eduplay?sslmode=disable
+      PIPELINE_USER_AGENT: ${PIPELINE_USER_AGENT:-NocifyEduPlayBot/0.1 (+https://github.com/Setiyoaryo/nocify-edu)}
+      S3_ENDPOINT: s3:8333
+      S3_BUCKET: eduplay-dev
+      S3_USE_SSL: "false"
+      STORAGE_ACCESS_KEY: eduplay
+      STORAGE_SECRET_KEY: eduplay-dev-secret
+    depends_on:
+      postgres: { condition: service_healthy }
+      s3: { condition: service_healthy }
+
   web:
     build: { context: ../.., dockerfile: infra/docker/web.Dockerfile }
     environment:
