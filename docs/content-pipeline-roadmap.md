@@ -171,6 +171,13 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
 - **Deliverable:** kandidat materi dan soal dengan lineage lengkap.
 - **Artefak:** `material_candidates`, `question_candidates`; amplop kontrak di `packages/contracts/`.
 - **DoD:** setiap kandidat punya `source_chunk_id`; payload soal lolos `question-schema`; template deterministik untuk tipe terstruktur, AI hanya untuk kandidat §23–24; QA otomatis §40 (missing source/CP/skill, duplikat, opsi kosong, dsb).
+- **Status:** 🟡 **material candidates selesai (2026-09-30); question candidates menyusul.**
+  - Staging: `material_candidates` (`sql/0004_materials.sql`) — satu baris per chunk, idempoten (`UNIQUE (chunk_id)`).
+  - `readability.py` (§30): `age_band`, `reading_level`, `complexity`, hitungan kata/kalimat, `visual_required`/`audio_required`; heuristik dari fase/grade + metrik teks.
+  - `materials.py` (§21/§29/§40): judul/ringkasan/tujuan deterministik, `difficulty_hint` 1–5, fingerprint SHA-256 + `duplicate_of`, QA otomatis; issue blocking → `needs_review`, selain itu `draft`.
+  - Kontrak: `packages/contracts/material-candidate.schema.json`.
+  - Terverifikasi: `ruff`/`mypy`/`pytest` (102 tes) hijau; end-to-end di dev stack — 11 chunk → 5 mapped → 5 material (`draft`), QA non-blocking (`low_confidence`, `text_too_long`) benar; re-run tanpa `--force` no-op, `--force` mengganti in-place; duplikat teks terdeteksi (`duplicate_of` + status `needs_review`) pada simulasi.
+  - Catatan: layer embedding/LLM dan dedup semantik baru di M6; layer ini exact-duplicate saja. `question_candidates` + validasi `question-schema` belum dibuat.
 
 ### M5 — Reviewer CMS + Publish Workflow
 - **Deliverable:** reviewer melihat sumber + kandidat + mapping dalam satu layar; approve → publish ke kanonik.

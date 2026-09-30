@@ -1,6 +1,6 @@
 # content-pipeline
 
-Python **content intelligence** service for Nocify EduPlay (M1: source registry + official crawler; M2: extraction + chunks; M3: curriculum mapping).
+Python **content intelligence** service for Nocify EduPlay (M1: source registry + official crawler; M2: extraction + chunks; M3: curriculum mapping; M4: material candidates).
 
 This service owns the `content_staging` PostgreSQL schema. It never writes canonical
 content — approved candidates are handed to the Go API through the publish contract.
@@ -43,6 +43,22 @@ See [`docs/content-pipeline-roadmap.md`](../../docs/content-pipeline-roadmap.md)
   stays the final authority.
 - Confidence bands (§18): `>= 0.90` high, `0.75–0.89` review, `< 0.75` manual.
 - Canonical ids are copied as plain integers — **no cross-schema foreign keys** (roadmap D4).
+
+## What M4 does
+
+- **Material candidates** (§21): a mapped chunk becomes a reviewable teaching snippet with a
+  deterministic `title`, `summary` and `learning_objective` (no AI yet — §23 templates first),
+  plus a `difficulty_hint` (1–5). Stored in `material_candidates`, one per chunk, re-runnable.
+- **Child readability layer** (§30): `age_band`, `reading_level`, `complexity`, word/sentence
+  counts and `visual_required` / `audio_required`, derived from the curriculum phase/grade and
+  the measured text. A heuristic, not a psychometric score.
+- **Automatic quality checks** (§40): missing skill/CP mapping, duplicate text, missing
+  summary/objective, too short/long, low mapping confidence. Blocking issues move a candidate to
+  `needs_review`; otherwise it starts as `draft`. A reviewer is still the final authority (§24).
+- **Duplicate detection** (§29, exact step): a SHA-256 text fingerprint; an identical earlier
+  candidate is linked through `duplicate_of`.
+- **Contract**: `packages/contracts/material-candidate.schema.json` documents the envelope the Go
+  reviewer CMS will consume in M5.
 
 ## Setup
 
@@ -87,6 +103,10 @@ uv run content-pipeline extract --source my-source --force   # re-parse from the
 # Map chunks onto the curriculum (CP + skills)
 uv run content-pipeline map --source my-source --limit 50
 uv run content-pipeline map --source my-source --force       # re-map
+
+# Build material candidates from mapped chunks
+uv run content-pipeline materials --source my-source --limit 50
+uv run content-pipeline materials --source my-source --force # rebuild in place
 ```
 
 ## Layout
@@ -109,6 +129,8 @@ src/content_pipeline/
   extract.py    extraction orchestration (documents + chunks)
   taxonomy.py   read-only view of the canonical curriculum + CP
   mapping.py    chunk -> skill/CP scoring and confidence
+  readability.py child readability bands and text metrics (§30)
+  materials.py  material candidates, QA checks and duplicate detection (§21/§40)
 sql/            content_staging migrations + roles/grants
 tests/          unit tests (no database required)
 ```
@@ -123,5 +145,5 @@ uv run pytest
 
 ## Not yet (next milestones)
 
-Curriculum taxonomy + CP mapping (M3), candidates (M4), reviewer CMS + publish (M5).
+Question candidates (rest of M4), reviewer CMS + publish (M5), embeddings/dedup (M6).
 The scheduler is a plain cron/loop for now (§34).

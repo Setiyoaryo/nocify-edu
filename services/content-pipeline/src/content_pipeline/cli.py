@@ -8,6 +8,7 @@
     content-pipeline crawl [--source CODE] [--limit N] [--dry-run]
     content-pipeline extract [--source CODE] [--limit N] [--force]
     content-pipeline map [--source CODE] [--limit N] [--force]
+    content-pipeline materials [--source CODE] [--limit N] [--force]
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ from content_pipeline.crawler import CrawlRunner, CrawlSummary
 from content_pipeline.db import Database
 from content_pipeline.extract import Extractor
 from content_pipeline.mapping import Mapper
+from content_pipeline.materials import MaterialBuilder
 from content_pipeline.migrate import migrate
 from content_pipeline.registry import (
     add_source,
@@ -84,6 +86,11 @@ def _build_parser() -> argparse.ArgumentParser:
     map_cmd.add_argument("--source", action="append", dest="sources", metavar="CODE")
     map_cmd.add_argument("--limit", type=int, help="max chunks to map")
     map_cmd.add_argument("--force", action="store_true", help="re-map chunks already mapped")
+
+    materials = sub.add_parser("materials", help="build material candidates from mapped chunks")
+    materials.add_argument("--source", action="append", dest="sources", metavar="CODE")
+    materials.add_argument("--limit", type=int, help="max candidates to build")
+    materials.add_argument("--force", action="store_true", help="rebuild existing candidates")
 
     return parser
 
@@ -214,6 +221,19 @@ def _cmd_map(db: Database, args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_materials(db: Database, args: argparse.Namespace) -> int:
+    summaries = MaterialBuilder(db).run(codes=args.sources, limit=args.limit, force=args.force)
+    if not summaries:
+        print("nothing to build (map first, or use --force)")
+        return 0
+    for summary in summaries:
+        print(
+            f"{summary.source_code}: generated={summary.generated} drafts={summary.drafts} "
+            f"needs_review={summary.needs_review} duplicates={summary.duplicates}"
+        )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     logging.basicConfig(
@@ -232,6 +252,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_extract(db, settings, args)
         if args.command == "map":
             return _cmd_map(db, args)
+        if args.command == "materials":
+            return _cmd_materials(db, args)
     return 2
 
 

@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eduplay/contracts/material-candidate.schema.json",
+  "title": "EduPlay material candidate",
+  "description": "Envelope for one row of content_staging.material_candidates (M4, §21/§30/§40). The pipeline writes it; the Go reviewer CMS reads it and validates again at publish time. Canonical ids are copied integers, never foreign keys into staging.",
+  "type": "object",
+  "required": [
+    "id",
+    "source",
+    "lineage",
+    "curriculum",
+    "title",
+    "summary",
+    "learning_objective",
+    "difficulty_hint",
+    "content_hash",
+    "confidence",
+    "qa_issues",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "integer", "minimum": 1 },
+    "source": {
+      "type": "object",
+      "required": ["source_id", "source_code"],
+      "additionalProperties": false,
+      "properties": {
+        "source_id": { "type": "integer" },
+        "source_code": { "type": "string" }
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "description": "Every candidate must point back to the chunk it came from (§40 'Missing source').",
+      "required": ["document_id", "chunk_id"],
+      "additionalProperties": false,
+      "properties": {
+        "document_id": { "type": "integer" },
+        "chunk_id": { "type": "integer" }
+      }
+    },
+    "curriculum": {
+      "type": "object",
+      "description": "Copied canonical identifiers. Nullable because a candidate may be flagged for a missing mapping.",
+      "additionalProperties": false,
+      "properties": {
+        "curriculum_version_id": { "type": ["integer", "null"] },
+        "skill_id": { "type": ["integer", "null"] },
+        "cp_id": { "type": ["integer", "null"] },
+        "phase_code": { "type": "string" },
+        "grade_code": { "type": "string" },
+        "subject_code": { "type": "string" }
+      }
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string" },
+    "learning_objective": { "type": "string" },
+    "difficulty_hint": { "type": ["integer", "null"], "minimum": 1, "maximum": 5 },
+    "language": { "type": "string" },
+    "readability": { "$ref": "#/$defs/readability" },
+    "content_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "duplicate_of": { "type": ["integer", "null"], "description": "material_candidates.id of an earlier identical text" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "qa_issues": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/qaIssue" },
+      "description": "Automatic checks (§40). blocking=true keeps the candidate out of 'clean' status."
+    },
+    "status": {
+      "enum": ["draft", "needs_review", "approved", "rejected", "published", "retired"]
+    },
+    "created_by": { "type": "string" },
+    "reviewed_by": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "readability": {
+      "type": "object",
+      "description": "Child readability layer (§30).",
+      "additionalProperties": false,
+      "properties": {
+        "age_band": { "type": "string", "examples": ["4-6", "7-8", "11-12"] },
+        "reading_level": { "enum": ["emerging", "early", "developing", "fluent", ""] },
+        "complexity": { "enum": ["very_simple", "simple", "moderate", "advanced", ""] },
+        "word_count": { "type": "integer", "minimum": 0 },
+        "sentence_count": { "type": "integer", "minimum": 0 },
+        "avg_sentence_length": { "type": "number", "minimum": 0 },
+        "visual_required": { "type": "boolean" },
+        "audio_required": { "type": "boolean" }
+      }
+    },
+    "qaIssue": {
+      "type": "object",
+      "required": ["code", "message", "blocking"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "missing_skill",
+            "missing_cp_mapping",
+            "duplicate",
+            "missing_summary",
+            "missing_objective",
+            "too_short",
+            "text_too_long",
+            "low_confidence"
+          ]
+        },
+        "message": { "type": "string" },
+        "blocking": { "type": "boolean" }
+      }
+    }
+  }
+}
