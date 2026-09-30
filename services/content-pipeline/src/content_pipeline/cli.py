@@ -7,6 +7,7 @@
     content-pipeline sources status --code ... --status active --enable
     content-pipeline crawl [--source CODE] [--limit N] [--dry-run]
     content-pipeline extract [--source CODE] [--limit N] [--force]
+    content-pipeline map [--source CODE] [--limit N] [--force]
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ from content_pipeline.config import Settings
 from content_pipeline.crawler import CrawlRunner, CrawlSummary
 from content_pipeline.db import Database
 from content_pipeline.extract import Extractor
+from content_pipeline.mapping import Mapper
 from content_pipeline.migrate import migrate
 from content_pipeline.registry import (
     add_source,
@@ -77,6 +79,11 @@ def _build_parser() -> argparse.ArgumentParser:
     extract.add_argument("--source", action="append", dest="sources", metavar="CODE")
     extract.add_argument("--limit", type=int, help="max documents to process")
     extract.add_argument("--force", action="store_true", help="re-extract documents already processed")
+
+    map_cmd = sub.add_parser("map", help="map chunks onto the curriculum (CP and skills)")
+    map_cmd.add_argument("--source", action="append", dest="sources", metavar="CODE")
+    map_cmd.add_argument("--limit", type=int, help="max chunks to map")
+    map_cmd.add_argument("--force", action="store_true", help="re-map chunks already mapped")
 
     return parser
 
@@ -194,6 +201,19 @@ def _cmd_extract(db: Database, settings: Settings, args: argparse.Namespace) -> 
     return 0
 
 
+def _cmd_map(db: Database, args: argparse.Namespace) -> int:
+    summaries = Mapper(db).run(codes=args.sources, limit=args.limit, force=args.force)
+    if not summaries:
+        print("nothing to map (extract first, or use --force)")
+        return 0
+    for summary in summaries:
+        print(
+            f"{summary.source_code}: mapped={summary.mapped} unmapped={summary.unmapped} "
+            f"high={summary.high} review={summary.review} manual={summary.manual}"
+        )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     logging.basicConfig(
@@ -210,6 +230,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_crawl(db, settings, args)
         if args.command == "extract":
             return _cmd_extract(db, settings, args)
+        if args.command == "map":
+            return _cmd_map(db, args)
     return 2
 
 

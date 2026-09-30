@@ -1,0 +1,96 @@
+{
+  "curriculum": "kurmer-2024",
+  "source": {
+    "code": "kurmer-internal-2024",
+    "title": "Kurikulum Merdeka — penyelarasan internal EduPlay",
+    "publisher": "EduPlay",
+    "source_url": "",
+    "document_hash": "",
+    "effective_date": "2026-09-25",
+    "license": "internal",
+    "notes": "BUKAN dokumen resmi Kemendikdasmen. Capaian Pembelajaran di bawah ini adalah penyederhanaan internal dan belum diverifikasi terhadap CP resmi. Lihat docs/content-pipeline-roadmap.md §10 sebelum menjadikannya acuan resmi."
+  },
+  "cp": [
+    {
+      "code": "CP-FONDASI-KOGNITIF",
+      "phase": "fondasi",
+      "grade": null,
+      "subject": null,
+      "element": "Kognitif",
+      "statement": "Anak mengenal dan menggunakan konsep bilangan, bentuk, serta pola sederhana dalam kegiatan sehari-hari.",
+      "skills": ["tk-membilang-1-10", "tk-banyak-sedikit", "tk-bentuk-dasar", "tk-pola"]
+    },
+    {
+      "code": "CP-FONDASI-BAHASA",
+      "phase": "fondasi",
+      "grade": null,
+      "subject": null,
+      "element": "Bahasa",
+      "statement": "Anak memahami dan menyampaikan gagasan secara lisan, mengenali huruf, serta mengurutkan kejadian.",
+      "skills": ["tk-huruf-awal", "tk-urutan-cerita"]
+    },
+    {
+      "code": "CP-A-MAT-BILANGAN",
+      "phase": "a",
+      "grade": null,
+      "subject": "matematika",
+      "element": "Bilangan",
+      "statement": "Peserta didik dapat melakukan penjumlahan dan pengurangan bilangan sampai 20 serta menyelesaikan masalah sederhana terkait.",
+      "skills": ["sd1-penjumlahan-1-20", "sd1-pengurangan-1-20", "sd1-soal-cerita"]
+    },
+    {
+      "code": "CP-A-BIN-KATA",
+      "phase": "a",
+      "grade": null,
+      "subject": "bahasa-indonesia",
+      "element": "Membaca dan Menulis",
+      "statement": "Peserta didik dapat mengenali suku kata, menyusun kata, dan memasangkan kata dengan benda di sekitarnya.",
+      "skills": ["sd1-suku-kata", "sd1-kosakata"]
+    },
+    {
+      "code": "CP-B-MAT-BILANGAN",
+      "phase": "b",
+      "grade": null,
+      "subject": "matematika",
+      "element": "Bilangan",
+      "statement": "Peserta didik dapat melakukan perkalian dan pembagian bilangan serta memahami nilai tempat sampai ribuan.",
+      "skills": ["sd4-perkalian", "sd4-pembagian", "sd4-soal-cerita", "sd4-nilai-tempat"]
+    },
+    {
+      "code": "CP-B-MAT-PECAHAN",
+      "phase": "b",
+      "grade": null,
+      "subject": "matematika",
+      "element": "Bilangan",
+      "statement": "Peserta didik dapat mengenali dan membandingkan pecahan sederhana.",
+      "skills": ["sd4-pecahan-senilai"]
+    },
+    {
+      "code": "CP-B-IPAS-MAKHLUK-HIDUP",
+      "phase": "b",
+      "grade": null,
+      "subject": "ipas",
+      "element": "Makhluk Hidup",
+      "statement": "Peserta didik dapat mengenali bagian tumbuhan beserta fungsinya.",
+      "skills": ["sd3-bagian-tumbuhan"]
+    },
+    {
+      "code": "CP-B-IPAS-ZAT",
+      "phase": "b",
+      "grade": null,
+      "subject": "ipas",
+      "element": "Zat dan Perubahannya",
+      "statement": "Peserta didik dapat membedakan wujud benda padat, cair, dan gas.",
+      "skills": ["sd3-wujud-benda"]
+    },
+    {
+      "code": "CP-C-MAT-BILANGAN",
+      "phase": "c",
+      "grade": null,
+      "subject": "matematika",
+      "element": "Bilangan",
+      "statement": "Peserta didik dapat menyelesaikan masalah yang melibatkan bilangan besar, pecahan, dan persentase.",
+      "skills": []
+    }
+  ]
+}

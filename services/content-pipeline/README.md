@@ -1,6 +1,6 @@
 # content-pipeline
 
-Python **content intelligence** service for Nocify EduPlay (M1: source registry + official crawler; M2: extraction + chunks).
+Python **content intelligence** service for Nocify EduPlay (M1: source registry + official crawler; M2: extraction + chunks; M3: curriculum mapping).
 
 This service owns the `content_staging` PostgreSQL schema. It never writes canonical
 content — approved candidates are handed to the Go API through the publish contract.
@@ -32,6 +32,17 @@ See [`docs/content-pipeline-roadmap.md`](../../docs/content-pipeline-roadmap.md)
 - **Documents** (§11, §14): `source_documents` (title, type, hash, page provenance) and
   `document_chunks` (heading, page, sequence, tokens, hash). Re-running replaces a
   document's chunks; `--force` re-extracts from the raw archive (§51).
+
+## What M3 does
+
+- **Reads the canonical taxonomy read-only**: the active curriculum version, its skills and
+  their Capaian Pembelajaran (`taxonomy.py`).
+- **Maps chunks to skills/CP** (§16–§18) with the deterministic + lexical layers: a chunk is
+  scored against each skill's terms (name, description, chapter) and the best match is stored
+  in `mapping_candidates` with a confidence. Embeddings and LLM assistance are M6; a reviewer
+  stays the final authority.
+- Confidence bands (§18): `>= 0.90` high, `0.75–0.89` review, `< 0.75` manual.
+- Canonical ids are copied as plain integers — **no cross-schema foreign keys** (roadmap D4).
 
 ## Setup
 
@@ -72,6 +83,10 @@ uv run content-pipeline crawl --source my-source --limit 50
 # Extract text + chunks from archived documents (needs S3_BUCKET)
 uv run content-pipeline extract --source my-source --limit 20
 uv run content-pipeline extract --source my-source --force   # re-parse from the raw archive
+
+# Map chunks onto the curriculum (CP + skills)
+uv run content-pipeline map --source my-source --limit 50
+uv run content-pipeline map --source my-source --force       # re-map
 ```
 
 ## Layout
@@ -92,6 +107,8 @@ src/content_pipeline/
   parsers/      html / pdf / docx / text + file-type detection
   chunking.py   heading -> section -> paragraph -> sentence fallback
   extract.py    extraction orchestration (documents + chunks)
+  taxonomy.py   read-only view of the canonical curriculum + CP
+  mapping.py    chunk -> skill/CP scoring and confidence
 sql/            content_staging migrations + roles/grants
 tests/          unit tests (no database required)
 ```

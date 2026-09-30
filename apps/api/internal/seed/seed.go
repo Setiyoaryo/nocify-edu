@@ -105,6 +105,12 @@ func Run(ctx context.Context, pool *pgxpool.Pool, o Options) error {
 		if err := seedAssets(ctx, tx, filepath.Join(o.AssetsDir, "registry.json"), o.Publish); err != nil {
 			return err
 		}
+		if err := seedPhases(ctx, tx, filepath.Join(o.ContentDir, "curriculum", "phases.json")); err != nil {
+			return err
+		}
+		if err := seedCP(ctx, tx, filepath.Join(o.ContentDir, "curriculum", "cp.json")); err != nil {
+			return err
+		}
 		return seedQuestions(ctx, tx, filepath.Join(o.ContentDir, "questions"), o.Publish)
 	})
 }
@@ -114,27 +120,31 @@ func seedCurriculum(ctx context.Context, tx pgx.Tx, path string) error {
 	if err := readJSON(path, &f); err != nil {
 		return err
 	}
+	// Seeding must never overwrite rows a human may have edited in the CMS (§27).
+	// Where an id is needed we use a no-op update (`SET name = <table>.name`) so
+	// RETURNING still yields the existing row without changing it; elsewhere we
+	// use DO NOTHING.
 	var cvID int
 	if err := tx.QueryRow(ctx, `INSERT INTO curriculum_versions (code, name, is_active) VALUES ($1,$2,true)
-		ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name RETURNING id`, f.Curriculum.Code, f.Curriculum.Name).Scan(&cvID); err != nil {
+		ON CONFLICT (code) DO UPDATE SET name = curriculum_versions.name RETURNING id`, f.Curriculum.Code, f.Curriculum.Name).Scan(&cvID); err != nil {
 		return err
 	}
 	for li, l := range f.Levels {
 		var levelID int
 		if err := tx.QueryRow(ctx, `INSERT INTO education_levels (code, name, sort) VALUES ($1,$2,$3)
-			ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, sort = EXCLUDED.sort RETURNING id`, l.Code, l.Name, li+1).Scan(&levelID); err != nil {
+			ON CONFLICT (code) DO UPDATE SET name = education_levels.name RETURNING id`, l.Code, l.Name, li+1).Scan(&levelID); err != nil {
 			return err
 		}
 		for gi, g := range l.Grades {
 			if _, err := tx.Exec(ctx, `INSERT INTO grades (education_level_id, code, name, sort, session_size, ux_band) VALUES ($1,$2,$3,$4,$5,$6)
-				ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, sort = EXCLUDED.sort`, levelID, g.Code, g.Name, (li+1)*100+gi, g.SessionSize, g.UXBand); err != nil {
+				ON CONFLICT (code) DO NOTHING`, levelID, g.Code, g.Name, (li+1)*100+gi, g.SessionSize, g.UXBand); err != nil {
 				return err
 			}
 		}
 	}
 	for i, s := range f.Subjects {
 		if _, err := tx.Exec(ctx, `INSERT INTO subjects (code, name, motif, sort) VALUES ($1,$2,$3,$4)
-			ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, motif = EXCLUDED.motif`, s.Code, s.Name, s.Motif, i+1); err != nil {
+			ON CONFLICT (code) DO NOTHING`, s.Code, s.Name, s.Motif, i+1); err != nil {
 			return err
 		}
 	}
@@ -142,18 +152,134 @@ func seedCurriculum(ctx context.Context, tx pgx.Tx, path string) error {
 		var chID int
 		if err := tx.QueryRow(ctx, `INSERT INTO chapters (curriculum_version_id, grade_id, subject_id, code, name, sort)
 			VALUES ($1, (SELECT id FROM grades WHERE code = $2), (SELECT id FROM subjects WHERE code = $3), $4, $5, $6)
-			ON CONFLICT (curriculum_version_id, code) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
+			ON CONFLICT (curriculum_version_id, code) DO UPDATE SET name = chapters.name RETURNING id`,
 			cvID, c.Grade, c.Subject, c.Code, c.Name, ci+1).Scan(&chID); err != nil {
 			return fmt.Errorf("chapter %s: %w", c.Code, err)
 		}
 		for si, s := range c.Skills {
 			if _, err := tx.Exec(ctx, `INSERT INTO skills (chapter_id, code, name, description, sort) VALUES ($1,$2,$3,$4,$5)
-				ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.description`, chID, s.Code, s.Name, s.Description, si+1); err != nil {
+				ON CONFLICT (code) DO NOTHING`, chID, s.Code, s.Name, s.Description, si+1); err != nil {
 				return err
 			}
 		}
 	}
 	slog.Info("seed: curriculum", "chapters", len(f.Chapters))
+	return nil
+}
+
+type phasesFile struct {
+	Phases []struct {
+		Code   string   `json:"code"`
+		Name   string   `json:"name"`
+		Level  string   `json:"level"`
+		Sort   int      `json:"sort"`
+		Grades []string `json:"grades"`
+	} `json:"phases"`
+}
+
+// seedPhases records Fase Fondasi and Fase A/B/C and maps each grade to its phase
+// (§2). The grade → phase link is structural reference data, so it is set from
+// the file rather than preserved.
+func seedPhases(ctx context.Context, tx pgx.Tx, path string) error {
+	var f phasesFile
+	if err := readJSON(path, &f); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	for _, p := range f.Phases {
+		var phaseID int
+		if err := tx.QueryRow(ctx, `INSERT INTO phases (code, name, education_level_id, sort)
+			VALUES ($1, $2, (SELECT id FROM education_levels WHERE code = $3), $4)
+			ON CONFLICT (code) DO UPDATE SET name = phases.name RETURNING id`,
+			p.Code, p.Name, p.Level, p.Sort).Scan(&phaseID); err != nil {
+			return fmt.Errorf("phase %s: %w", p.Code, err)
+		}
+		for _, grade := range p.Grades {
+			if _, err := tx.Exec(ctx, `UPDATE grades SET phase_id = $1 WHERE code = $2`, phaseID, grade); err != nil {
+				return err
+			}
+		}
+	}
+	slog.Info("seed: phases", "count", len(f.Phases))
+	return nil
+}
+
+type cpFile struct {
+	Curriculum string `json:"curriculum"`
+	Source     struct {
+		Code          string `json:"code"`
+		Title         string `json:"title"`
+		Publisher     string `json:"publisher"`
+		SourceURL     string `json:"source_url"`
+		DocumentHash  string `json:"document_hash"`
+		EffectiveDate string `json:"effective_date"`
+		License       string `json:"license"`
+		Notes         string `json:"notes"`
+	} `json:"source"`
+	CP []struct {
+		Code      string   `json:"code"`
+		Phase     string   `json:"phase"`
+		Grade     string   `json:"grade"`
+		Subject   string   `json:"subject"`
+		Element   string   `json:"element"`
+		Statement string   `json:"statement"`
+		Skills    []string `json:"skills"`
+	} `json:"cp"`
+}
+
+// seedCP records Capaian Pembelajaran statements, their provenance, and the
+// skill → CP links. Existing CP rows are not overwritten (§27).
+func seedCP(ctx context.Context, tx pgx.Tx, path string) error {
+	var f cpFile
+	if err := readJSON(path, &f); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	var sourceID *string
+	if f.Source.Code != "" {
+		var id string
+		if err := tx.QueryRow(ctx, `INSERT INTO curriculum_source_documents
+			(code, title, publisher, source_url, document_hash, effective_date, license, notes)
+			VALUES ($1,$2,$3,$4,$5,NULLIF($6,'')::date,$7,$8)
+			ON CONFLICT (code) DO UPDATE SET code = curriculum_source_documents.code
+			RETURNING id`,
+			f.Source.Code, f.Source.Title, f.Source.Publisher, f.Source.SourceURL,
+			f.Source.DocumentHash, f.Source.EffectiveDate, f.Source.License, f.Source.Notes).Scan(&id); err != nil {
+			return fmt.Errorf("source document %s: %w", f.Source.Code, err)
+		}
+		sourceID = &id
+		if _, err := tx.Exec(ctx, `UPDATE curriculum_versions
+			SET source_document_id = $1, effective_date = NULLIF($2,'')::date
+			WHERE code = $3`, sourceID, f.Source.EffectiveDate, f.Curriculum); err != nil {
+			return err
+		}
+	}
+	for i, cp := range f.CP {
+		var cpID int
+		if err := tx.QueryRow(ctx, `INSERT INTO curriculum_cp
+			(curriculum_version_id, phase_id, grade_id, subject_id, element, code, statement, source_document_id, sort)
+			VALUES ((SELECT id FROM curriculum_versions WHERE code = $1),
+			        (SELECT id FROM phases WHERE code = $2),
+			        (SELECT id FROM grades WHERE code = NULLIF($3,'')),
+			        (SELECT id FROM subjects WHERE code = NULLIF($4,'')),
+			        $5, $6, $7, $8, $9)
+			ON CONFLICT (curriculum_version_id, code) DO UPDATE SET code = curriculum_cp.code
+			RETURNING id`,
+			f.Curriculum, cp.Phase, cp.Grade, cp.Subject, cp.Element, cp.Code,
+			cp.Statement, sourceID, i+1).Scan(&cpID); err != nil {
+			return fmt.Errorf("cp %s: %w", cp.Code, err)
+		}
+		for _, skill := range cp.Skills {
+			if _, err := tx.Exec(ctx, `UPDATE skills SET cp_id = $1 WHERE code = $2`, cpID, skill); err != nil {
+				return err
+			}
+		}
+	}
+	slog.Info("seed: cp", "count", len(f.CP))
 	return nil
 }
 
