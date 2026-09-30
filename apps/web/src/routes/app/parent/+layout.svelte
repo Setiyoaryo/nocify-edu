@@ -7,7 +7,6 @@
 	import UsersThree from 'phosphor-svelte/lib/UsersThree';
 	import Crown from 'phosphor-svelte/lib/Crown';
 	import GearSix from 'phosphor-svelte/lib/GearSix';
-	import GameController from 'phosphor-svelte/lib/GameController';
 	import SignOut from 'phosphor-svelte/lib/SignOut';
 	let { children } = $props();
 
@@ -40,7 +39,6 @@
 				{/each}
 			</ul>
 		</nav>
-		<a href="/app/play" class="btn btn-sun"><GameController size={20} weight="fill" aria-hidden="true" />Mode anak</a>
 		<div class="mt-auto flex items-center gap-3 rounded-2xl bg-paper-deep p-3">
 			<span class="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-sm font-extrabold text-white" aria-hidden="true">{initials}</span>
 			<div class="min-w-0 flex-1">
@@ -54,7 +52,6 @@
 	<div class="min-w-0">
 		<header class="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-paper/95 px-4 py-2 backdrop-blur sm:px-6 lg:hidden">
 			<Wordmark href="/app/parent" />
-			<a href="/app/play" class="btn btn-sun btn-sm"><GameController size={18} weight="fill" aria-hidden="true" />Mode anak</a>
 		</header>
 		<main class="mx-auto max-w-6xl px-4 pt-6 pb-28 sm:px-6 sm:pt-8 lg:pt-10 lg:pb-16">
 			{@render children()}

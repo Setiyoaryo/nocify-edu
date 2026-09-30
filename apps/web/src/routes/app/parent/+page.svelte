@@ -15,7 +15,6 @@
 	import Crown from 'phosphor-svelte/lib/Crown';
 	import Plus from 'phosphor-svelte/lib/Plus';
 	import FunCard from '$lib/components/FunCard.svelte';
-	import GameController from 'phosphor-svelte/lib/GameController';
 	import ChartPieSlice from 'phosphor-svelte/lib/ChartPieSlice';
 	import UserPlus from 'phosphor-svelte/lib/UserPlus';
 	import type { Child, Entitlement } from '$lib/types';
@@ -59,8 +58,7 @@
 
 {#if data?.items.length}
 	{@const first = data.items[0].child}
-	<div class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-		<div class="anim-rise" style="--d:60ms"><FunCard tone="sun" icon={GameController} iconColor="#c9501c" title="Mode anak" desc="Serahkan ke anak untuk bermain" href="/app/play" /></div>
+	<div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
 		<div class="anim-rise" style="--d:120ms"><FunCard tone="sky" icon={ChartPieSlice} iconColor="#3a8ee8" title="Laporan {first.nickname}" desc="Skill kuat & perlu latihan" href="/app/parent/children/{first.id}" /></div>
 		<div class="anim-rise" style="--d:180ms"><FunCard tone="peach" icon={Flag} iconColor="#c9501c" title="Buat misi" desc="Tentukan latihan minggu ini" href="/app/parent/children/{first.id}?tab=missions" /></div>
 		<div class="anim-rise" style="--d:240ms"><FunCard tone="mint" icon={UserPlus} iconColor="#15804a" title="Tambah anak" desc="Satu profil untuk tiap anak" href="/app/parent/children/new" /></div>
