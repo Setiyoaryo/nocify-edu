@@ -85,6 +85,13 @@ class RawArchive:
         )
         return key
 
+    def load(self, storage_key: str) -> bytes:
+        """Read an archived document back, so extraction can be re-run (§51)."""
+        response = self._s3().get_object(  # type: ignore[attr-defined]
+            Bucket=self._settings.s3_bucket, Key=storage_key
+        )
+        return bytes(response["Body"].read())
+
 
 def local_filename(key: str) -> str:
     """Basename of a storage key, for tests and debugging."""

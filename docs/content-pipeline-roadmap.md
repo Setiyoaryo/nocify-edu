@@ -147,6 +147,11 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
 - **Deliverable:** dokumen mentah → teks terstruktur → chunk.
 - **Artefak:** `source_documents`, `document_chunks`; modul `parsers/` (HTML, PDF, DOCX, TXT, MD).
 - **DoD:** deteksi tipe file; PDF text-layer, OCR sebagai *fallback* §13; chunk mengikuti heading→section→paragraf, fallback semantik §15; setiap chunk menyimpan halaman/urutan/hash §14; raw bisa di-reproses §51.
+- **Status:** ✅ **selesai (2026-09-30)**.
+  - Terverifikasi: `ruff`/`mypy`/`pytest` (64 tes) hijau; `extract` in-container: 4 dokumen HTML → 12 chunk dengan heading benar; re-run idempoten; `--force` mengganti chunk tanpa duplikasi.
+  - Parser: HTML (heading → section, tabel), Markdown/teks, PDF (per halaman, deteksi heading via ukuran font; PDF tanpa text layer → `needs_ocr`), DOCX. Deteksi tipe pakai magic bytes.
+  - OCR **belum** diimplementasi (hanya dideteksi & ditandai), sesuai §13 "OCR adalah fallback".
+  - Catatan: ekstraksi butuh raw archive (S3) karena membaca dari `crawl_items.storage_key`.
 
 ### M3 — Curriculum Taxonomy + CP Mapping
 - **Deliverable:** kanonik punya fase + CP + provenance; pipeline bisa memetakan chunk → CP/skill.

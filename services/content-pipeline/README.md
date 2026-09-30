@@ -1,6 +1,6 @@
 # content-pipeline
 
-Python **content intelligence** service for Nocify EduPlay (M1: source registry + official crawler).
+Python **content intelligence** service for Nocify EduPlay (M1: source registry + official crawler; M2: extraction + chunks).
 
 This service owns the `content_staging` PostgreSQL schema. It never writes canonical
 content — approved candidates are handed to the Go API through the publish contract.
@@ -20,6 +20,18 @@ See [`docs/content-pipeline-roadmap.md`](../../docs/content-pipeline-roadmap.md)
   `not_modified` and skips reprocessing.
 - **Raw archive** (§11): changed bodies go to S3 under `raw/<source>/<YYYY>/<MM>/<hash>.<ext>`.
 - **Crawl bookkeeping** (§9–10): every run and item is recorded.
+
+## What M2 does
+
+- **Parsers** (§12–13): HTML (headings → sections), Markdown/plain text, PDF via PyMuPDF
+  (per-page, heading detection by font size; a PDF with no text layer is flagged
+  `needs_ocr` rather than OCR'd by default), DOCX via python-docx.
+- **File-type detection**: magic bytes win over the declared content type.
+- **Chunking** (§15): section → paragraph → sentence-boundary fallback with overlap,
+  not a blind character count.
+- **Documents** (§11, §14): `source_documents` (title, type, hash, page provenance) and
+  `document_chunks` (heading, page, sequence, tokens, hash). Re-running replaces a
+  document's chunks; `--force` re-extracts from the raw archive (§51).
 
 ## Setup
 
@@ -56,6 +68,10 @@ uv run content-pipeline crawl --source my-source --dry-run --limit 20
 # Activate and crawl
 uv run content-pipeline sources status --code my-source --status active --enable
 uv run content-pipeline crawl --source my-source --limit 50
+
+# Extract text + chunks from archived documents (needs S3_BUCKET)
+uv run content-pipeline extract --source my-source --limit 20
+uv run content-pipeline extract --source my-source --force   # re-parse from the raw archive
 ```
 
 ## Layout
@@ -73,6 +89,9 @@ src/content_pipeline/
   registry.py   source registry CRUD
   storage.py    raw archive (S3)
   crawler.py    crawl orchestration
+  parsers/      html / pdf / docx / text + file-type detection
+  chunking.py   heading -> section -> paragraph -> sentence fallback
+  extract.py    extraction orchestration (documents + chunks)
 sql/            content_staging migrations + roles/grants
 tests/          unit tests (no database required)
 ```
@@ -85,7 +104,7 @@ uv run mypy
 uv run pytest
 ```
 
-## Not in M1 (next milestones)
+## Not yet (next milestones)
 
-Extraction/normalisation and `source_documents` (M2), curriculum taxonomy + CP mapping (M3),
-candidates (M4), reviewer CMS + publish (M5). The scheduler is a plain cron/loop for now (§34).
+Curriculum taxonomy + CP mapping (M3), candidates (M4), reviewer CMS + publish (M5).
+The scheduler is a plain cron/loop for now (§34).

@@ -6,6 +6,7 @@
     content-pipeline sources list
     content-pipeline sources status --code ... --status active --enable
     content-pipeline crawl [--source CODE] [--limit N] [--dry-run]
+    content-pipeline extract [--source CODE] [--limit N] [--force]
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from content_pipeline import __version__
 from content_pipeline.config import Settings
 from content_pipeline.crawler import CrawlRunner, CrawlSummary
 from content_pipeline.db import Database
+from content_pipeline.extract import Extractor
 from content_pipeline.migrate import migrate
 from content_pipeline.registry import (
     add_source,
@@ -27,6 +29,7 @@ from content_pipeline.registry import (
     seed_defaults,
     set_status,
 )
+from content_pipeline.storage import RawArchive
 
 SOURCE_TYPES = ("official_curriculum", "institution", "licensed", "public", "community")
 STATUSES = ("discovered", "verified", "approved", "active", "paused", "retired")
@@ -69,6 +72,11 @@ def _build_parser() -> argparse.ArgumentParser:
     crawl.add_argument("--source", action="append", dest="sources", metavar="CODE")
     crawl.add_argument("--limit", type=int, help="max pages per source")
     crawl.add_argument("--dry-run", action="store_true", help="discover links without fetching or writing")
+
+    extract = sub.add_parser("extract", help="extract text and chunks from archived documents")
+    extract.add_argument("--source", action="append", dest="sources", metavar="CODE")
+    extract.add_argument("--limit", type=int, help="max documents to process")
+    extract.add_argument("--force", action="store_true", help="re-extract documents already processed")
 
     return parser
 
@@ -169,6 +177,23 @@ def _cmd_crawl(db: Database, settings: Settings, args: argparse.Namespace) -> in
     return 0
 
 
+def _cmd_extract(db: Database, settings: Settings, args: argparse.Namespace) -> int:
+    archive = RawArchive(settings)
+    if not archive.enabled:
+        print("error: extraction needs the raw archive; set S3_BUCKET", file=sys.stderr)
+        return 2
+    summaries = Extractor(db, archive).run(codes=args.sources, limit=args.limit, force=args.force)
+    if not summaries:
+        print("nothing to extract (crawl first, or use --force)")
+        return 0
+    for summary in summaries:
+        print(
+            f"{summary.source_code}: documents={summary.documents} chunks={summary.chunks} "
+            f"needs_ocr={summary.needs_ocr} skipped={summary.skipped} failed={summary.failed}"
+        )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     logging.basicConfig(
@@ -183,6 +208,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_sources(db, args)
         if args.command == "crawl":
             return _cmd_crawl(db, settings, args)
+        if args.command == "extract":
+            return _cmd_extract(db, settings, args)
     return 2
 
 
