@@ -20,6 +20,7 @@ from dataclasses import dataclass
 
 from content_pipeline.db import Database
 from content_pipeline.mapping import REVIEW_CONFIDENCE
+from content_pipeline.qa import QaIssue, has_blocking
 from content_pipeline.readability import Readability, analyse, difficulty_hint, sentences
 from content_pipeline.taxonomy import Taxonomy, load_taxonomy
 
@@ -31,16 +32,6 @@ SUMMARY_MAX_CHARS = 220
 SUMMARY_MAX_SENTENCES = 2
 
 _WHITESPACE = re.compile(r"\s+")
-
-
-@dataclass(frozen=True)
-class QaIssue:
-    code: str
-    message: str
-    blocking: bool
-
-    def as_dict(self) -> dict[str, object]:
-        return {"code": self.code, "message": self.message, "blocking": self.blocking}
 
 
 @dataclass(frozen=True)
@@ -139,10 +130,6 @@ def quality_checks(
     if confidence < REVIEW_CONFIDENCE:
         issues.append(QaIssue("low_confidence", f"mapping confidence {confidence:.2f}", False))
     return issues
-
-
-def has_blocking(issues: list[QaIssue]) -> bool:
-    return any(issue.blocking for issue in issues)
 
 
 @dataclass(frozen=True)

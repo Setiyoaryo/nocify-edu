@@ -57,8 +57,21 @@ See [`docs/content-pipeline-roadmap.md`](../../docs/content-pipeline-roadmap.md)
   `needs_review`; otherwise it starts as `draft`. A reviewer is still the final authority (§24).
 - **Duplicate detection** (§29, exact step): a SHA-256 text fingerprint; an identical earlier
   candidate is linked through `duplicate_of`.
-- **Contract**: `packages/contracts/material-candidate.schema.json` documents the envelope the Go
-  reviewer CMS will consume in M5.
+- **Question candidates** (§22–§23): a mapped chunk becomes a reviewable question via a
+  deterministic **source-grounded cloze** template (no AI). A sentence loses its most salient
+  term (a curriculum term when one is present, else the longest content word); early bands get a
+  `single_choice` with distractors from the same chunk, upper bands a `short_answer`. Stored in
+  `question_candidates`, one per template per chunk, re-runnable.
+- **Shared-schema validation**: the generated payload is checked against
+  `packages/question-schema/question.schema.json` *before* it is stored (`validation.py`); a
+  payload that fails never enters staging. The Go API validates the same payload again at publish
+  (roadmap D2).
+- **Question QA** (§40): missing skill/CP, duplicate, schema-invalid, empty answer, invalid
+  options, answer mismatch (the answer must occur in the source chunk), long prompt, low
+  confidence. Blocking issues → `needs_review`.
+- **Contracts**: `packages/contracts/material-candidate.schema.json` and
+  `packages/contracts/question-candidate.schema.json` document the envelopes the Go reviewer CMS
+  will consume in M5.
 
 ## Setup
 
@@ -107,6 +120,10 @@ uv run content-pipeline map --source my-source --force       # re-map
 # Build material candidates from mapped chunks
 uv run content-pipeline materials --source my-source --limit 50
 uv run content-pipeline materials --source my-source --force # rebuild in place
+
+# Build question candidates (validated against packages/question-schema)
+uv run content-pipeline questions --source my-source --limit 50
+uv run content-pipeline questions --source my-source --force # rebuild in place
 ```
 
 ## Layout
@@ -131,6 +148,9 @@ src/content_pipeline/
   mapping.py    chunk -> skill/CP scoring and confidence
   readability.py child readability bands and text metrics (§30)
   materials.py  material candidates, QA checks and duplicate detection (§21/§40)
+  qa.py         shared quality-issue primitives (§40)
+  validation.py shared question-schema loading and payload validation
+  questions.py  deterministic question candidates + QA (§22/§23/§40)
 sql/            content_staging migrations + roles/grants
 tests/          unit tests (no database required)
 ```
@@ -145,5 +165,10 @@ uv run pytest
 
 ## Not yet (next milestones)
 
-Question candidates (rest of M4), reviewer CMS + publish (M5), embeddings/dedup (M6).
-The scheduler is a plain cron/loop for now (§34).
+Reviewer CMS + publish (M5), embeddings/semantic dedup and assisted (AI) question generation
+(M6). The scheduler is a plain cron/loop for now (§34).
+
+The deterministic question template is intentionally narrow: it can only ground a question when
+the chunk contains a usable term, and it produces vocabulary/recognition items, not
+scenario/comprehension items. Those are §23 *assisted* generation and arrive in M6; every
+candidate is still reviewed by a human (§24).

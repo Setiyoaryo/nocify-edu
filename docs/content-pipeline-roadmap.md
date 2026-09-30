@@ -171,13 +171,16 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
 - **Deliverable:** kandidat materi dan soal dengan lineage lengkap.
 - **Artefak:** `material_candidates`, `question_candidates`; amplop kontrak di `packages/contracts/`.
 - **DoD:** setiap kandidat punya `source_chunk_id`; payload soal lolos `question-schema`; template deterministik untuk tipe terstruktur, AI hanya untuk kandidat §23–24; QA otomatis §40 (missing source/CP/skill, duplikat, opsi kosong, dsb).
-- **Status:** 🟡 **material candidates selesai (2026-09-30); question candidates menyusul.**
-  - Staging: `material_candidates` (`sql/0004_materials.sql`) — satu baris per chunk, idempoten (`UNIQUE (chunk_id)`).
+- **Status:** ✅ **selesai (2026-09-30).**
+  - Staging material: `material_candidates` (`sql/0004_materials.sql`) — satu baris per chunk, idempoten (`UNIQUE (chunk_id)`).
+  - Staging soal: `question_candidates` (`sql/0005_question_candidates.sql`) — satu baris per template per chunk (`UNIQUE (chunk_id, template)`), `payload jsonb` berisi amplop soal penuh.
   - `readability.py` (§30): `age_band`, `reading_level`, `complexity`, hitungan kata/kalimat, `visual_required`/`audio_required`; heuristik dari fase/grade + metrik teks.
   - `materials.py` (§21/§29/§40): judul/ringkasan/tujuan deterministik, `difficulty_hint` 1–5, fingerprint SHA-256 + `duplicate_of`, QA otomatis; issue blocking → `needs_review`, selain itu `draft`.
-  - Kontrak: `packages/contracts/material-candidate.schema.json`.
-  - Terverifikasi: `ruff`/`mypy`/`pytest` (102 tes) hijau; end-to-end di dev stack — 11 chunk → 5 mapped → 5 material (`draft`), QA non-blocking (`low_confidence`, `text_too_long`) benar; re-run tanpa `--force` no-op, `--force` mengganti in-place; duplikat teks terdeteksi (`duplicate_of` + status `needs_review`) pada simulasi.
-  - Catatan: layer embedding/LLM dan dedup semantik baru di M6; layer ini exact-duplicate saja. `question_candidates` + validasi `question-schema` belum dibuat.
+  - `questions.py` (§22/§23/§40): template deterministik **cloze berbasis sumber** (tanpa AI) — kalimat kehilangan istilah paling menonjol (istilah kurikulum bila ada, jika tidak kata konten terpanjang); band awal → `single_choice` dengan distraktor dari chunk yang sama, band atas → `short_answer`. `validation.py` memvalidasi `payload` terhadap `packages/question-schema/question.schema.json` **sebelum** disimpan; payload gagal tidak masuk staging.
+  - QA soal §40: `missing_skill`, `missing_cp_mapping`, `duplicate`, `schema_invalid`, `empty_answer`, `invalid_options`, `answer_mismatch` (jawaban harus ada di sumber), `prompt_too_long`, `low_confidence`.
+  - Kontrak: `packages/contracts/material-candidate.schema.json`, `packages/contracts/question-candidate.schema.json`.
+  - Terverifikasi: `ruff`/`mypy`/`pytest` (133 tes) hijau; end-to-end di dev stack — 11 chunk → 5 mapped → 5 material + 5 soal (semua `draft`, `invalid=0`), payload lolos schema; re-run tanpa `--force` no-op, `--force` mengganti in-place; duplikat teks terdeteksi (`duplicate_of` + `needs_review`) pada simulasi; jalur error schema-missing mengembalikan exit 2.
+  - Catatan: layer embedding/LLM, dedup semantik, dan **assisted (AI) generation** §23 (scenario/comprehension) baru di M6. Template deterministik sengaja sempit: hanya menghasilkan soal recognition/vocabulary yang benar-benar ter-ground di sumber; soal skenario menunggu M6 + review manusia §24.
 
 ### M5 — Reviewer CMS + Publish Workflow
 - **Deliverable:** reviewer melihat sumber + kandidat + mapping dalam satu layar; approve → publish ke kanonik.

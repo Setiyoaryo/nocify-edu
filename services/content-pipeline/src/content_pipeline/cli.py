@@ -9,6 +9,7 @@
     content-pipeline extract [--source CODE] [--limit N] [--force]
     content-pipeline map [--source CODE] [--limit N] [--force]
     content-pipeline materials [--source CODE] [--limit N] [--force]
+    content-pipeline questions [--source CODE] [--limit N] [--force]
 """
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ from content_pipeline.extract import Extractor
 from content_pipeline.mapping import Mapper
 from content_pipeline.materials import MaterialBuilder
 from content_pipeline.migrate import migrate
+from content_pipeline.questions import QuestionBuilder
 from content_pipeline.registry import (
     add_source,
     get_source,
@@ -34,6 +36,7 @@ from content_pipeline.registry import (
     set_status,
 )
 from content_pipeline.storage import RawArchive
+from content_pipeline.validation import QuestionSchema
 
 SOURCE_TYPES = ("official_curriculum", "institution", "licensed", "public", "community")
 STATUSES = ("discovered", "verified", "approved", "active", "paused", "retired")
@@ -91,6 +94,11 @@ def _build_parser() -> argparse.ArgumentParser:
     materials.add_argument("--source", action="append", dest="sources", metavar="CODE")
     materials.add_argument("--limit", type=int, help="max candidates to build")
     materials.add_argument("--force", action="store_true", help="rebuild existing candidates")
+
+    questions = sub.add_parser("questions", help="build question candidates from mapped chunks")
+    questions.add_argument("--source", action="append", dest="sources", metavar="CODE")
+    questions.add_argument("--limit", type=int, help="max candidates to build")
+    questions.add_argument("--force", action="store_true", help="rebuild existing candidates")
 
     return parser
 
@@ -234,6 +242,25 @@ def _cmd_materials(db: Database, args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_questions(db: Database, args: argparse.Namespace) -> int:
+    try:
+        schema = QuestionSchema.load()
+    except FileNotFoundError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    summaries = QuestionBuilder(db, schema).run(codes=args.sources, limit=args.limit, force=args.force)
+    if not summaries:
+        print("nothing to build (map first, or use --force)")
+        return 0
+    for summary in summaries:
+        print(
+            f"{summary.source_code}: generated={summary.generated} drafts={summary.drafts} "
+            f"needs_review={summary.needs_review} duplicates={summary.duplicates} "
+            f"skipped={summary.skipped} invalid={summary.invalid}"
+        )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     logging.basicConfig(
@@ -254,6 +281,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_map(db, args)
         if args.command == "materials":
             return _cmd_materials(db, args)
+        if args.command == "questions":
+            return _cmd_questions(db, args)
     return 2
 
 

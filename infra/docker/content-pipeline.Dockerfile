@@ -16,6 +16,11 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY services/content-pipeline/ ./
 RUN uv sync --frozen --no-dev
 
+# Shared contracts/schemas (repo root) so generated payloads are validated
+# against the same question schema the Go API enforces at publish time.
+COPY packages/question-schema/ ./packages/question-schema/
+COPY packages/contracts/ ./packages/contracts/
+
 ENV PATH="/app/.venv/bin:$PATH"
 RUN useradd -u 10001 -m pipeline
 USER pipeline

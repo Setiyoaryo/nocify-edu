@@ -1,14 +1,13 @@
 from content_pipeline.materials import (
     MIN_WORDS,
-    QaIssue,
     build_draft,
     build_learning_objective,
     build_summary,
     build_title,
-    has_blocking,
     material_hash,
     quality_checks,
 )
+from content_pipeline.qa import QaIssue, has_blocking
 from content_pipeline.readability import MAX_WORDS
 
 LONG_TEXT = (
