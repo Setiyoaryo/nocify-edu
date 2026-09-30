@@ -88,6 +88,16 @@ func IntParam(w http.ResponseWriter, r *http.Request, name string) (int, bool) {
 	return n, true
 }
 
+// Int64Param reads a bigint path parameter, answering 404 when malformed.
+func Int64Param(w http.ResponseWriter, r *http.Request, name string) (int64, bool) {
+	n, err := strconv.ParseInt(chi.URLParam(r, name), 10, 64)
+	if err != nil {
+		NotFound(w)
+		return 0, false
+	}
+	return n, true
+}
+
 func QueryInt(r *http.Request, name string, def int) int {
 	if n, err := strconv.Atoi(r.URL.Query().Get(name)); err == nil {
 		return n
