@@ -95,7 +95,8 @@ Pertanyaannya: bagaimana Python dan Go berbagi data tanpa saling merusak.
 2. **Role DB terpisah.**
    - `content_pipeline`: `ALL` pada schema `content_staging`; `SELECT` pada `curriculum_versions, education_levels, grades, subjects, chapters, skills`; **tanpa** hak tulis ke kanonik.
    - `eduplay` (existing): akses penuh ke `public`; `SELECT` pada `content_staging` (untuk CMS review & publish).
-3. **Publish = operasi Go.** Kandidat yang di-approve masuk `content_staging.publish_queue`. Perintah baru `eduplay publish-candidates` (atau job di worker) membaca antrian, **memvalidasi ulang** dengan `questions.Validate` + `packages/question-schema`, lalu menulis kanonik dalam satu transaksi per batch, mencatat `question_reviews` + `audit_logs`.
+3. **Publish = operasi Go.** Kandidat yang di-approve masuk antrian publish. Perintah `eduplay publish-candidates` (atau job di worker) membaca antrian, **memvalidasi ulang** dengan `questions.Validate` + `packages/question-schema`, lalu menulis kanonik dalam satu transaksi per kandidat, mencatat `question_reviews` + `audit_logs`.
+   - **Realisasi M5:** antrian = tabel kanonik `candidate_publications`, bukan `content_staging.publish_queue` (lihat M5 §6 dan §9 keputusan 9).
    - Kenapa bukan Python yang menulis kanonik: validasi akhir dan gate produksi harus berada di pemilik data kanonik. Ini juga menegakkan aturan §41/§48 "tidak ada shortcut FETCHED → PUBLISHED".
 4. **Validasi ganda (sengaja).** Python memvalidasi saat menyimpan kandidat (umpan balik awal, murah); Go memvalidasi lagi saat publish (gate terakhir, otoritatif). Satu kontrak dipakai dua sisi: `packages/question-schema` untuk payload soal, dan `packages/contracts/` untuk amplop kandidat.
 5. **Tanpa FK lintas schema.** Kanonik **tidak** mereferensikan `content_staging`. Provenance (URL, dokumen, halaman, hash) **disalin** ke tabel kanonik (`question_provenance`, `curriculum_source_documents`) saat publish. Alasan: staging bersifat sementara dan bisa dibersihkan/di-rebuild; kanonik harus tetap utuh dan auditable selamanya (§20).
@@ -184,9 +185,18 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
 
 ### M5 — Reviewer CMS + Publish Workflow
 - **Deliverable:** reviewer melihat sumber + kandidat + mapping dalam satu layar; approve → publish ke kanonik.
-- **Artefak:** perluasan modul `admin` (Go): antrian kandidat, layar review §37, provenance §38; `content_staging.publish_queue`; perintah `eduplay publish-candidates`.
+- **Artefak:** perluasan modul `admin` (Go): antrian kandidat, layar review §37, provenance §38; **ledger kanonik** `candidate_publications` + `question_provenance`; perintah `eduplay publish-candidates`.
 - **DoD:** publish hanya lewat Go (D3); provenance tersalin ke kanonik (D4); memakai `question_reviews` + status workflow yang ada; `audit_logs` mencatat publish.
 - **Gerbang:** setelah M5 stabil, baru boleh mulai M6.
+- **Status:** ✅ **selesai (2026-09-30).**
+  - **Koreksi rencana (penting):** `content_staging.publish_queue` **tidak dipakai**. Antrian = tabel kanonik `candidate_publications` (`apps/api/internal/db/migrations/0005_candidate_publications.sql`), karena `roles_grants.sql` memberi Go hanya `SELECT` pada `content_staging` — Go tidak boleh menulis antrian di schema milik Python (D2/D5). Ledger ini sekaligus menyimpan keputusan review (`approved`/`changes_requested`/`rejected`), `checklist`, status publish, percobaan, dan `last_error`. Keputusan tetap ditulis lewat API Go, bukan oleh pipeline.
+  - Migrasi kanonik `0005`: `candidate_publications` (`UNIQUE (kind, candidate_id)`, FK `decided_by → users`, `canonical_question_id → questions`) + `question_provenance` (PK `question_id`, FK `curriculum_cp`/`skills`; `source_document_id`/`source_chunk_id` **tanpa FK** — staging bisa di-prune, D4).
+  - API (Go, `internal/candidates`): `GET /admin/candidates` (antrian + `counts`, degradasi `available:false` bila pipeline belum jalan), `GET /admin/candidates/{kind}/{id}` (lineage sumber + mapping + QA + publikasi), `POST /admin/candidates/{kind}/{id}/decision` (reviewer/admin; `approved` butuh checklist lengkap — memakai `admin.ChecklistComplete`, 11 item yang sama; 409 bila sudah `published`/`publishing`).
+  - Publish (`internal/candidates/publish.go`): `eduplay publish-candidates` (`--limit`, `--all`, `--dry-run`, `--retry-failed`, `--max-attempts`) mengklaim antrian `queued` dengan `FOR UPDATE SKIP LOCKED` (satu tx per kandidat), memvalidasi ulang lewat `admin.CreateQuestion` (schema soal kanonik), menulis `question_provenance`, `question_reviews`, dan `audit_logs`. Idempoten: kode soal = `code` kandidat, kandidat yang sudah terbit tidak diproses ulang. Ada `reapStale` (publishing macet) + `requeueFailed`.
+  - **Materi bersifat review-only untuk sekarang:** belum ada tabel kanonik materi, jadi keputusan material disimpan di ledger tanpa publish (status `not_applicable`), sesuai keputusan sesi.
+  - Web (`apps/web`): `/app/admin/review` (antrian + filter kind/status/q) dan `/app/admin/review/[kind]/[id]` (sumber, pratinjau soal via `QuestionRenderer` read-only, mapping, QA blocking/advisory, form keputusan + checklist); helper di `src/lib/candidates.ts`.
+  - Terverifikasi: unit + DB-gated publish tests Go hijau (`go test -p 1 ./...` dengan `TEST_DATABASE_URL`); `svelte-check` 0 error, vitest hijau; end-to-end di dev stack (keputusan → publish kanonik → idempoten → provenance tercatat).
+  - Catatan: layer embedding/LLM, dedup semantik, dan assisted generation §23 tetap di M6. Endpoint admin untuk menjalankan publish dari UI menyusul (keputusan 7: CLI dulu).
 
 ### M6 — Semantic Mapping + Deduplikasi
 - Embeddings + klasifikasi + dedup (URL kanonik + SHA-256 + fingerprint + similaritas §29).
@@ -206,10 +216,12 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
 - Baru: `curriculum_source_documents` (provenance immutable), `phases`, `curriculum_cp`.
 - `skills`: `+ cp_id` (nullable).
 - Baru: `question_provenance` (question_id, cp_id, skill_id, source_document_ref, original_url, retrieved_at).
+- Baru (M5): `candidate_publications` — ledger review + antrian publish (`kind`, `candidate_id`, `decision`, `status`, `checklist`, `decided_by`, `canonical_question_id`, `attempts`, `last_error`).
 - M8: `questions.creator_id` + tabel atribusi.
 
 ### Staging (dikelola Python)
-- `source_registry`, `crawl_runs`, `crawl_items`, `source_documents`, `document_chunks`, `mapping_candidates`, `material_candidates`, `question_candidates`, `publish_queue`, `jobs`.
+- `source_registry`, `crawl_runs`, `crawl_items`, `source_documents`, `document_chunks`, `mapping_candidates`, `material_candidates`, `question_candidates`, `jobs`.
+- Tidak ada `publish_queue`: antrian publish tinggal di kanonik (`candidate_publications`, M5) karena Go read-only pada staging (D2/D5).
 - Semua status/lifecycle sesuai §5, §9, §21, §41.
 
 ---
@@ -240,6 +252,8 @@ Mengadopsi §48 rencana, ditambah aturan repo ini:
 | 6 | M8 revenue share | **Ditunda** sampai M1–M5 stabil |
 | 7 | Publish | **CLI** `eduplay publish-candidates` dulu; endpoint admin menyusul |
 | 8 | Allowlist awal | 5 sumber resmi (§45), semua `discovered`/disabled; sumber lain boleh ditambah setelah review |
+| 9 | Antrian publish (M5) | **Ledger kanonik `candidate_publications`**, bukan `content_staging.publish_queue` — Go read-only pada staging (D2/D5) |
+| 10 | Materi saat M5 | **Review-only** (belum ada tabel kanonik materi); publish kanonik baru untuk soal |
 
 
 ---
