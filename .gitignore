@@ -14,3 +14,11 @@ infra/compose/.env
 *.sql.gz
 nocify-cloud-licenses.sql
 /.svelte-kit/
+
+# Python content pipeline
+__pycache__/
+*.pyc
+services/content-pipeline/.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
