@@ -12,7 +12,8 @@
     content-pipeline dedup [--source CODE] [--limit N] [--kind material|question|all]
     content-pipeline materials [--source CODE] [--limit N] [--force]
     content-pipeline questions [--source CODE] [--limit N] [--force]
-    content-pipeline generate [--source CODE] [--limit N] [--template T] [--force] [--dry-run] [--cap N]
+    content-pipeline generate [--source CODE] [--limit N] [--template T] [--force]
+                              [--dry-run] [--cap N] [--allow-unknown-license]
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ import sys
 from collections.abc import Sequence
 
 from content_pipeline import __version__
+from content_pipeline.assisted import COMPREHENSION, SCENARIO, AssistedGenerator
 from content_pipeline.config import Settings
 from content_pipeline.crawler import CrawlRunner, CrawlSummary
 from content_pipeline.db import Database
@@ -118,6 +120,23 @@ def _build_parser() -> argparse.ArgumentParser:
     questions.add_argument("--source", action="append", dest="sources", metavar="CODE")
     questions.add_argument("--limit", type=int, help="max candidates to build")
     questions.add_argument("--force", action="store_true", help="rebuild existing candidates")
+
+    generate = sub.add_parser(
+        "generate", help="AI-assisted scenario/comprehension questions (M6, §23)"
+    )
+    generate.add_argument("--source", action="append", dest="sources", metavar="CODE")
+    generate.add_argument("--limit", type=int, help="max chunks to consider per template")
+    generate.add_argument(
+        "--template", action="append", dest="templates", choices=(SCENARIO, COMPREHENSION),
+        help="assisted template (default: scenario and comprehension)",
+    )
+    generate.add_argument("--force", action="store_true", help="re-generate even when cached (re-bills)")
+    generate.add_argument("--dry-run", action="store_true", help="report without provider calls or writes")
+    generate.add_argument("--cap", type=int, help="max provider calls this run")
+    generate.add_argument(
+        "--allow-unknown-license", action="store_true",
+        help="allow generation from sources with an unknown licence (§25)",
+    )
 
     return parser
 
@@ -361,6 +380,48 @@ def _cmd_questions(db: Database, args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_generate(db: Database, settings: Settings, args: argparse.Namespace) -> int:
+    provider, reason = _resolve_provider(settings)
+    if provider is None:
+        print(f"error: {reason}", file=sys.stderr)
+        return 2
+    try:
+        schema = QuestionSchema.load()
+    except FileNotFoundError as exc:
+        provider.close()
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    templates = tuple(args.templates) if args.templates else (SCENARIO, COMPREHENSION)
+    try:
+        report = AssistedGenerator(
+            db,
+            provider,
+            schema,
+            prompt_version=settings.ai_prompt_version,
+            cap=settings.ai_generation_cap,
+            max_output_tokens=settings.ai_max_output_tokens,
+        ).run(
+            codes=args.sources,
+            limit=args.limit,
+            templates=templates,
+            force=args.force,
+            dry_run=args.dry_run,
+            cap=args.cap,
+            allow_unknown_license=args.allow_unknown_license,
+        )
+    finally:
+        provider.close()
+    print(
+        f"{'dry-run ' if report.dry_run else ''}"
+        f"generated={report.generated} cached={report.cached} rejected={report.rejected} "
+        f"failed={report.failed} license_skipped={report.license_skipped}"
+        + (f" would_generate={report.would_generate}" if report.dry_run else "")
+        + (f" aborted={report.aborted}" if report.aborted else "")
+        + f" tokens={report.total_tokens}"
+    )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     logging.basicConfig(
@@ -387,6 +448,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_materials(db, args)
         if args.command == "questions":
             return _cmd_questions(db, args)
+        if args.command == "generate":
+            return _cmd_generate(db, settings, args)
     return 2
 
 
