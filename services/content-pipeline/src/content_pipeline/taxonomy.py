@@ -32,6 +32,25 @@ class Taxonomy:
     skills: tuple[SkillRef, ...]
 
 
+@dataclass(frozen=True)
+class SourceDocumentRef:
+    """A canonical curriculum source document the watcher can poll (M7)."""
+
+    id: str  # uuid, copied by value
+    code: str
+    title: str
+    source_url: str
+    document_hash: str
+    curriculum_version_id: int | None
+
+
+@dataclass(frozen=True)
+class CpRef:
+    id: int
+    code: str
+    statement: str
+
+
 _SKILLS_SQL = """
     SELECT k.id, k.code, k.name, k.description, c.name,
            s.code, g.code,
@@ -73,3 +92,51 @@ def load_taxonomy(db: Database) -> Taxonomy:
             for r in cur.fetchall()
         )
     return Taxonomy(curriculum_version_id=version_id, skills=skills)
+
+
+def load_active_version_id(db: Database) -> int | None:
+    """The active curriculum version id, or None when none is active (M7 fallback)."""
+    with db.transaction() as cur:
+        cur.execute("SELECT id FROM curriculum_versions WHERE is_active ORDER BY id LIMIT 1")
+        row = cur.fetchone()
+    return int(row[0]) if row is not None else None
+
+
+_SOURCE_DOCUMENTS_SQL = """
+    SELECT d.id::text, d.code, d.title, d.source_url, d.document_hash,
+           (SELECT cv.id FROM curriculum_versions cv
+            WHERE cv.source_document_id = d.id
+            ORDER BY cv.is_active DESC, cv.id LIMIT 1)
+    FROM curriculum_source_documents d
+    ORDER BY d.code
+"""
+
+
+def load_source_documents(db: Database) -> tuple[SourceDocumentRef, ...]:
+    """Load the canonical curriculum source documents the watcher may poll (M7)."""
+    with db.transaction() as cur:
+        cur.execute(_SOURCE_DOCUMENTS_SQL)
+        rows = cur.fetchall()
+    return tuple(
+        SourceDocumentRef(
+            id=str(r[0]),
+            code=str(r[1]),
+            title=str(r[2]),
+            source_url=str(r[3]),
+            document_hash=str(r[4]),
+            curriculum_version_id=int(r[5]) if r[5] is not None else None,
+        )
+        for r in rows
+    )
+
+
+def load_cp_statements(db: Database, curriculum_version_id: int) -> dict[str, CpRef]:
+    """Load a curriculum version's CP statements keyed by code (M7 diff baseline)."""
+    with db.transaction() as cur:
+        cur.execute(
+            "SELECT id, code, statement FROM curriculum_cp "
+            "WHERE curriculum_version_id = %s ORDER BY sort, id",
+            (curriculum_version_id,),
+        )
+        rows = cur.fetchall()
+    return {str(r[1]): CpRef(id=int(r[0]), code=str(r[1]), statement=str(r[2])) for r in rows}
