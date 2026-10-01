@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eduplay/contracts/question-candidate.schema.json",
+  "title": "EduPlay question candidate",
+  "description": "Envelope for one row of content_staging.question_candidates (M4, §22/§23/§40). The pipeline writes it; the Go reviewer CMS reads it and validates the inner payload again at publish time. The `payload` must itself pass packages/question-schema/question.schema.json. Canonical ids are copied integers, never foreign keys into staging.",
+  "type": "object",
+  "required": [
+    "id",
+    "source",
+    "lineage",
+    "curriculum",
+    "template",
+    "type",
+    "difficulty",
+    "learning_objective",
+    "prompt",
+    "payload",
+    "content_hash",
+    "confidence",
+    "qa_issues",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "integer", "minimum": 1 },
+    "source": {
+      "type": "object",
+      "required": ["source_id", "source_code"],
+      "additionalProperties": false,
+      "properties": {
+        "source_id": { "type": "integer" },
+        "source_code": { "type": "string" }
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "description": "Every candidate must point back to the chunk it came from (§40 'Missing source').",
+      "required": ["document_id", "chunk_id"],
+      "additionalProperties": false,
+      "properties": {
+        "document_id": { "type": "integer" },
+        "chunk_id": { "type": "integer" }
+      }
+    },
+    "curriculum": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "curriculum_version_id": { "type": ["integer", "null"] },
+        "skill_id": { "type": ["integer", "null"] },
+        "cp_id": { "type": ["integer", "null"] },
+        "phase_code": { "type": "string" },
+        "grade_code": { "type": "string" },
+        "subject_code": { "type": "string" }
+      }
+    },
+    "template": {
+      "enum": ["cloze"],
+      "description": "Deterministic template used (§23). Assisted/AI templates are M6."
+    },
+    "type": {
+      "enum": ["single_choice", "image_choice", "tap_count", "number_input", "short_answer", "sequence", "matching"]
+    },
+    "difficulty": { "type": ["integer", "null"], "minimum": 1, "maximum": 5 },
+    "learning_objective": { "type": "string" },
+    "prompt": { "type": "string", "minLength": 1 },
+    "payload": {
+      "type": "object",
+      "description": "The question itself: {code, skill, type, difficulty, learning_objective, content, answer, explanation}. Validated against packages/question-schema/question.schema.json before storage and again by Go at publish.",
+      "required": ["code", "skill", "type", "difficulty", "learning_objective", "content", "answer", "explanation"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string", "pattern": "^[A-Z0-9-]+$" },
+        "skill": { "type": "string", "description": "skills.code from the canonical curriculum" },
+        "type": { "type": "string" },
+        "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "learning_objective": { "type": "string", "minLength": 1 },
+        "explanation": { "type": "string", "minLength": 1 },
+        "content": { "type": "object" },
+        "answer": { "type": "object" }
+      }
+    },
+    "content_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "duplicate_of": { "type": ["integer", "null"], "description": "question_candidates.id of an earlier identical question" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "qa_issues": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/qaIssue" },
+      "description": "Automatic checks (§40). blocking=true keeps the candidate out of 'draft' status."
+    },
+    "status": {
+      "enum": ["draft", "needs_review", "approved", "rejected", "published", "retired"]
+    },
+    "created_by": { "type": "string" },
+    "reviewed_by": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "qaIssue": {
+      "type": "object",
+      "required": ["code", "message", "blocking"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "missing_skill",
+            "missing_cp_mapping",
+            "duplicate",
+            "schema_invalid",
+            "empty_answer",
+            "invalid_options",
+            "answer_mismatch",
+            "prompt_too_long",
+            "low_confidence"
+          ]
+        },
+        "message": { "type": "string" },
+        "blocking": { "type": "boolean" }
+      }
+    }
+  }
+}

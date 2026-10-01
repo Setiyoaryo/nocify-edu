@@ -1,6 +1,6 @@
 # content-pipeline
 
-Python **content intelligence** service for Nocify EduPlay (M1: source registry + official crawler; M2: extraction + chunks; M3: curriculum mapping).
+Python **content intelligence** service for Nocify EduPlay (M1: source registry + official crawler; M2: extraction + chunks; M3: curriculum mapping; M4: material candidates).
 
 This service owns the `content_staging` PostgreSQL schema. It never writes canonical
 content — approved candidates are handed to the Go API through the publish contract.
@@ -43,6 +43,35 @@ See [`docs/content-pipeline-roadmap.md`](../../docs/content-pipeline-roadmap.md)
   stays the final authority.
 - Confidence bands (§18): `>= 0.90` high, `0.75–0.89` review, `< 0.75` manual.
 - Canonical ids are copied as plain integers — **no cross-schema foreign keys** (roadmap D4).
+
+## What M4 does
+
+- **Material candidates** (§21): a mapped chunk becomes a reviewable teaching snippet with a
+  deterministic `title`, `summary` and `learning_objective` (no AI yet — §23 templates first),
+  plus a `difficulty_hint` (1–5). Stored in `material_candidates`, one per chunk, re-runnable.
+- **Child readability layer** (§30): `age_band`, `reading_level`, `complexity`, word/sentence
+  counts and `visual_required` / `audio_required`, derived from the curriculum phase/grade and
+  the measured text. A heuristic, not a psychometric score.
+- **Automatic quality checks** (§40): missing skill/CP mapping, duplicate text, missing
+  summary/objective, too short/long, low mapping confidence. Blocking issues move a candidate to
+  `needs_review`; otherwise it starts as `draft`. A reviewer is still the final authority (§24).
+- **Duplicate detection** (§29, exact step): a SHA-256 text fingerprint; an identical earlier
+  candidate is linked through `duplicate_of`.
+- **Question candidates** (§22–§23): a mapped chunk becomes a reviewable question via a
+  deterministic **source-grounded cloze** template (no AI). A sentence loses its most salient
+  term (a curriculum term when one is present, else the longest content word); early bands get a
+  `single_choice` with distractors from the same chunk, upper bands a `short_answer`. Stored in
+  `question_candidates`, one per template per chunk, re-runnable.
+- **Shared-schema validation**: the generated payload is checked against
+  `packages/question-schema/question.schema.json` *before* it is stored (`validation.py`); a
+  payload that fails never enters staging. The Go API validates the same payload again at publish
+  (roadmap D2).
+- **Question QA** (§40): missing skill/CP, duplicate, schema-invalid, empty answer, invalid
+  options, answer mismatch (the answer must occur in the source chunk), long prompt, low
+  confidence. Blocking issues → `needs_review`.
+- **Contracts**: `packages/contracts/material-candidate.schema.json` and
+  `packages/contracts/question-candidate.schema.json` document the envelopes the Go reviewer CMS
+  will consume in M5.
 
 ## Setup
 
@@ -87,6 +116,14 @@ uv run content-pipeline extract --source my-source --force   # re-parse from the
 # Map chunks onto the curriculum (CP + skills)
 uv run content-pipeline map --source my-source --limit 50
 uv run content-pipeline map --source my-source --force       # re-map
+
+# Build material candidates from mapped chunks
+uv run content-pipeline materials --source my-source --limit 50
+uv run content-pipeline materials --source my-source --force # rebuild in place
+
+# Build question candidates (validated against packages/question-schema)
+uv run content-pipeline questions --source my-source --limit 50
+uv run content-pipeline questions --source my-source --force # rebuild in place
 ```
 
 ## Layout
@@ -109,6 +146,11 @@ src/content_pipeline/
   extract.py    extraction orchestration (documents + chunks)
   taxonomy.py   read-only view of the canonical curriculum + CP
   mapping.py    chunk -> skill/CP scoring and confidence
+  readability.py child readability bands and text metrics (§30)
+  materials.py  material candidates, QA checks and duplicate detection (§21/§40)
+  qa.py         shared quality-issue primitives (§40)
+  validation.py shared question-schema loading and payload validation
+  questions.py  deterministic question candidates + QA (§22/§23/§40)
 sql/            content_staging migrations + roles/grants
 tests/          unit tests (no database required)
 ```
@@ -123,5 +165,10 @@ uv run pytest
 
 ## Not yet (next milestones)
 
-Curriculum taxonomy + CP mapping (M3), candidates (M4), reviewer CMS + publish (M5).
-The scheduler is a plain cron/loop for now (§34).
+Reviewer CMS + publish (M5), embeddings/semantic dedup and assisted (AI) question generation
+(M6). The scheduler is a plain cron/loop for now (§34).
+
+The deterministic question template is intentionally narrow: it can only ground a question when
+the chunk contains a usable term, and it produces vocabulary/recognition items, not
+scenario/comprehension items. Those are §23 *assisted* generation and arrive in M6; every
+candidate is still reviewed by a human (§24).
