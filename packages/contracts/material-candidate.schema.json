@@ -70,6 +70,7 @@
     "status": {
       "enum": ["draft", "needs_review", "approved", "rejected", "published", "retired"]
     },
+    "ai_generated": { "type": "boolean", "description": "True when an AI model produced the candidate (M6). Always requires human review (§24)." },
     "created_by": { "type": "string" },
     "reviewed_by": { "type": ["string", "null"] },
     "created_at": { "type": "string", "format": "date-time" },
@@ -105,7 +106,9 @@
             "missing_objective",
             "too_short",
             "text_too_long",
-            "low_confidence"
+            "low_confidence",
+            "near_duplicate",
+            "related"
           ]
         },
         "message": { "type": "string" },

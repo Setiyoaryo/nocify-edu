@@ -86,6 +86,9 @@
 	<div class="mt-2 flex flex-wrap items-center gap-3">
 		<h1 class="text-3xl">{kindLabel(data.kind)} #{data.id}</h1>
 		<StatusPill status={data.status} />
+		{#if data.ai_generated}
+			<span class="pill bg-sun-tint text-ink" title="Dibuat oleh model AI; wajib review manusia (§24)">Dibuat AI — wajib review</span>
+		{/if}
 		<span class="text-sm text-ink-soft">Keyakinan pemetaan {confidenceLabel(data.confidence)}</span>
 	</div>
 	<p class="mt-1 text-sm text-ink-soft">

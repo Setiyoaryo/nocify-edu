@@ -86,6 +86,7 @@ export interface CandidateDetail {
 	status: string;
 	confidence: number;
 	qa_issues: QaIssue[];
+	ai_generated: boolean;
 	content_hash: string;
 	language: string;
 	template: string;

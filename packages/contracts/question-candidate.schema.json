@@ -55,8 +55,8 @@
       }
     },
     "template": {
-      "enum": ["cloze"],
-      "description": "Deterministic template used (§23). Assisted/AI templates are M6."
+      "enum": ["cloze", "scenario", "comprehension"],
+      "description": "cloze is deterministic (§23); scenario/comprehension are AI-assisted (M6) and always require human review."
     },
     "type": {
       "enum": ["single_choice", "image_choice", "tap_count", "number_input", "short_answer", "sequence", "matching"]
@@ -91,6 +91,7 @@
     "status": {
       "enum": ["draft", "needs_review", "approved", "rejected", "published", "retired"]
     },
+    "ai_generated": { "type": "boolean", "description": "True when an AI model produced the candidate (M6). Always requires human review (§24)." },
     "created_by": { "type": "string" },
     "reviewed_by": { "type": ["string", "null"] },
     "created_at": { "type": "string", "format": "date-time" },
@@ -112,7 +113,11 @@
             "invalid_options",
             "answer_mismatch",
             "prompt_too_long",
-            "low_confidence"
+            "low_confidence",
+            "near_duplicate",
+            "related",
+            "ai_generated_unverified",
+            "ungrounded"
           ]
         },
         "message": { "type": "string" },

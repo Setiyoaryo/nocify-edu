@@ -7,9 +7,12 @@
     content-pipeline sources status --code ... --status active --enable
     content-pipeline crawl [--source CODE] [--limit N] [--dry-run]
     content-pipeline extract [--source CODE] [--limit N] [--force]
-    content-pipeline map [--source CODE] [--limit N] [--force]
+    content-pipeline embed [--source CODE] [--limit N] [--force] [--kind chunk|skill|all]
+    content-pipeline map [--source CODE] [--limit N] [--force] [--semantic]
+    content-pipeline dedup [--source CODE] [--limit N] [--kind material|question|all]
     content-pipeline materials [--source CODE] [--limit N] [--force]
     content-pipeline questions [--source CODE] [--limit N] [--force]
+    content-pipeline generate [--source CODE] [--limit N] [--template T] [--force] [--dry-run] [--cap N]
 """
 
 from __future__ import annotations
@@ -23,10 +26,13 @@ from content_pipeline import __version__
 from content_pipeline.config import Settings
 from content_pipeline.crawler import CrawlRunner, CrawlSummary
 from content_pipeline.db import Database
+from content_pipeline.dedup import MATERIAL, QUESTION, Deduplicator, MissingEmbeddingsError
+from content_pipeline.embeddings import OWNER_CHUNK, OWNER_SKILL, EmbeddingBuilder, EmbeddingStore
 from content_pipeline.extract import Extractor
 from content_pipeline.mapping import Mapper
 from content_pipeline.materials import MaterialBuilder
 from content_pipeline.migrate import migrate
+from content_pipeline.provider import Provider, build_provider
 from content_pipeline.questions import QuestionBuilder
 from content_pipeline.registry import (
     add_source,
@@ -85,10 +91,23 @@ def _build_parser() -> argparse.ArgumentParser:
     extract.add_argument("--limit", type=int, help="max documents to process")
     extract.add_argument("--force", action="store_true", help="re-extract documents already processed")
 
+    embed = sub.add_parser("embed", help="cache embeddings for chunks and skills (M6)")
+    embed.add_argument("--source", action="append", dest="sources", metavar="CODE")
+    embed.add_argument("--limit", type=int, help="max chunks to embed")
+    embed.add_argument("--force", action="store_true", help="re-embed even when the text is unchanged")
+    embed.add_argument("--kind", choices=("chunk", "skill", "all"), default="all")
+
     map_cmd = sub.add_parser("map", help="map chunks onto the curriculum (CP and skills)")
     map_cmd.add_argument("--source", action="append", dest="sources", metavar="CODE")
     map_cmd.add_argument("--limit", type=int, help="max chunks to map")
     map_cmd.add_argument("--force", action="store_true", help="re-map chunks already mapped")
+    map_cmd.add_argument("--semantic", action="store_true", help="blend embedding similarity (run `embed` first)")
+
+    dedup = sub.add_parser("dedup", help="detect near-duplicate chunks and flag candidates (§29)")
+    dedup.add_argument("--source", action="append", dest="sources", metavar="CODE")
+    dedup.add_argument("--limit", type=int, help="max chunks to compare")
+    dedup.add_argument("--kind", choices=("material", "question", "all"), default="all")
+    dedup.add_argument("--model", help="embedding model to compare (defaults to the configured provider)")
 
     materials = sub.add_parser("materials", help="build material candidates from mapped chunks")
     materials.add_argument("--source", action="append", dest="sources", metavar="CODE")
@@ -109,6 +128,25 @@ def _settings() -> Settings:
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         raise SystemExit(2) from exc
+
+
+def _resolve_provider(settings: Settings) -> tuple[Provider | None, str]:
+    """Return the configured provider, or (None, reason) when AI is unavailable."""
+    try:
+        provider = build_provider(settings)
+    except ValueError as exc:
+        return None, str(exc)
+    if provider is None:
+        return None, "AI provider not configured; set AI_PROVIDER (mock or openai)"
+    return provider, ""
+
+
+def _embed_kinds(value: str) -> tuple[str, ...]:
+    return (OWNER_CHUNK, OWNER_SKILL) if value == "all" else (value,)
+
+
+def _dedup_kinds(value: str) -> tuple[str, ...]:
+    return (MATERIAL, QUESTION) if value == "all" else (value,)
 
 
 def _cmd_migrate(db: Database) -> int:
@@ -216,8 +254,45 @@ def _cmd_extract(db: Database, settings: Settings, args: argparse.Namespace) -> 
     return 0
 
 
-def _cmd_map(db: Database, args: argparse.Namespace) -> int:
-    summaries = Mapper(db).run(codes=args.sources, limit=args.limit, force=args.force)
+def _cmd_embed(db: Database, settings: Settings, args: argparse.Namespace) -> int:
+    provider, reason = _resolve_provider(settings)
+    if provider is None:
+        print(f"error: {reason}", file=sys.stderr)
+        return 2
+    try:
+        report = EmbeddingBuilder(db, provider, batch_size=settings.ai_embedding_batch_size).run(
+            codes=args.sources, limit=args.limit, force=args.force, kinds=_embed_kinds(args.kind)
+        )
+    finally:
+        provider.close()
+    for summary in report.sources:
+        print(
+            f"{summary.source_code}: chunks_embedded={summary.chunks_embedded} "
+            f"chunks_cached={summary.chunks_cached}"
+        )
+    print(f"skills: embedded={report.skills_embedded} cached={report.skills_cached}")
+    if not report.sources and not report.skills_embedded and not report.skills_cached:
+        print("nothing to embed (extract first, or use --force)")
+    return 0
+
+
+def _cmd_map(db: Database, settings: Settings, args: argparse.Namespace) -> int:
+    if not args.semantic:
+        summaries = Mapper(db).run(codes=args.sources, limit=args.limit, force=args.force)
+    else:
+        provider, reason = _resolve_provider(settings)
+        if provider is None:
+            print(f"error: {reason}", file=sys.stderr)
+            return 2
+        try:
+            mapper = Mapper(
+                db, embeddings=EmbeddingStore(db), semantic_model=provider.embedding_model
+            )
+            summaries = mapper.run(
+                codes=args.sources, limit=args.limit, force=args.force, semantic=True
+            )
+        finally:
+            provider.close()
     if not summaries:
         print("nothing to map (extract first, or use --force)")
         return 0
@@ -226,6 +301,31 @@ def _cmd_map(db: Database, args: argparse.Namespace) -> int:
             f"{summary.source_code}: mapped={summary.mapped} unmapped={summary.unmapped} "
             f"high={summary.high} review={summary.review} manual={summary.manual}"
         )
+    return 0
+
+
+def _cmd_dedup(db: Database, settings: Settings, args: argparse.Namespace) -> int:
+    model = args.model or settings.ai_embedding_model
+    if not model:
+        provider, _ = _resolve_provider(settings)
+        if provider is not None:
+            model = provider.embedding_model
+            provider.close()
+    if not model:
+        print("error: set AI_EMBEDDING_MODEL (or --model) to the model used by `embed`", file=sys.stderr)
+        return 2
+    try:
+        report = Deduplicator(db, model=model).run(
+            kinds=_dedup_kinds(args.kind), codes=args.sources, limit=args.limit
+        )
+    except MissingEmbeddingsError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    print(
+        f"chunks={report.chunks_checked} exact={report.exact} "
+        f"near_duplicate={report.near_duplicate} related={report.related} unique={report.unique} "
+        f"candidates_flagged={report.candidates_flagged}"
+    )
     return 0
 
 
@@ -277,8 +377,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_crawl(db, settings, args)
         if args.command == "extract":
             return _cmd_extract(db, settings, args)
+        if args.command == "embed":
+            return _cmd_embed(db, settings, args)
         if args.command == "map":
-            return _cmd_map(db, args)
+            return _cmd_map(db, settings, args)
+        if args.command == "dedup":
+            return _cmd_dedup(db, settings, args)
         if args.command == "materials":
             return _cmd_materials(db, args)
         if args.command == "questions":
