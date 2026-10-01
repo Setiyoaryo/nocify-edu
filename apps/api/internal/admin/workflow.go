@@ -24,6 +24,17 @@ var QualityChecklist = []struct{ Key, Label string }{
 	{"a11y_contrast", "Kontras cukup"},
 }
 
+// ChecklistComplete reports whether every quality-gate item has been ticked.
+// Shared by the question workflow and the candidate review gate (§24).
+func ChecklistComplete(checklist map[string]bool) error {
+	for _, item := range QualityChecklist {
+		if !checklist[item.Key] {
+			return fmt.Errorf("quality gate: %q must be checked", item.Label)
+		}
+	}
+	return nil
+}
+
 type TransitionCtx struct {
 	From         string
 	To           string
@@ -54,12 +65,7 @@ func CheckQuestionTransition(t TransitionCtx) error {
 		if t.AuthorOfHead == t.Actor.ID.String() && t.Actor.Role != auth.RoleAdmin {
 			return errors.New("the author of this version cannot approve it; ask another reviewer")
 		}
-		for _, item := range QualityChecklist {
-			if !t.Checklist[item.Key] {
-				return fmt.Errorf("quality gate: %q must be checked", item.Label)
-			}
-		}
-		return nil
+		return ChecklistComplete(t.Checklist)
 	case t.From == "approved" && t.To == "published":
 		if !reviewer {
 			return errors.New("only reviewers can publish")

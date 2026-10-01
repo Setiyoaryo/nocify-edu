@@ -18,7 +18,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA content_staging
     GRANT USAGE, SELECT ON SEQUENCES TO content_pipeline;
 
 -- Read-only access to canonical curriculum taxonomy, so mapping can resolve
--- skills. No INSERT/UPDATE/DELETE on any canonical table.
+-- skills, CP and phases. No INSERT/UPDATE/DELETE on any canonical table.
 GRANT USAGE ON SCHEMA public TO content_pipeline;
 GRANT SELECT ON
     public.curriculum_versions,
@@ -26,7 +26,9 @@ GRANT SELECT ON
     public.grades,
     public.subjects,
     public.chapters,
-    public.skills
+    public.skills,
+    public.phases,
+    public.curriculum_cp
 TO content_pipeline;
 
 -- The application role needs read access to staging for review and publish.

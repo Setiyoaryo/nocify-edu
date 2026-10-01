@@ -11,11 +11,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -472,5 +475,167 @@ func TestCSRFAndAdminRBAC(t *testing.T) {
 	reviewer.must(200, "POST", "/admin/assets/"+assetID+"/transition", map[string]any{"to": "license_verified"})
 	if code, _ := reviewer.do("POST", "/admin/assets/"+assetID+"/transition", map[string]any{"to": "design_approved"}); code != 409 {
 		t.Fatal("AI-generated asset must not be design-approved")
+	}
+}
+
+// applyStagingDDL creates the Python-owned staging schema by replaying its SQL
+// migrations (the pipeline is a separate service and never runs inside these
+// tests). Same relative path as the candidates package tests.
+func applyStagingDDL(t *testing.T, e *env) {
+	t.Helper()
+	files, err := filepath.Glob("../../../../services/content-pipeline/sql/0*.sql")
+	if err != nil || len(files) == 0 {
+		t.Fatalf("staging migrations not found: %v", err)
+	}
+	sort.Strings(files)
+	for _, path := range files {
+		sqlBytes, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := e.pool.Exec(context.Background(), string(sqlBytes)); err != nil {
+			t.Fatalf("apply %s: %v", filepath.Base(path), err)
+		}
+	}
+}
+
+// seedCandidate inserts one source document/chunk and a question candidate,
+// returning the candidate id. Mirrors what the Python pipeline would produce.
+func seedCandidate(t *testing.T, e *env) int64 {
+	t.Helper()
+	ctx := context.Background()
+	var sourceID int
+	if err := e.pool.QueryRow(ctx, `INSERT INTO content_staging.source_registry
+		(code, name, base_url, source_type, tier, enabled, status)
+		VALUES ('test-src', 'Test Source', 'https://x.test', 'official_curriculum', 1, true, 'active')
+		RETURNING id`).Scan(&sourceID); err != nil {
+		t.Fatal(err)
+	}
+	var runID int64
+	if err := e.pool.QueryRow(ctx, `INSERT INTO content_staging.crawl_runs (source_id) VALUES ($1) RETURNING id`, sourceID).Scan(&runID); err != nil {
+		t.Fatal(err)
+	}
+	var itemID int64
+	if err := e.pool.QueryRow(ctx, `INSERT INTO content_staging.crawl_items
+		(crawl_run_id, source_id, url, canonical_url, status) VALUES ($1, $2, 'https://x.test/a', 'https://x.test/a', 'fetched')
+		RETURNING id`, runID, sourceID).Scan(&itemID); err != nil {
+		t.Fatal(err)
+	}
+	var documentID int64
+	if err := e.pool.QueryRow(ctx, `INSERT INTO content_staging.source_documents
+		(source_id, crawl_item_id, title, canonical_url, document_type, content_hash, retrieved_at, license)
+		VALUES ($1, $2, 'Dokumen Uji', 'https://x.test/a', 'html', 'doc-hash', '2026-09-30T00:00:00Z', 'public')
+		RETURNING id`, sourceID, itemID).Scan(&documentID); err != nil {
+		t.Fatal(err)
+	}
+	var chunkID int64
+	if err := e.pool.QueryRow(ctx, `INSERT INTO content_staging.document_chunks
+		(document_id, heading, sequence, text, hash) VALUES ($1, 'Bab', 0, 'isi chunk', 'chunk-hash')
+		RETURNING id`, documentID).Scan(&chunkID); err != nil {
+		t.Fatal(err)
+	}
+	var skillCode string
+	if err := e.pool.QueryRow(ctx, `SELECT code FROM skills ORDER BY id LIMIT 1`).Scan(&skillCode); err != nil {
+		t.Fatal(err)
+	}
+	payload := fmt.Sprintf(`{"code":"Q-E2E-1","skill":%q,"type":"short_answer","difficulty":3,`+
+		`"learning_objective":"Peserta didik dapat X.","content":{"prompt":"Lengkapi: _____"},`+
+		`"answer":{"accepted":["x"]},"explanation":"Jawaban: x."}`, skillCode)
+	var candidateID int64
+	if err := e.pool.QueryRow(ctx, `INSERT INTO content_staging.question_candidates
+		(document_id, chunk_id, source_id, skill_id, phase_code, grade_code, subject_code,
+		 template, type, difficulty, learning_objective, prompt, payload, content_hash, confidence, qa_issues, status)
+		VALUES ($1, $2, $3, NULL, '', '', '', 'cloze', 'short_answer', 3, 'Peserta didik dapat X.',
+		 'Lengkapi: _____', $4::jsonb, 'hash-e2e', 0.9, '[]'::jsonb, 'draft') RETURNING id`,
+		documentID, chunkID, sourceID, payload).Scan(&candidateID); err != nil {
+		t.Fatal(err)
+	}
+	return candidateID
+}
+
+func fullChecklist() map[string]bool {
+	c := map[string]bool{}
+	for _, k := range []string{"academic_answer", "academic_explanation", "academic_curriculum", "academic_difficulty", "ux_instruction", "ux_readable", "ux_touch", "ux_visual", "a11y_color", "a11y_alternatives", "a11y_contrast"} {
+		c[k] = true
+	}
+	return c
+}
+
+// TestCandidateReviewRBAC exercises the M5 reviewer CMS: the queue degrades
+// cleanly when the pipeline has not run, parents/editors cannot decide, and an
+// approval with the full checklist queues a question for publish.
+func TestCandidateReviewRBAC(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+
+	mkStaff := func(email, role string) *client {
+		c := e.client()
+		c.register(email)
+		if _, err := e.pool.Exec(ctx, `UPDATE users SET role = $2 WHERE email = $1`, email, role); err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	reviewer := mkStaff("reviewer@example.test", "reviewer")
+	editor := mkStaff("editor@example.test", "content_editor")
+
+	// Without the pipeline schema the queue is empty, not a 500.
+	if _, err := e.pool.Exec(ctx, `DROP SCHEMA IF EXISTS content_staging CASCADE`); err != nil {
+		t.Fatal(err)
+	}
+	empty := reviewer.must(200, "GET", "/admin/candidates", nil)
+	if empty["available"] != false {
+		t.Fatalf("queue without pipeline should report available:false, got %v", empty)
+	}
+
+	applyStagingDDL(t, e)
+	candidateID := seedCandidate(t, e)
+	path := fmt.Sprintf("/admin/candidates/question/%d", candidateID)
+	decision := path + "/decision"
+
+	// Parents never reach the CMS.
+	parent := e.client()
+	parent.register("p@example.test")
+	if code, _ := parent.do("GET", "/admin/candidates", nil); code != 403 {
+		t.Fatalf("parent on review queue must be 403, got %d", code)
+	}
+
+	// Editors can read the queue but not decide.
+	list := editor.must(200, "GET", "/admin/candidates", nil)
+	if list["available"] != true || len(list["candidates"].([]any)) != 1 {
+		t.Fatalf("queue unexpected: %v", list)
+	}
+	if code, _ := editor.do("POST", decision, map[string]any{"decision": "approved", "checklist": fullChecklist()}); code != 403 {
+		t.Fatalf("editor must not decide, got %d", code)
+	}
+
+	// The reviewer sees source lineage + mapping in one screen.
+	detail := reviewer.must(200, "GET", path, nil)["candidate"].(map[string]any)
+	if detail["kind"] != "question" || detail["source"].(map[string]any)["code"] != "test-src" {
+		t.Fatalf("detail missing source: %v", detail)
+	}
+	if detail["lineage"].(map[string]any)["document_title"] != "Dokumen Uji" {
+		t.Fatalf("detail missing document: %v", detail["lineage"])
+	}
+
+	// Approving without the full checklist is refused.
+	if code, _ := reviewer.do("POST", decision, map[string]any{"decision": "approved", "checklist": map[string]bool{"academic_answer": true}}); code != 422 {
+		t.Fatalf("incomplete checklist must be 422, got %d", code)
+	}
+	// With the full checklist the question is queued for publish.
+	pub := reviewer.must(200, "POST", decision, map[string]any{"decision": "approved", "checklist": fullChecklist(), "notes": "ok"})["publication"].(map[string]any)
+	if pub["status"] != "queued" || pub["decision"] != "approved" {
+		t.Fatalf("publication unexpected: %v", pub)
+	}
+	row := reviewer.must(200, "GET", "/admin/candidates", nil)["candidates"].([]any)[0].(map[string]any)
+	if row["publication_status"] != "queued" {
+		t.Fatalf("queue should reflect the decision: %v", row)
+	}
+	// Once published, the decision is frozen.
+	if _, err := e.pool.Exec(ctx, `UPDATE candidate_publications SET status = 'published' WHERE kind = 'question' AND candidate_id = $1`, candidateID); err != nil {
+		t.Fatal(err)
+	}
+	if code, _ := reviewer.do("POST", decision, map[string]any{"decision": "rejected"}); code != 409 {
+		t.Fatalf("deciding after publish must be 409, got %d", code)
 	}
 }

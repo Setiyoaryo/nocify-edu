@@ -264,6 +264,20 @@ paths:
   /admin/questions/{questionID}/preview:
     parameters: [{ name: questionID, in: path, required: true, schema: { type: string } }]
     post: { summary: Child-facing content + optional server grading of a test response, responses: { "200": { description: OK } } }
+  /admin/candidates:
+    get:
+      summary: "Staff. Review queue of pipeline candidates (material|question) with publication state. Degrades to available:false when the pipeline has not run."
+      parameters: [{ name: kind, in: query, schema: { type: string, enum: [material, question] } }, { name: status, in: query, schema: { type: string } }, { name: source, in: query, schema: { type: string } }, { name: q, in: query, schema: { type: string } }]
+      responses: { "200": { description: "{ candidates, counts, available }" } }
+  /admin/candidates/{kind}/{id}:
+    parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [material, question] } }, { name: id, in: path, required: true, schema: { type: integer } }]
+    get: { summary: "Candidate with crawled source lineage, curriculum mapping, QA issues and publication state", responses: { "200": { description: "{ candidate }" }, "404": { description: Not found or pipeline not run } } }
+  /admin/candidates/{kind}/{id}/decision:
+    parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [material, question] } }, { name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      summary: "Reviewer/Admin. approved (requires full quality checklist) | changes_requested | rejected. Upserts candidate_publications; approved questions are published to canonical tables by the publish-candidates job."
+      requestBody: { content: { application/json: { schema: { type: object, properties: { decision: { type: string, enum: [approved, changes_requested, rejected] }, checklist: { type: object, additionalProperties: { type: boolean } }, notes: { type: string } } } } } }
+      responses: { "200": { description: "{ publication }" }, "409": { description: "Already published or pipeline data unavailable" } }
   /admin/curriculum:
     get: { responses: { "200": { description: Flat lists of versions, levels, grades, subjects, chapters, skills } } }
   /admin/subjects: { post: { summary: Editor, responses: { "200": { description: OK } } } }

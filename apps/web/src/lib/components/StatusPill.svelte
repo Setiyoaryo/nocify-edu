@@ -11,7 +11,14 @@
 		license_verified: ['Lisensi OK', 'bg-sky-tint text-[#1a6fa3]'],
 		design_approved: ['Desain OK', 'bg-primary-tint text-primary-deep'],
 		performance_checked: ['Performa OK', 'bg-sun-tint text-ink'],
-		rejected: ['Ditolak', 'bg-rose-tint text-[#a8264f]']
+		rejected: ['Ditolak', 'bg-rose-tint text-[#a8264f]'],
+		// Pipeline candidate + publication statuses (M5).
+		needs_review: ['Perlu tinjauan', 'bg-sun-tint text-ink'],
+		queued: ['Menunggu tayang', 'bg-sky-tint text-[#1a6fa3]'],
+		publishing: ['Menayangkan', 'bg-sky-tint text-[#1a6fa3]'],
+		not_applicable: ['Tidak diterbitkan', 'bg-paper-deep text-ink-soft'],
+		changes_requested: ['Minta perbaikan', 'bg-sun-tint text-ink'],
+		failed: ['Gagal tayang', 'bg-rose-tint text-[#a8264f]']
 	};
 	const m = $derived(map[status] ?? [status, 'bg-paper-deep text-ink-soft']);
 </script>

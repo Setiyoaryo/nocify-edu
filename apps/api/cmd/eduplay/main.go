@@ -6,6 +6,7 @@
 //	eduplay seed      load content/ (use --publish in development only)
 //	eduplay user      create or promote a staff account
 //	eduplay recompute rebuild skill_progress from raw attempts
+//	eduplay publish-candidates  publish approved pipeline candidates to canonical
 package main
 
 import (
@@ -23,6 +24,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/nocify/eduplay/api/internal/auth"
+	"github.com/nocify/eduplay/api/internal/candidates"
 	"github.com/nocify/eduplay/api/internal/config"
 	"github.com/nocify/eduplay/api/internal/db"
 	"github.com/nocify/eduplay/api/internal/media"
@@ -36,7 +38,7 @@ import (
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})))
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: eduplay serve|worker|migrate|seed|user|recompute")
+		fmt.Fprintln(os.Stderr, "usage: eduplay serve|worker|migrate|seed|user|recompute|publish-candidates")
 		os.Exit(2)
 	}
 	if err := run(os.Args[1], os.Args[2:]); err != nil {
@@ -139,6 +141,31 @@ func run(cmd string, args []string) error {
 			return err
 		}
 		slog.Info("user saved", "id", id, "role", *role)
+		return nil
+
+	case "publish-candidates":
+		fs := flag.NewFlagSet("publish-candidates", flag.ExitOnError)
+		limit := fs.Int("limit", 50, "rows per batch")
+		all := fs.Bool("all", false, "drain the queue until empty")
+		dry := fs.Bool("dry-run", false, "validate only, write nothing")
+		retry := fs.Bool("retry-failed", false, "re-queue failed publications first")
+		maxAttempts := fs.Int("max-attempts", 0, "with --retry-failed: only retry rows below this attempt count (0 = no limit)")
+		_ = fs.Parse(args)
+		if err := db.Migrate(ctx, pool); err != nil {
+			return err
+		}
+		rep, err := candidates.Publish(ctx, pool, candidates.PublishOptions{
+			Limit: *limit, All: *all, DryRun: *dry, RetryFailed: *retry, MaxAttempts: *maxAttempts,
+		})
+		if err != nil {
+			return err
+		}
+		slog.Info("publish-candidates", "claimed", rep.Claimed, "published", rep.Published,
+			"linked", rep.Linked, "failed", rep.Failed, "skipped", rep.Skipped,
+			"remaining", rep.Remaining, "dry_run", rep.DryRun)
+		for _, e := range rep.Errors {
+			slog.Warn("publish-candidates", "error", e)
+		}
 		return nil
 
 	case "recompute":
