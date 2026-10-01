@@ -18,7 +18,15 @@
 		publishing: ['Menayangkan', 'bg-sky-tint text-[#1a6fa3]'],
 		not_applicable: ['Tidak diterbitkan', 'bg-paper-deep text-ink-soft'],
 		changes_requested: ['Minta perbaikan', 'bg-sun-tint text-ink'],
-		failed: ['Gagal tayang', 'bg-rose-tint text-[#a8264f]']
+		failed: ['Gagal tayang', 'bg-rose-tint text-[#a8264f]'],
+		// Curriculum change review + event statuses (M7).
+		pending: ['Belum ditinjau', 'bg-sun-tint text-ink'],
+		acknowledged: ['Diterima', 'bg-primary-tint text-primary-deep'],
+		dismissed: ['Diabaikan', 'bg-paper-deep text-ink-soft'],
+		deferred: ['Ditunda', 'bg-sky-tint text-[#1a6fa3]'],
+		detected: ['Terdeteksi', 'bg-sun-tint text-ink'],
+		analyzed: ['Dianalisis', 'bg-primary-tint text-primary-deep'],
+		superseded: ['Digantikan', 'bg-paper-deep text-ink-soft']
 	};
 	const m = $derived(map[status] ?? [status, 'bg-paper-deep text-ink-soft']);
 </script>

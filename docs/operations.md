@@ -44,3 +44,20 @@ Admin → Ringkasan shows the business KPIs of §51.
 active/trial past period end → `past_due`; `past_due` beyond the 3-day grace, or `cancelled` at
 period end → `expired`; pending checkouts older than 24h → `expired`; expired sessions purged;
 sessions in progress for over a day → `abandoned`.
+
+## Content pipeline (Python, `--profile pipeline`)
+The pipeline is a separate container and never runs in the product request path; the product still
+`make up` without it. Migrations are forward-only SQL tracked in `content_staging.schema_migrations`.
+
+- **Publish (M5):** reviewers approve in the CMS; `eduplay publish-candidates` (Go) drains the
+  canonical `candidate_publications` queue into canonical questions. Run it from cron after review.
+- **Curriculum watch (M7):** `content-pipeline watch --due` polls the registered canonical source
+  documents and records a change event + frozen impact snapshot only when a document's hash changed.
+  Run it from an external cron (e.g. hourly); `--due` respects each document's `check_frequency`
+  (`daily`/`weekly`/`monthly`/`manual`). Overlapping runs are safe — an advisory lock (727275)
+  makes a second run a no-op. **M7 never writes canonical curriculum**; a reviewer decides in the
+  CMS (`/app/admin/curriculum-changes`), and the decision is recorded in the canonical
+  `curriculum_change_reviews` ledger.
+- **Secrets/env:** `DATABASE_URL` is the only required variable; AI steps need `AI_PROVIDER`
+  (`mock` needs no key). Sources with an `unknown` licence are skipped unless `--allow-unknown-license`.
+
