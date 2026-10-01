@@ -6,6 +6,7 @@
 //	eduplay seed      load content/ (use --publish in development only)
 //	eduplay user      create or promote a staff account
 //	eduplay recompute rebuild skill_progress from raw attempts
+//	eduplay recompute-attribution rebuild question creator attribution from raw attempts
 //	eduplay publish-candidates  publish approved pipeline candidates to canonical
 package main
 
@@ -26,6 +27,7 @@ import (
 	"github.com/nocify/eduplay/api/internal/auth"
 	"github.com/nocify/eduplay/api/internal/candidates"
 	"github.com/nocify/eduplay/api/internal/config"
+	"github.com/nocify/eduplay/api/internal/creators"
 	"github.com/nocify/eduplay/api/internal/db"
 	"github.com/nocify/eduplay/api/internal/media"
 	"github.com/nocify/eduplay/api/internal/progress"
@@ -38,7 +40,7 @@ import (
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})))
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: eduplay serve|worker|migrate|seed|user|recompute|publish-candidates")
+		fmt.Fprintln(os.Stderr, "usage: eduplay serve|worker|migrate|seed|user|recompute|recompute-attribution|publish-candidates")
 		os.Exit(2)
 	}
 	if err := run(os.Args[1], os.Args[2:]); err != nil {
@@ -188,6 +190,52 @@ func run(cmd string, args []string) error {
 			}
 		}
 		slog.Info("recomputed skill progress", "children", len(ids))
+		return nil
+
+	case "recompute-attribution":
+		fs := flag.NewFlagSet("recompute-attribution", flag.ExitOnError)
+		creatorID := fs.String("creator", "", "rebuild only this creator's questions (uuid)")
+		questionID := fs.String("question", "", "rebuild a single question (uuid)")
+		_ = fs.Parse(args)
+		switch {
+		case *questionID != "":
+			id, err := uuid.Parse(*questionID)
+			if err != nil {
+				return err
+			}
+			if err := creators.RecomputeQuestions(ctx, pool, []uuid.UUID{id}); err != nil {
+				return err
+			}
+			slog.Info("recomputed attribution", "questions", 1)
+		case *creatorID != "":
+			id, err := uuid.Parse(*creatorID)
+			if err != nil {
+				return err
+			}
+			rows, err := pool.Query(ctx, `SELECT id FROM questions WHERE creator_id = $1`, id)
+			if err != nil {
+				return err
+			}
+			var qids []uuid.UUID
+			for rows.Next() {
+				var qid uuid.UUID
+				if err := rows.Scan(&qid); err != nil {
+					rows.Close()
+					return err
+				}
+				qids = append(qids, qid)
+			}
+			rows.Close()
+			if err := creators.RecomputeQuestions(ctx, pool, qids); err != nil {
+				return err
+			}
+			slog.Info("recomputed attribution", "creator", *creatorID, "questions", len(qids))
+		default:
+			if err := creators.RecomputeAll(ctx, pool); err != nil {
+				return err
+			}
+			slog.Info("recomputed attribution", "scope", "all")
+		}
 		return nil
 	}
 	return fmt.Errorf("unknown command %q", cmd)

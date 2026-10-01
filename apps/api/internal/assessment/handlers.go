@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"math/rand"
 	"net/http"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"github.com/nocify/eduplay/api/internal/analytics"
 	"github.com/nocify/eduplay/api/internal/auth"
 	"github.com/nocify/eduplay/api/internal/children"
+	"github.com/nocify/eduplay/api/internal/creators"
 	"github.com/nocify/eduplay/api/internal/db"
 	"github.com/nocify/eduplay/api/internal/httpx"
 	"github.com/nocify/eduplay/api/internal/progress"
@@ -669,7 +671,7 @@ func (h Handler) Complete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := tx.Query(ctx, `SELECT first_try_correct, final_correct, hint_shown, skill_id FROM assessment_items
+	rows, err := tx.Query(ctx, `SELECT first_try_correct, final_correct, hint_shown, skill_id, question_id FROM assessment_items
 		WHERE assessment_id = $1 AND finalized_at IS NOT NULL ORDER BY position`, id)
 	if err != nil {
 		httpx.Internal(w, r, err)
@@ -677,16 +679,19 @@ func (h Handler) Complete(w http.ResponseWriter, r *http.Request) {
 	}
 	var items []ItemResult
 	skillSet := map[int]bool{}
+	questionSet := map[uuid.UUID]bool{}
 	for rows.Next() {
 		var it ItemResult
 		var sid int
-		if err := rows.Scan(&it.FirstTryCorrect, &it.FinalCorrect, &it.HintUsed, &sid); err != nil {
+		var qid uuid.UUID
+		if err := rows.Scan(&it.FirstTryCorrect, &it.FinalCorrect, &it.HintUsed, &sid, &qid); err != nil {
 			rows.Close()
 			httpx.Internal(w, r, err)
 			return
 		}
 		items = append(items, it)
 		skillSet[sid] = true
+		questionSet[qid] = true
 	}
 	rows.Close()
 	if len(items) == 0 {
@@ -697,6 +702,10 @@ func (h Handler) Complete(w http.ResponseWriter, r *http.Request) {
 	skillIDs := make([]int, 0, len(skillSet))
 	for sid := range skillSet {
 		skillIDs = append(skillIDs, sid)
+	}
+	questionIDs := make([]uuid.UUID, 0, len(questionSet))
+	for qid := range questionSet {
+		questionIDs = append(questionIDs, qid)
 	}
 
 	before := map[int]float64{}
@@ -721,6 +730,11 @@ func (h Handler) Complete(w http.ResponseWriter, r *http.Request) {
 	if err := progress.RecomputeSkills(ctx, tx, v.ChildID, skillIDs); err != nil {
 		httpx.Internal(w, r, err)
 		return
+	}
+	// Creator attribution rollup (§39). Best-effort: a failure here must never
+	// block a child's session, and `eduplay recompute-attribution` can rebuild.
+	if err := creators.RecomputeQuestions(ctx, tx, questionIDs); err != nil {
+		slog.ErrorContext(ctx, "attribution recompute failed", "err", err, "assessment_id", id)
 	}
 	today := time.Now().In(h.TZ).Format("2006-01-02")
 	if _, err := tx.Exec(ctx, `INSERT INTO daily_progress (child_id, day, challenges_completed, questions_answered, correct_answers, xp)

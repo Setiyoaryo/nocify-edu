@@ -47,3 +47,11 @@ Each entry says what differs from the spec, why, and when to revisit.
     text (≥12:1), a white icon disc, and no glossy/neon or glassmorphism. No arrow glyphs in UI copy.
 17. **Owner operations (admin CMS) are deferred**: bank soal layout, asset library and audit log keep
     working but get their redesign after the parent/student experience.
+18. **Creator attribution is decoupled from auth (M8).** `questions.created_by` conflates the author
+    with whoever pressed publish — the pipeline publisher sets it to the approving reviewer, and seeded
+    questions have none — so attribution lives in a new `creators` table (optional `user_id` link) with
+    `questions.creator_id`. Pipeline-published content is attributed to the seeded **system creator**.
+    `usage_count`/`completion_count`/`quality_score` are a stored rollup (`question_attribution`)
+    rebuilt from `assessment_items` the same way `skill_progress` is rebuilt, and adaptation lineage
+    (`adaptation_type`, `adapted_by`, `reviewed_by`) extends `question_provenance`. M8 is readiness
+    only: it records the inputs for revenue share and computes no money (that stays in Phase 5, #6).

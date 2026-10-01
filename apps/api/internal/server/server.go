@@ -20,6 +20,7 @@ import (
 	"github.com/nocify/eduplay/api/internal/changes"
 	"github.com/nocify/eduplay/api/internal/children"
 	"github.com/nocify/eduplay/api/internal/config"
+	"github.com/nocify/eduplay/api/internal/creators"
 	"github.com/nocify/eduplay/api/internal/curriculum"
 	"github.com/nocify/eduplay/api/internal/httpx"
 	"github.com/nocify/eduplay/api/internal/media"
@@ -53,6 +54,7 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 	adminH := admin.Handler{DB: pool}
 	candH := candidates.Handler{DB: pool}
 	changeH := changes.Handler{DB: pool}
+	creatorH := creators.Handler{DB: pool}
 	anaH := analytics.Handler{DB: pool}
 	misH := missions.Handler{DB: pool}
 
@@ -149,6 +151,8 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 					r.Get("/candidates/{kind}/{id}", candH.GetCandidate)
 					r.Get("/curriculum-changes", changeH.ListChanges)
 					r.Get("/curriculum-changes/{id}", changeH.GetChange)
+					r.Get("/creators", creatorH.ListCreators)
+					r.Get("/creators/{creatorID}", creatorH.GetCreator)
 					r.Get("/assets", mediaH.List)
 					r.Post("/assets", mediaH.Create)
 					r.Get("/assets/{assetID}", mediaH.Get)
@@ -166,6 +170,10 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 						r.Patch("/chapters/{id}", adminH.UpdateChapter)
 						r.Post("/skills", adminH.CreateSkill)
 						r.Patch("/skills/{id}", adminH.UpdateSkill)
+						r.Post("/creators", creatorH.CreateCreator)
+						r.Patch("/creators/{creatorID}", creatorH.UpdateCreator)
+						r.Put("/questions/{questionID}/creator", creatorH.AssignCreator)
+						r.Delete("/questions/{questionID}/creator", creatorH.UnassignCreator)
 					})
 					r.Group(func(r chi.Router) {
 						r.Use(auth.RequireRole(auth.RoleReviewer))

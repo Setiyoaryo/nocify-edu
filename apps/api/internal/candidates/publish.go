@@ -14,6 +14,7 @@ import (
 
 	"github.com/nocify/eduplay/api/internal/admin"
 	"github.com/nocify/eduplay/api/internal/audit"
+	"github.com/nocify/eduplay/api/internal/creators"
 	"github.com/nocify/eduplay/api/internal/questions"
 )
 
@@ -177,10 +178,11 @@ func publishOne(ctx context.Context, pool *pgxpool.Pool, pubID int64, dryRun boo
 }
 
 type resolved struct {
-	payload CandidatePayload
-	prov    Provenance
-	skillID int
-	cpID    *int
+	payload     CandidatePayload
+	prov        Provenance
+	skillID     int
+	cpID        *int
+	aiGenerated bool
 }
 
 // resolveQuestion loads a candidate with its lineage, validates the payload and
@@ -190,13 +192,13 @@ func resolveQuestion(ctx context.Context, tx pgx.Tx, candidateID int64) (resolve
 	var payloadBytes []byte
 	var retrievedAt *time.Time
 	err := tx.QueryRow(ctx, `
-		SELECT q.payload, q.content_hash, s.code, d.title, d.canonical_url, d.retrieved_at, d.id, c.id
+		SELECT q.payload, q.content_hash, q.ai_generated, s.code, d.title, d.canonical_url, d.retrieved_at, d.id, c.id
 		FROM content_staging.question_candidates q
 		JOIN content_staging.source_documents d ON d.id = q.document_id
 		JOIN content_staging.document_chunks c ON c.id = q.chunk_id
 		JOIN content_staging.source_registry s ON s.id = q.source_id
 		WHERE q.id = $1`, candidateID).
-		Scan(&payloadBytes, &r.prov.ContentHash, &r.prov.SourceCode, &r.prov.SourceTitle,
+		Scan(&payloadBytes, &r.prov.ContentHash, &r.aiGenerated, &r.prov.SourceCode, &r.prov.SourceTitle,
 			&r.prov.OriginalURL, &retrievedAt, &r.prov.SourceDocumentID, &r.prov.SourceChunkID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return r, errors.New("candidate no longer exists in staging")
@@ -252,6 +254,9 @@ func publishQuestion(ctx context.Context, tx pgx.Tx, candidateID int64, decidedB
 		if err := insertProvenance(ctx, tx, existing, r.prov); err != nil {
 			return uuid.Nil, false, err
 		}
+		if err := attributeQuestion(ctx, tx, existing, *decidedBy, r.aiGenerated); err != nil {
+			return uuid.Nil, false, err
+		}
 		audit.Log(ctx, tx, *decidedBy, "candidate.publish", "question", existing.String(),
 			map[string]any{"candidate_id": candidateID, "linked": true})
 		return existing, true, nil
@@ -273,6 +278,9 @@ func publishQuestion(ctx context.Context, tx pgx.Tx, candidateID int64, decidedB
 	if err := insertProvenance(ctx, tx, qid, r.prov); err != nil {
 		return uuid.Nil, false, err
 	}
+	if err := attributeQuestion(ctx, tx, qid, *decidedBy, r.aiGenerated); err != nil {
+		return uuid.Nil, false, err
+	}
 	if _, err := tx.Exec(ctx, `INSERT INTO question_reviews
 		(question_id, question_version_id, reviewer_id, from_status, to_status, checklist, notes)
 		VALUES ($1, $2, $3, 'approved', 'published', $4, $5)`, qid, vid, *decidedBy, checklist, notes); err != nil {
@@ -281,6 +289,26 @@ func publishQuestion(ctx context.Context, tx pgx.Tx, candidateID int64, decidedB
 	audit.Log(ctx, tx, *decidedBy, "candidate.publish", "question", qid.String(),
 		map[string]any{"candidate_id": candidateID, "linked": false})
 	return qid, false, nil
+}
+
+// attributeQuestion records creator attribution and adaptation lineage for a
+// pipeline-published question (§39). Pipeline content belongs to the system
+// creator; the reviewer who approved it is recorded on the lineage. A creator
+// already assigned by a human is never overwritten (COALESCE).
+func attributeQuestion(ctx context.Context, tx pgx.Tx, questionID, reviewer uuid.UUID, aiGenerated bool) error {
+	if _, err := tx.Exec(ctx,
+		`UPDATE questions SET creator_id = COALESCE(creator_id, $2) WHERE id = $1`,
+		questionID, creators.SystemCreatorID); err != nil {
+		return err
+	}
+	adaptation := "original"
+	if aiGenerated {
+		adaptation = "ai_assisted"
+	}
+	_, err := tx.Exec(ctx,
+		`UPDATE question_provenance SET adaptation_type = $2, reviewed_by = $3 WHERE question_id = $1`,
+		questionID, adaptation, reviewer)
+	return err
 }
 
 func insertProvenance(ctx context.Context, tx pgx.Tx, questionID uuid.UUID, p Provenance) error {

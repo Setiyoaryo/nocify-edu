@@ -61,3 +61,10 @@ The pipeline is a separate container and never runs in the product request path;
 - **Secrets/env:** `DATABASE_URL` is the only required variable; AI steps need `AI_PROVIDER`
   (`mock` needs no key). Sources with an `unknown` licence are skipped unless `--allow-unknown-license`.
 
+## Creator attribution (M8)
+`eduplay recompute-attribution` rebuilds `question_attribution` (usage/completion/quality per question)
+from raw assessment evidence — `--question <uuid>`, `--creator <uuid>`, or all questions by default.
+The rollup is also refreshed incrementally when a child finishes a session, so the command is a safety
+net after a data repair or a quality-formula change. It never touches canonical content; run it from
+cron if a periodic full rebuild is wanted.
+
