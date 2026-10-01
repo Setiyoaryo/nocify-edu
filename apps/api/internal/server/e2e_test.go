@@ -724,3 +724,38 @@ func TestErasureRefreshesAttribution(t *testing.T) {
 		t.Fatalf("account erasure left %d stale attribution rows", n)
 	}
 }
+
+// TestCompletionSurvivesAttributionFailure: the attribution rollup is
+// best-effort. Its recompute runs in a savepoint, so a DB error must roll back
+// only the rollup — not abort the session-complete transaction. We force the
+// failure by dropping the rollup table mid-session and assert the child still
+// completes (and daily progress is committed).
+func TestCompletionSurvivesAttributionFailure(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	parent := e.client()
+	parent.register("savepoint@test")
+	childID := parent.must(201, "POST", "/children", map[string]any{"nickname": "Adi", "grade_id": gradeID(e, "sd-1")})["child"].(map[string]any)["id"].(string)
+
+	asm := parent.must(201, "POST", "/assessments", map[string]any{"child_id": childID, "subject_id": subjectID(e, "matematika")})["assessment"].(map[string]any)
+	asmID := asm["id"].(string)
+	cur := asm["current"].(map[string]any)
+	parent.must(200, "POST", "/assessments/"+asmID+"/answers",
+		map[string]any{"item_id": cur["id"], "response": correctResponse(e, cur["id"].(string)), "response_time_ms": 1000})
+
+	// Make the rollup recompute fail inside the savepoint.
+	if _, err := e.pool.Exec(ctx, `DROP TABLE question_attribution`); err != nil {
+		t.Fatal(err)
+	}
+
+	if code, out := parent.do("POST", "/assessments/"+asmID+"/complete", nil); code != 200 {
+		t.Fatalf("session completion must survive a rollup failure, got %d: %v", code, out)
+	}
+	var n int
+	if err := e.pool.QueryRow(ctx, `SELECT count(*) FROM daily_progress WHERE child_id = $1`, childID).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	if n != 1 {
+		t.Fatalf("daily progress not committed after savepoint rollback: %d rows", n)
+	}
+}

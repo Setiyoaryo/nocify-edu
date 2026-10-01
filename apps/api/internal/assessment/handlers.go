@@ -744,9 +744,16 @@ func (h Handler) Complete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Creator attribution rollup (§39). Best-effort: a failure here must never
-	// block a child's session, and `eduplay recompute-attribution` can rebuild.
-	if err := attribution.RecomputeQuestions(ctx, tx, questionIDs); err != nil {
+	// block a child's session, so it runs in a savepoint — a DB error rolls back
+	// only the rollup, leaving the transaction usable for the writes below.
+	// `eduplay recompute-attribution` reconciles any drift.
+	if sp, err := tx.Begin(ctx); err != nil {
+		slog.ErrorContext(ctx, "attribution savepoint failed", "err", err, "assessment_id", id)
+	} else if err := attribution.RecomputeQuestions(ctx, sp, questionIDs); err != nil {
 		slog.ErrorContext(ctx, "attribution recompute failed", "err", err, "assessment_id", id)
+		_ = sp.Rollback(ctx)
+	} else if err := sp.Commit(ctx); err != nil {
+		slog.ErrorContext(ctx, "attribution savepoint commit failed", "err", err, "assessment_id", id)
 	}
 	today := time.Now().In(h.TZ).Format("2006-01-02")
 	if _, err := tx.Exec(ctx, `INSERT INTO daily_progress (child_id, day, challenges_completed, questions_answered, correct_answers, xp)
