@@ -13,7 +13,9 @@
 	const id = page.params.id;
 
 	let data = $state<CandidateDetail | null>(null);
+	let loadErr = $state('');
 	let checklistDefs = $state<{ Key: string; Label: string }[]>([]);
+	let checklistErr = $state('');
 	let checklist = $state<Record<string, boolean>>({});
 	let notes = $state('');
 	let msg = $state('');
@@ -21,13 +23,23 @@
 	let busy = $state(false);
 
 	async function load() {
-		const r = await get(`/admin/candidates/${kind}/${id}`);
-		data = r.candidate;
-		checklist = {};
-		notes = '';
+		loadErr = '';
+		try {
+			const r = await get(`/admin/candidates/${kind}/${id}`);
+			data = r.candidate;
+			checklist = {};
+			notes = '';
+		} catch (e) {
+			// 404 also means "pipeline not run" in this environment (see ListCandidates).
+			loadErr = e instanceof ApiError && e.status === 404
+				? 'Kandidat tidak ditemukan. Pipeline konten mungkin belum dijalankan di lingkungan ini.'
+				: e instanceof ApiError ? e.message : 'Gagal memuat kandidat.';
+		}
 	}
 	load();
-	get('/admin/question-types').then((r) => (checklistDefs = r.checklist));
+	get('/admin/question-types')
+		.then((r) => (checklistDefs = r.checklist))
+		.catch(() => (checklistErr = 'Gagal memuat daftar quality gate.'));
 
 	const isReviewer = $derived(session.user?.role === 'reviewer' || session.user?.role === 'admin');
 	const pub = $derived(data?.publication);
@@ -36,6 +48,14 @@
 	const blocking = $derived(issues.filter((i) => i.blocking));
 	const advisory = $derived(issues.filter((i) => !i.blocking));
 	const readability = $derived((data?.readability ?? null) as Record<string, unknown> | null);
+	// Quality-gate items recorded on the decision, labelled via the checklist definitions.
+	const recorded = $derived(
+		pub
+			? Object.entries(pub.checklist ?? {})
+					.filter(([, checked]) => checked)
+					.map(([key]) => ({ key, label: checklistDefs.find((c) => c.Key === key)?.Label ?? key }))
+			: []
+	);
 	const readabilityLabels: Record<string, string> = {
 		age_band: 'Kelompok usia', reading_level: 'Tingkat baca', complexity: 'Kompleksitas',
 		word_count: 'Jumlah kata', sentence_count: 'Jumlah kalimat', avg_sentence_length: 'Rata-rata panjang kalimat'
@@ -168,6 +188,14 @@
 					{#if pub.attempts > 0 && pub.status !== 'published'}<p class="mt-1 text-xs text-ink-soft">Percobaan publish: {pub.attempts}</p>{/if}
 					{#if pub.last_error}<p class="mt-2 rounded-xl bg-rose-tint p-2 text-xs text-[#a8264f]">{pub.last_error}</p>{/if}
 					{#if pub.notes}<p class="mt-2 text-sm text-ink-soft">Catatan: {pub.notes}</p>{/if}
+					{#if recorded.length}
+						<details class="mt-3">
+							<summary class="cursor-pointer text-sm font-bold text-primary-deep">Quality gate yang dicatat ({recorded.length})</summary>
+							<ul class="mt-2 grid gap-x-6 gap-y-1 text-sm text-ink-soft sm:grid-cols-2">
+								{#each recorded as r}<li>{r.label}</li>{/each}
+							</ul>
+						</details>
+					{/if}
 				{:else}
 					<p class="mt-3 text-sm text-ink-soft">Belum ada keputusan.</p>
 				{/if}
@@ -175,17 +203,23 @@
 				{#if locked}
 					<p class="mt-4 text-sm text-ink-soft">Kandidat sudah dipublikasikan; keputusan tidak dapat diubah lagi.</p>
 				{:else if isReviewer}
-					<fieldset class="mt-4">
-						<legend class="font-bold">Quality gate (wajib untuk menyetujui)</legend>
-						<div class="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2">
-							{#each checklistDefs as c}
-								<label class="flex min-h-11 items-center gap-3"><input type="checkbox" class="size-5 accent-primary" bind:checked={checklist[c.Key]} />{c.Label}</label>
-							{/each}
-						</div>
-					</fieldset>
+					{#if checklistDefs.length}
+						<fieldset class="mt-4">
+							<legend class="font-bold">Quality gate (wajib untuk menyetujui)</legend>
+							<div class="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2">
+								{#each checklistDefs as c}
+									<label class="flex min-h-11 items-center gap-3"><input type="checkbox" class="size-5 accent-primary" bind:checked={checklist[c.Key]} />{c.Label}</label>
+								{/each}
+							</div>
+						</fieldset>
+					{:else}
+						<p class="mt-4 rounded-xl bg-rose-tint p-3 text-sm text-[#a8264f]" role="alert">
+							{checklistErr || 'Daftar quality gate tidak tersedia.'} Persetujuan tidak dapat dilakukan sampai daftar ini dimuat.
+						</p>
+					{/if}
 					<label class="mt-4 block"><span class="label">Catatan (opsional)</span><input class="field" bind:value={notes} /></label>
 					<div class="mt-4 flex flex-wrap gap-2">
-						<button class="btn btn-primary" disabled={busy} onclick={() => decide('approved')}>Setujui</button>
+						<button class="btn btn-primary" disabled={busy || !checklistDefs.length} onclick={() => decide('approved')}>Setujui</button>
 						<button class="btn btn-quiet" disabled={busy} onclick={() => decide('changes_requested')}>Minta perbaikan</button>
 						<button class="btn btn-danger" disabled={busy} onclick={() => decide('rejected')}>Tolak</button>
 					</div>
@@ -196,6 +230,11 @@
 				{/if}
 			</section>
 		</div>
+	</div>
+{:else if loadErr}
+	<div class="card mt-6 p-6" role="alert">
+		<p class="font-semibold text-[#a8264f]">{loadErr}</p>
+		<p class="mt-1 text-sm text-ink-soft">Kembali ke antrian review untuk memilih kandidat lain.</p>
 	</div>
 {:else}
 	<div class="skeleton mt-6 h-96" aria-busy="true"></div>
