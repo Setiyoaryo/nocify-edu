@@ -235,7 +235,20 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
   - **Catatan:** ekstraksi CP memakai kontrak teks sederhana (lihat atas) — dokumen resmi Kemendikdasmen belum punya format machine-readable stabil, jadi parser khusus menunggu kebutuhan nyata. M7 tidak memutuskan perubahan kanonik apa pun; ia hanya menyiapkan antrian tinjauan.
 
 ### M8 — Creator / Revenue Attribution
-- `creator_id`, usage/completion/quality, adaptation lineage §39; marketplace §47 Fase 5.
+- **Deliverable:** atribusi penulis konten + performanya (§39), siap untuk bagi hasil tanpa migrasi besar. **M8 hanya mencatat input** — tidak ada perhitungan uang (bagi hasil = Fase 5 §47).
+- **Catatan lingkup:** meski ada di roadmap ini, **M8 bukan pekerjaan pipeline Python** — datanya kanonik/produk (soal, attempt, sesi), jadi implementasinya Go + web. `services/content-pipeline` tetap beku di M7.
+- **Artefak (kanonik, migrasi Go):** `creators` (identitas kreator, terpisah dari auth), `questions.creator_id`, `question_attribution` (rollup usage/completion/quality per soal), kolom lineage adaptasi di `question_provenance` (`adaptation_type`, `adapted_by`, `reviewed_by`) — `0007_creator_attribution.sql`.
+- **Artefak (kode):** `internal/creators` (`QualityScore` murni + recompute + API admin), CLI `eduplay recompute-attribution`; web `/app/admin/creators` + `/[id]`.
+- **DoD:** `creator_id` terpisah dari `created_by` (yang mencampur penulis dengan pem-publish); konten pipeline diatribusikan ke **system creator** (via `question_provenance`, bukan `created_by`); rollup dibangun ulang dari bukti mentah `assessment_items` (pola sama dengan `skill_progress`); tidak ada perhitungan pembayaran.
+- **Status:** ✅ **selesai (2026-10-01)** — dua commit di branch `feat/creator-attribution-m8` (stacked di M7/PR #10).
+  - **Kenapa identitas terpisah:** `questions.created_by` mencampur penulis dengan siapa yang menekan publish — publisher pipeline mengisinya dengan reviewer yang menyetujui (`candidates/publish.go`), dan soal hasil seed tidak punya. Kreator eksternal juga tidak punya akun. Jadi `creators` (dengan `user_id` opsional, `kind ∈ system|staff|external`, `share_pct` untuk kesiapan bagi hasil) berdiri sendiri; `questions.creator_id` nullable.
+  - **System creator:** id tetap `…c0de`, `code='system'`; migration men-*backfill* soal pipeline yang sudah terbit (yang punya `question_provenance`) dan `publish.go` menatribusikan konten pipeline berikutnya ke system creator + mencatat `reviewed_by` (manusia peninjau) dan `adaptation_type` (`original`/`ai_assisted`) di lineage.
+  - **Rollup `question_attribution`** (satu baris per soal): `usage_count` = baris `assessment_items` (soal disajikan), `completion_count` = item `finalized_at IS NOT NULL`, `correct_count`/`first_try_count`/`hint_count` dari flag item, `quality_score` 0–100. Dibangun ulang seperti `skill_progress`: satu query agregat → skor dihitung Go → upsert idempoten; dipanggil saat sesi selesai (best-effort, tidak pernah menggagalkan sesi anak) dan lewat `eduplay recompute-attribution` (`--question`/`--creator`/semua).
+  - **`QualityScore`** (murni, teruji tanpa DB): `0` bila belum ada bukti; selain itu `100·(0,5·akurasi + 0,3·first-try + 0,2·bebas-hint)`, di-clamp, dibulatkan 2 desimal.
+  - **API Go:** `GET /admin/creators` (daftar + agregat + `counts`), `GET /admin/creators/{id}` (kreator + soal + atribusi), `POST/PATCH /admin/creators` dan `PUT/DELETE /admin/questions/{questionID}/creator` (editor). Semua menulis `audit_logs`. Penautan ulang memakai recompute sehingga `creator_id` denormalisasi mengikuti.
+  - **Web:** `/app/admin/creators` (daftar + filter status + tambah kreator) dan `/[id]` (pengaturan bagi hasil/status, tabel soal + kualitas, tautkan/lepas soal); entri nav "Kreator"; helper `src/lib/creators.ts`.
+  - **Terverifikasi (unit):** `gofmt`/`go vet` bersih; `QualityScore` tabel tes; tes DB `creators` (system creator, recompute idempoten, cascade hapus soal, assign/unassign, list/detail) hijau; `make test-api` hijau; `svelte-check` 0 error; `vitest` 15 tes hijau.
+  - **Terverifikasi (end-to-end, dev stack):** `migrate` menerapkan `0007`; kreator dibuat lewat API; soal ditautkan; sesi nyata (mulai → jawab → selesai) mengisi `assessment_items`; `GET /admin/creators` menampilkan usage/completion/quality; `eduplay recompute-attribution` idempoten; `curriculum_cp`/`skills`/`questions` tidak berubah oleh rollup.
 
 ---
 
@@ -248,7 +261,7 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
 - Baru: `question_provenance` (question_id, cp_id, skill_id, source_document_ref, original_url, retrieved_at).
 - Baru (M5): `candidate_publications` — ledger review + antrian publish (`kind`, `candidate_id`, `decision`, `status`, `checklist`, `decided_by`, `canonical_question_id`, `attempts`, `last_error`).
 - Baru (M7): `curriculum_change_reviews` — ledger keputusan reviewer atas perubahan kurikulum (`change_event_id` staging id by value, snapshot `document_code`/`observed_hash`/hitungan, `status ∈ pending|acknowledged|dismissed|deferred`, FK `source_document_id`/`decided_by`); indeks `question_provenance_cp_idx`.
-- M8: `questions.creator_id` + tabel atribusi.
+- Baru (M8): `creators` (identitas penulis, `user_id` opsional, `share_pct`, `kind ∈ system|staff|external`, `status`), `questions.creator_id` (nullable), `question_attribution` (rollup usage/completion/quality per soal); `question_provenance` + `adaptation_type`/`adapted_by`/`reviewed_by` (lineage adaptasi §39).
 
 ### Staging (dikelola Python)
 - `source_registry`, `crawl_runs`, `crawl_items`, `source_documents`, `document_chunks`, `mapping_candidates`, `material_candidates`, `question_candidates`, `jobs`.
@@ -288,6 +301,7 @@ Mengadopsi §48 rencana, ditambah aturan repo ini:
 | 9 | Antrian publish (M5) | **Ledger kanonik `candidate_publications`**, bukan `content_staging.publish_queue` — Go read-only pada staging (D2/D5) |
 | 10 | Materi saat M5 | **Review-only** (belum ada tabel kanonik materi); publish kanonik baru untuk soal |
 | 11 | Perubahan kurikulum (M7) | **Deteksi + tinjauan saja**; kurikulum kanonik tidak diubah. Baseline berjalan di staging (`curriculum_watch_state`), ledger keputusan kanonik `curriculum_change_reviews` (Go). Kontrak teks untuk ekstraksi CP (parser khusus menyusul); impact = soal per skill ∪ per provenance |
+| 12 | Atribusi kreator (M8) | **Kesiapan saja — tanpa perhitungan uang** (bagi hasil = Fase 5 §47). Identitas kreator terpisah dari auth (`creators`), konten pipeline → **system creator** (via `question_provenance`, bukan `created_by`), performa = rollup `question_attribution` dari bukti mentah, lineage adaptasi menempel di `question_provenance`. M8 adalah kerja kanonik/produk (Go + web), **bukan** pipeline Python |
 
 
 ---
