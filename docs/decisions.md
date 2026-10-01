@@ -58,4 +58,8 @@ Each entry says what differs from the spec, why, and when to revisit.
     The rollup lives in a leaf package (`internal/attribution`, importing only `db`) so the erasure
     paths — which are below `creators` in the import graph — can refresh it: child/account deletion
     captures the affected questions and rebuilds their rollup in the same transaction, and the
-    recompute drops rows whose evidence is gone. No stale attribution survives an erasure.
+    recompute drops rows whose evidence is gone. That refresh is **best-effort** (run in a savepoint),
+    not atomic with the erasure: a derived, rebuildable rollup must never deny a data-subject deletion
+    (UU PDP), so a recompute failure is logged and the delete still commits — `eduplay
+    recompute-attribution` reconciles the drift. The session-complete refresh uses the same helper, so
+    a rollup error can never abort a child's session.

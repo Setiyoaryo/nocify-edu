@@ -6,6 +6,7 @@ package children
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
@@ -284,9 +285,11 @@ func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		httpx.Internal(w, r, err)
 		return
 	}
-	if err := attribution.RecomputeQuestions(ctx, tx, questionIDs); err != nil {
-		httpx.Internal(w, r, err)
-		return
+	// Best-effort: a data-subject erasure (UU PDP) must not be denied by a
+	// transient failure of a derived rollup. The delete commits regardless;
+	// `eduplay recompute-attribution` reconciles any drift.
+	if err := attribution.RecomputeBestEffort(ctx, tx, questionIDs); err != nil {
+		slog.ErrorContext(ctx, "attribution recompute after child erasure failed", "err", err, "child_id", c.ID)
 	}
 	if err := tx.Commit(ctx); err != nil {
 		httpx.Internal(w, r, err)

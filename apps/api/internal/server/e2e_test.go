@@ -36,7 +36,12 @@ import (
 	"github.com/nocify/eduplay/api/internal/subscriptions"
 )
 
-const origin = "http://app.test"
+const (
+	origin = "http://app.test"
+	// testPassword is the fixture password for registered test accounts. The
+	// literal trips GitGuardian's generic-password detector; it is not a secret.
+	testPassword = "rahasia123" // ggignore
+)
 
 type env struct {
 	t    *testing.T
@@ -123,7 +128,7 @@ func (c *client) must(want int, method, path string, body any) map[string]any {
 }
 
 func (c *client) register(email string) map[string]any {
-	return c.must(201, "POST", "/auth/register", map[string]any{"email": email, "password": "rahasia123", "display_name": "Ibu Test", "consent": true})
+	return c.must(201, "POST", "/auth/register", map[string]any{"email": email, "password": testPassword, "display_name": "Ibu Test", "consent": true})
 }
 
 func gradeID(e *env, code string) int {
@@ -719,9 +724,53 @@ func TestErasureRefreshesAttribution(t *testing.T) {
 	if n := rollupRows(t, e, qid2); n != 1 {
 		t.Fatalf("pre-erasure rollup rows = %d, want 1", n)
 	}
-	parent.must(204, "DELETE", "/me", map[string]any{"password": "rahasia123"})
+	parent.must(204, "DELETE", "/me", map[string]any{"password": testPassword})
 	if n := rollupRows(t, e, qid2); n != 0 {
 		t.Fatalf("account erasure left %d stale attribution rows", n)
+	}
+}
+
+// TestErasureSurvivesAttributionFailure: erasure must honor the data-subject
+// right (UU PDP) even when the derived rollup cannot be refreshed. The recompute
+// runs in a savepoint, so a rollup failure rolls back only the rollup — the
+// child/account delete still commits. We force the failure by dropping the
+// rollup table after seeding evidence.
+func TestErasureSurvivesAttributionFailure(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+
+	// Child-erasure path.
+	parentA := e.client()
+	parentA.register("erasefail-a@test")
+	childA := parentA.must(201, "POST", "/children", map[string]any{"nickname": "Hapus1", "grade_id": gradeID(e, "sd-1")})["child"].(map[string]any)["id"].(string)
+	seedEvidence(t, e, childA)
+
+	// Account-erasure path (separate parent: the free plan allows one child each).
+	parentB := e.client()
+	parentB.register("erasefail-b@test")
+	childB := parentB.must(201, "POST", "/children", map[string]any{"nickname": "Hapus2", "grade_id": gradeID(e, "sd-1")})["child"].(map[string]any)["id"].(string)
+	seedEvidence(t, e, childB)
+
+	// Make every rollup recompute fail inside the savepoint.
+	if _, err := e.pool.Exec(ctx, `DROP TABLE question_attribution`); err != nil {
+		t.Fatal(err)
+	}
+
+	parentA.must(204, "DELETE", "/children/"+childA, nil)
+	var n int
+	if err := e.pool.QueryRow(ctx, `SELECT count(*) FROM children WHERE id = $1`, childA).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	if n != 0 {
+		t.Fatalf("child not erased after rollup failure: %d rows", n)
+	}
+
+	parentB.must(204, "DELETE", "/me", map[string]any{"password": testPassword})
+	if err := e.pool.QueryRow(ctx, `SELECT count(*) FROM users WHERE email = $1`, "erasefail-b@test").Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	if n != 0 {
+		t.Fatalf("account not erased after rollup failure: %d rows", n)
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/nocify/eduplay/api/internal/db"
 )
@@ -82,6 +83,31 @@ func RecomputeQuestions(ctx context.Context, q db.DBTX, questionIDs []uuid.UUID)
 		return err
 	}
 	return recompute(ctx, q, questionIDs)
+}
+
+// RecomputeBestEffort refreshes the rollup for the given questions inside a
+// savepoint, so a failure can never abort the caller's transaction. Use it
+// where the rollup is a derived, rebuildable side effect that must not block the
+// primary write: finishing a session, or a data-subject erasure (UU PDP) that
+// must not be denied by a transient rollup error.
+//
+// A server-side SQL error aborts the enclosing transaction (SQLSTATE 25P02 on
+// the next statement), so swallowing the error alone is not enough — the
+// savepoint is what keeps the caller's transaction usable. The caller logs the
+// returned error and commits; `eduplay recompute-attribution` reconciles drift.
+func RecomputeBestEffort(ctx context.Context, tx pgx.Tx, questionIDs []uuid.UUID) error {
+	if len(questionIDs) == 0 {
+		return nil
+	}
+	sp, err := tx.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	if err := RecomputeQuestions(ctx, sp, questionIDs); err != nil {
+		_ = sp.Rollback(ctx)
+		return err
+	}
+	return sp.Commit(ctx)
 }
 
 // QuestionsForChild returns the distinct question ids with assessment evidence
