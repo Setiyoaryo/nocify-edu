@@ -169,6 +169,68 @@ func TestRecomputeRollupIsIdempotent(t *testing.T) {
 	}
 }
 
+// driftCounts reports rollup-vs-evidence mismatches: questions with evidence but
+// no rollup row, orphan rollups, and rows whose counts disagree with the raw
+// assessment_items. Zero means the rollup is consistent.
+func driftCounts(t *testing.T, pool *pgxpool.Pool) (missing, orphans, values int) {
+	t.Helper()
+	if err := pool.QueryRow(context.Background(), `
+		SELECT
+		 (SELECT count(*)::int FROM (SELECT DISTINCT question_id FROM assessment_items) e
+		    LEFT JOIN question_attribution a ON a.question_id = e.question_id
+		    WHERE a.question_id IS NULL),
+		 (SELECT count(*)::int FROM question_attribution a
+		    WHERE NOT EXISTS (SELECT 1 FROM assessment_items i WHERE i.question_id = a.question_id)),
+		 (SELECT count(*)::int FROM (
+		    SELECT i.question_id,
+		           count(*)::int AS usage,
+		           count(*) FILTER (WHERE i.finalized_at IS NOT NULL)::int AS completion,
+		           count(*) FILTER (WHERE i.final_correct)::int AS correct,
+		           count(*) FILTER (WHERE i.first_try_correct)::int AS first_try,
+		           count(*) FILTER (WHERE i.hint_shown)::int AS hint
+		    FROM assessment_items i GROUP BY i.question_id) e
+		    JOIN question_attribution a ON a.question_id = e.question_id
+		    WHERE a.usage_count <> e.usage OR a.completion_count <> e.completion
+		       OR a.correct_count <> e.correct OR a.first_try_count <> e.first_try
+		       OR a.hint_count <> e.hint)`).
+		Scan(&missing, &orphans, &values); err != nil {
+		t.Fatal(err)
+	}
+	return missing, orphans, values
+}
+
+// TestRollupMatchesEvidence guards the rollup contract: after a recompute, every
+// question with evidence has a row whose counts match the raw items — including
+// a served-but-unanswered item, which still counts as usage. The session-complete
+// hook must therefore recompute every SERVED question, not only the answered ones.
+func TestRollupMatchesEvidence(t *testing.T) {
+	f := setupEnv(t)
+	ctx := context.Background()
+	var q2 uuid.UUID
+	var skill2 int
+	if err := f.pool.QueryRow(ctx,
+		`SELECT id, skill_id FROM questions WHERE status = 'published' AND id <> $1 ORDER BY code LIMIT 1`,
+		f.question).Scan(&q2, &skill2); err != nil {
+		t.Fatal(err)
+	}
+	makeEvidence(t, f.pool, f.question, f.skillID, []item{
+		{finalized: true, correct: true, firstTry: true},
+		{finalized: false},
+	})
+	makeEvidence(t, f.pool, q2, skill2, []item{{finalized: true, correct: false, firstTry: false}})
+
+	if err := RecomputeQuestions(ctx, f.pool, []uuid.UUID{f.question, q2}); err != nil {
+		t.Fatal(err)
+	}
+	if missing, orphans, values := driftCounts(t, f.pool); missing != 0 || orphans != 0 || values != 0 {
+		t.Fatalf("rollup drift after recompute: missing=%d orphans=%d values=%d", missing, orphans, values)
+	}
+	usage, completion, _, _, _, _, _ := attributionOf(t, f.pool, f.question)
+	if usage != 2 || completion != 1 {
+		t.Fatalf("usage/completion = %d/%d, want 2/1 (served item counts as usage)", usage, completion)
+	}
+}
+
 func TestAttributionCascadesWithQuestion(t *testing.T) {
 	f := setupEnv(t)
 	ctx := context.Background()

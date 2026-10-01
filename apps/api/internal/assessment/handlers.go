@@ -671,7 +671,7 @@ func (h Handler) Complete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := tx.Query(ctx, `SELECT first_try_correct, final_correct, hint_shown, skill_id, question_id FROM assessment_items
+	rows, err := tx.Query(ctx, `SELECT first_try_correct, final_correct, hint_shown, skill_id FROM assessment_items
 		WHERE assessment_id = $1 AND finalized_at IS NOT NULL ORDER BY position`, id)
 	if err != nil {
 		httpx.Internal(w, r, err)
@@ -679,19 +679,16 @@ func (h Handler) Complete(w http.ResponseWriter, r *http.Request) {
 	}
 	var items []ItemResult
 	skillSet := map[int]bool{}
-	questionSet := map[uuid.UUID]bool{}
 	for rows.Next() {
 		var it ItemResult
 		var sid int
-		var qid uuid.UUID
-		if err := rows.Scan(&it.FirstTryCorrect, &it.FinalCorrect, &it.HintUsed, &sid, &qid); err != nil {
+		if err := rows.Scan(&it.FirstTryCorrect, &it.FinalCorrect, &it.HintUsed, &sid); err != nil {
 			rows.Close()
 			httpx.Internal(w, r, err)
 			return
 		}
 		items = append(items, it)
 		skillSet[sid] = true
-		questionSet[qid] = true
 	}
 	rows.Close()
 	if len(items) == 0 {
@@ -703,10 +700,25 @@ func (h Handler) Complete(w http.ResponseWriter, r *http.Request) {
 	for sid := range skillSet {
 		skillIDs = append(skillIDs, sid)
 	}
-	questionIDs := make([]uuid.UUID, 0, len(questionSet))
-	for qid := range questionSet {
+	// Attribution covers every question the session SERVED, not only the ones
+	// answered: `usage_count` counts served items, and the lazy addNextItem can
+	// leave a served-but-unanswered tail item when a session ends early.
+	qrows, err := tx.Query(ctx, `SELECT DISTINCT question_id FROM assessment_items WHERE assessment_id = $1`, id)
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	var questionIDs []uuid.UUID
+	for qrows.Next() {
+		var qid uuid.UUID
+		if err := qrows.Scan(&qid); err != nil {
+			qrows.Close()
+			httpx.Internal(w, r, err)
+			return
+		}
 		questionIDs = append(questionIDs, qid)
 	}
+	qrows.Close()
 
 	before := map[int]float64{}
 	brows, err := tx.Query(ctx, `SELECT skill_id, mastery::float8 FROM skill_progress WHERE child_id = $1 AND skill_id = ANY($2)`, v.ChildID, skillIDs)

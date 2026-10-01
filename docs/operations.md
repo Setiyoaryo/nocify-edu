@@ -68,3 +68,7 @@ The rollup is also refreshed incrementally when a child finishes a session, so t
 net after a data repair or a quality-formula change. It never touches canonical content; run it from
 cron if a periodic full rebuild is wanted.
 
+**Run it after any data erasure** (deleting a child or an account): erasure cascades
+`assessment_items` away but does not refresh the rollup, so affected rows go stale until the rebuild
+(which also drops rows whose evidence is gone).
+
