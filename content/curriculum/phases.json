@@ -1,0 +1,8 @@
+{
+  "phases": [
+    { "code": "fondasi", "name": "Fase Fondasi", "level": "tk", "sort": 1, "grades": ["tk-a", "tk-b"] },
+    { "code": "a", "name": "Fase A", "level": "sd", "sort": 2, "grades": ["sd-1", "sd-2"] },
+    { "code": "b", "name": "Fase B", "level": "sd", "sort": 3, "grades": ["sd-3", "sd-4"] },
+    { "code": "c", "name": "Fase C", "level": "sd", "sort": 4, "grades": ["sd-5", "sd-6"] }
+  ]
+}

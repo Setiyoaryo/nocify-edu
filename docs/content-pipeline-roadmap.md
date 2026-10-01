@@ -159,6 +159,13 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
 - **Artefak (staging):** `mapping_candidates` + confidence §18.
 - **DoD:** Fase Fondasi (PAUD) tidak dipaksa ke mapel/bab §3; Fase A/B/C SD §2; revisi tidak menimpa riwayat §27; seed berhenti `DO UPDATE` buta (G5).
 - **Catatan:** ini milestone paling berisiko karena menyentuh kanonik — kerjakan di balik migrasi aditif (kolom nullable), bukan rename.
+- **Status:** ✅ **selesai (2026-09-30)**.
+  - Kanonik (migrasi Go `0004_curriculum_cp.sql`, aditif): `curriculum_source_documents`, `phases`, `grades.phase_id`, `curriculum_cp`, `skills.cp_id`, `curriculum_versions.revision/effective_date/source_document_id`.
+  - Data: `content/curriculum/phases.json` + `cp.json`; seed mengisi 4 fase, 9 CP, dan menautkan 18 skill ke CP. Terverifikasi di DB dev.
+  - G3 selesai: CP Fase Fondasi ber-`subject_id` NULL (PAUD tidak dipaksa ke mapel).
+  - G5 selesai: seed tidak lagi `DO UPDATE` buta — `DO NOTHING`/no-op update, jadi edit CMS tidak tertimpa.
+  - Staging: `mapping_candidates` + mapper deterministik/leksikal (CLI `map`). Verifikasi: 12 chunk → 6 mapped / 6 unmapped, semua band `manual` (benar — teks regulasi tidak cocok dengan skill TK–SD), `--force` idempoten.
+  - Catatan: layer embedding/LLM baru di M6; belum ada perubahan API/CMS Go (data fase/CP baru terlihat via SQL sampai M5).
 
 ### M4 — Material & Question Candidates
 - **Deliverable:** kandidat materi dan soal dengan lineage lengkap.
