@@ -61,3 +61,23 @@ The pipeline is a separate container and never runs in the product request path;
 - **Secrets/env:** `DATABASE_URL` is the only required variable; AI steps need `AI_PROVIDER`
   (`mock` needs no key). Sources with an `unknown` licence are skipped unless `--allow-unknown-license`.
 
+## Creator attribution (M8)
+`eduplay recompute-attribution` rebuilds `question_attribution` (usage/completion/quality per question)
+from raw assessment evidence — `--question <uuid>`, `--creator <uuid>`, or all questions by default.
+The rollup is also refreshed incrementally when a child finishes a session, so the command is a safety
+net after a data repair or a quality-formula change. It never touches canonical content; run it from
+cron if a periodic full rebuild is wanted.
+
+Erasure is handled inline but **best-effort**: deleting a child (`DELETE /children/{id}`) or an
+account (`DELETE /me`) captures the affected questions first and refreshes their rollup in the same
+transaction, inside a savepoint. If the refresh fails it rolls back only the rollup — the deletion
+still commits — because a derived, rebuildable rollup must never deny a data-subject erasure (UU PDP).
+`recompute-attribution` is the reconciler when that happens (it stays safe and idempotent to run after
+routine erasure). The session-complete refresh uses the same savepoint helper.
+
+The rollup looks evidence up by question, backed by `assessment_items_question_idx` (migration
+`0008`). Embedded migrations run inside a transaction, so on an **already-large** `assessment_items`
+table pre-create the index out-of-band with `CREATE INDEX CONCURRENTLY assessment_items_question_idx
+ON assessment_items (question_id)` before deploying — the migration's `IF NOT EXISTS` then skips it,
+avoiding a write-blocking lock.
+

@@ -6,6 +6,7 @@ package children
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/nocify/eduplay/api/internal/analytics"
+	"github.com/nocify/eduplay/api/internal/attribution"
 	"github.com/nocify/eduplay/api/internal/auth"
 	"github.com/nocify/eduplay/api/internal/db"
 	"github.com/nocify/eduplay/api/internal/httpx"
@@ -263,7 +265,33 @@ func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if _, err := h.DB.Exec(r.Context(), `DELETE FROM children WHERE id = $1`, c.ID); err != nil {
+	ctx := r.Context()
+	tx, err := h.DB.Begin(ctx)
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck // rollback after commit is a no-op
+
+	// Erasure cascades the child's assessment_items away, so capture the affected
+	// questions first and refresh the attribution rollup in the same transaction
+	// (§39). Otherwise the rollup keeps stale usage/quality for those questions.
+	questionIDs, err := attribution.QuestionsForChild(ctx, tx, c.ID)
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM children WHERE id = $1`, c.ID); err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	// Best-effort: a data-subject erasure (UU PDP) must not be denied by a
+	// transient failure of a derived rollup. The delete commits regardless;
+	// `eduplay recompute-attribution` reconciles any drift.
+	if err := attribution.RecomputeBestEffort(ctx, tx, questionIDs); err != nil {
+		slog.ErrorContext(ctx, "attribution recompute after child erasure failed", "err", err, "child_id", c.ID)
+	}
+	if err := tx.Commit(ctx); err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}

@@ -26,7 +26,10 @@
 		deferred: ['Ditunda', 'bg-sky-tint text-[#1a6fa3]'],
 		detected: ['Terdeteksi', 'bg-sun-tint text-ink'],
 		analyzed: ['Dianalisis', 'bg-primary-tint text-primary-deep'],
-		superseded: ['Digantikan', 'bg-paper-deep text-ink-soft']
+		superseded: ['Digantikan', 'bg-paper-deep text-ink-soft'],
+		// Creator statuses (M8).
+		active: ['Aktif', 'bg-leaf-tint text-leaf-deep'],
+		inactive: ['Nonaktif', 'bg-paper-deep text-ink-soft']
 	};
 	const m = $derived(map[status] ?? [status, 'bg-paper-deep text-ink-soft']);
 </script>

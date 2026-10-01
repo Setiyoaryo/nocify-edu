@@ -7,6 +7,7 @@
 	import Question from 'phosphor-svelte/lib/Question';
 	import ClipboardText from 'phosphor-svelte/lib/ClipboardText';
 	import GitDiff from 'phosphor-svelte/lib/GitDiff';
+	import UsersThree from 'phosphor-svelte/lib/UsersThree';
 	import TreeStructure from 'phosphor-svelte/lib/TreeStructure';
 	import Images from 'phosphor-svelte/lib/Images';
 	import ClockCounterClockwise from 'phosphor-svelte/lib/ClockCounterClockwise';
@@ -17,6 +18,7 @@
 		{ href: '/app/admin/questions', label: 'Bank soal', icon: Question },
 		{ href: '/app/admin/review', label: 'Antrian review', icon: ClipboardText },
 		{ href: '/app/admin/curriculum-changes', label: 'Perubahan kurikulum', icon: GitDiff },
+		{ href: '/app/admin/creators', label: 'Kreator', icon: UsersThree },
 		{ href: '/app/admin/curriculum', label: 'Kurikulum', icon: TreeStructure },
 		{ href: '/app/admin/assets', label: 'Pustaka aset', icon: Images },
 		{ href: '/app/admin/audit', label: 'Log audit', icon: ClockCounterClockwise }

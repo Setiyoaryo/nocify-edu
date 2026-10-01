@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/nocify/eduplay/api/internal/creators"
 	"github.com/nocify/eduplay/api/internal/db"
 	"github.com/nocify/eduplay/api/internal/seed"
 )
@@ -210,6 +211,21 @@ func TestPublishHappyPathAndIdempotent(t *testing.T) {
 	}
 	if provHash != "hash-happy" || provSource != "test-src" || provSkill == nil {
 		t.Fatalf("provenance wrong: hash=%s source=%s skill=%v", provHash, provSource, provSkill)
+	}
+	// M8: pipeline content is attributed to the system creator, and the
+	// adaptation lineage records the reviewing human (§39).
+	var creatorID, lineageReviewer *uuid.UUID
+	var adaptation string
+	if err := pool.QueryRow(ctx, `SELECT q.creator_id, p.adaptation_type, p.reviewed_by
+		FROM questions q JOIN question_provenance p ON p.question_id = q.id
+		WHERE q.code = 'Q-TEST-HAPPY'`).Scan(&creatorID, &adaptation, &lineageReviewer); err != nil {
+		t.Fatal(err)
+	}
+	if creatorID == nil || *creatorID != creators.SystemCreatorID {
+		t.Fatalf("pipeline question not attributed to the system creator: %v", creatorID)
+	}
+	if adaptation != "original" || lineageReviewer == nil || *lineageReviewer != reviewer {
+		t.Fatalf("adaptation lineage wrong: type=%s reviewer=%v", adaptation, lineageReviewer)
 	}
 	var toStatus string
 	var checklist []byte

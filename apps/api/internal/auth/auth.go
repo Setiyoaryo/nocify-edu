@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/mail"
 	"strings"
@@ -21,6 +22,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/nocify/eduplay/api/internal/attribution"
 	"github.com/nocify/eduplay/api/internal/httpx"
 )
 
@@ -393,7 +395,33 @@ func (h Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		httpx.Invalid(w, map[string]string{"password": "Kata sandi salah."})
 		return
 	}
-	if _, err := h.S.DB.Exec(r.Context(), `DELETE FROM users WHERE id = $1`, u.ID); err != nil {
+	ctx := r.Context()
+	tx, err := h.S.DB.Begin(ctx)
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck // rollback after commit is a no-op
+
+	// Erasure cascades every child profile and its assessment_items away, so
+	// capture the affected questions first and refresh the attribution rollup in
+	// the same transaction (§39). Otherwise the rollup keeps stale usage/quality.
+	questionIDs, err := attribution.QuestionsForParent(ctx, tx, u.ID)
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM users WHERE id = $1`, u.ID); err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	// Best-effort: a data-subject erasure (UU PDP) must not be denied by a
+	// transient failure of a derived rollup. The delete commits regardless;
+	// `eduplay recompute-attribution` reconciles any drift.
+	if err := attribution.RecomputeBestEffort(ctx, tx, questionIDs); err != nil {
+		slog.ErrorContext(ctx, "attribution recompute after account erasure failed", "err", err, "user_id", u.ID)
+	}
+	if err := tx.Commit(ctx); err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}

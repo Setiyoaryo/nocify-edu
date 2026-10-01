@@ -23,8 +23,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/nocify/eduplay/api/internal/attribution"
 	"github.com/nocify/eduplay/api/internal/config"
 	"github.com/nocify/eduplay/api/internal/db"
 	"github.com/nocify/eduplay/api/internal/media"
@@ -34,7 +36,12 @@ import (
 	"github.com/nocify/eduplay/api/internal/subscriptions"
 )
 
-const origin = "http://app.test"
+const (
+	origin = "http://app.test"
+	// testPassword is the fixture password for registered test accounts. The
+	// literal trips GitGuardian's generic-password detector; it is not a secret.
+	testPassword = "rahasia123" // ggignore
+)
 
 type env struct {
 	t    *testing.T
@@ -121,7 +128,7 @@ func (c *client) must(want int, method, path string, body any) map[string]any {
 }
 
 func (c *client) register(email string) map[string]any {
-	return c.must(201, "POST", "/auth/register", map[string]any{"email": email, "password": "rahasia123", "display_name": "Ibu Test", "consent": true})
+	return c.must(201, "POST", "/auth/register", map[string]any{"email": email, "password": testPassword, "display_name": "Ibu Test", "consent": true})
 }
 
 func gradeID(e *env, code string) int {
@@ -637,5 +644,167 @@ func TestCandidateReviewRBAC(t *testing.T) {
 	}
 	if code, _ := reviewer.do("POST", decision, map[string]any{"decision": "rejected"}); code != 409 {
 		t.Fatalf("deciding after publish must be 409, got %d", code)
+	}
+}
+
+// seedEvidence inserts one finalized, correct assessment item for childID on a
+// published question, rebuilds that question's attribution rollup, and returns
+// the question id.
+func seedEvidence(t *testing.T, e *env, childID string) uuid.UUID {
+	t.Helper()
+	ctx := context.Background()
+	child, err := uuid.Parse(childID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var qid, versionID uuid.UUID
+	var skillID, subjectID, childGrade int
+	if err := e.pool.QueryRow(ctx, `SELECT id, skill_id FROM questions WHERE status = 'published' ORDER BY code LIMIT 1`).
+		Scan(&qid, &skillID); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.pool.QueryRow(ctx, `SELECT id FROM subjects ORDER BY id LIMIT 1`).Scan(&subjectID); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.pool.QueryRow(ctx, `SELECT COALESCE(published_version_id, current_version_id) FROM questions WHERE id = $1`, qid).
+		Scan(&versionID); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.pool.QueryRow(ctx, `SELECT grade_id FROM children WHERE id = $1`, child).Scan(&childGrade); err != nil {
+		t.Fatal(err)
+	}
+	var assessmentID uuid.UUID
+	if err := e.pool.QueryRow(ctx, `INSERT INTO assessments (child_id, subject_id, grade_id, status, planned_count)
+		VALUES ($1, $2, $3, 'in_progress', 1) RETURNING id`, child, subjectID, childGrade).Scan(&assessmentID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.pool.Exec(ctx, `INSERT INTO assessment_items
+		(assessment_id, position, question_id, question_version_id, skill_id, difficulty, attempts,
+		 final_correct, first_try_correct, finalized_at)
+		VALUES ($1, 1, $2, $3, $4, 1, 1, true, true, now())`, assessmentID, qid, versionID, skillID); err != nil {
+		t.Fatal(err)
+	}
+	if err := attribution.RecomputeQuestions(ctx, e.pool, []uuid.UUID{qid}); err != nil {
+		t.Fatal(err)
+	}
+	return qid
+}
+
+func rollupRows(t *testing.T, e *env, qid uuid.UUID) int {
+	t.Helper()
+	var n int
+	if err := e.pool.QueryRow(context.Background(), `SELECT count(*) FROM question_attribution WHERE question_id = $1`, qid).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	return n
+}
+
+// TestErasureRefreshesAttribution: erasing a child, or the whole account,
+// cascades assessment evidence away. The derived attribution rollup must not
+// keep the vanished evidence (§39).
+func TestErasureRefreshesAttribution(t *testing.T) {
+	e := setup(t)
+	parent := e.client()
+	parent.register("erase@test")
+
+	// Child erasure.
+	childID := parent.must(201, "POST", "/children", map[string]any{"nickname": "Hapus", "grade_id": gradeID(e, "sd-1")})["child"].(map[string]any)["id"].(string)
+	qid := seedEvidence(t, e, childID)
+	if n := rollupRows(t, e, qid); n != 1 {
+		t.Fatalf("pre-erasure rollup rows = %d, want 1", n)
+	}
+	parent.must(204, "DELETE", "/children/"+childID, nil)
+	if n := rollupRows(t, e, qid); n != 0 {
+		t.Fatalf("child erasure left %d stale attribution rows", n)
+	}
+
+	// Whole-account erasure.
+	child2 := parent.must(201, "POST", "/children", map[string]any{"nickname": "Hapus2", "grade_id": gradeID(e, "sd-1")})["child"].(map[string]any)["id"].(string)
+	qid2 := seedEvidence(t, e, child2)
+	if n := rollupRows(t, e, qid2); n != 1 {
+		t.Fatalf("pre-erasure rollup rows = %d, want 1", n)
+	}
+	parent.must(204, "DELETE", "/me", map[string]any{"password": testPassword})
+	if n := rollupRows(t, e, qid2); n != 0 {
+		t.Fatalf("account erasure left %d stale attribution rows", n)
+	}
+}
+
+// TestErasureSurvivesAttributionFailure: erasure must honor the data-subject
+// right (UU PDP) even when the derived rollup cannot be refreshed. The recompute
+// runs in a savepoint, so a rollup failure rolls back only the rollup — the
+// child/account delete still commits. We force the failure by dropping the
+// rollup table after seeding evidence.
+func TestErasureSurvivesAttributionFailure(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+
+	// Child-erasure path.
+	parentA := e.client()
+	parentA.register("erasefail-a@test")
+	childA := parentA.must(201, "POST", "/children", map[string]any{"nickname": "Hapus1", "grade_id": gradeID(e, "sd-1")})["child"].(map[string]any)["id"].(string)
+	seedEvidence(t, e, childA)
+
+	// Account-erasure path (separate parent: the free plan allows one child each).
+	parentB := e.client()
+	parentB.register("erasefail-b@test")
+	childB := parentB.must(201, "POST", "/children", map[string]any{"nickname": "Hapus2", "grade_id": gradeID(e, "sd-1")})["child"].(map[string]any)["id"].(string)
+	seedEvidence(t, e, childB)
+
+	// Make every rollup recompute fail inside the savepoint.
+	if _, err := e.pool.Exec(ctx, `DROP TABLE question_attribution`); err != nil {
+		t.Fatal(err)
+	}
+
+	parentA.must(204, "DELETE", "/children/"+childA, nil)
+	var n int
+	if err := e.pool.QueryRow(ctx, `SELECT count(*) FROM children WHERE id = $1`, childA).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	if n != 0 {
+		t.Fatalf("child not erased after rollup failure: %d rows", n)
+	}
+
+	parentB.must(204, "DELETE", "/me", map[string]any{"password": testPassword})
+	if err := e.pool.QueryRow(ctx, `SELECT count(*) FROM users WHERE email = $1`, "erasefail-b@test").Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	if n != 0 {
+		t.Fatalf("account not erased after rollup failure: %d rows", n)
+	}
+}
+
+// TestCompletionSurvivesAttributionFailure: the attribution rollup is
+// best-effort. Its recompute runs in a savepoint, so a DB error must roll back
+// only the rollup — not abort the session-complete transaction. We force the
+// failure by dropping the rollup table mid-session and assert the child still
+// completes (and daily progress is committed).
+func TestCompletionSurvivesAttributionFailure(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	parent := e.client()
+	parent.register("savepoint@test")
+	childID := parent.must(201, "POST", "/children", map[string]any{"nickname": "Adi", "grade_id": gradeID(e, "sd-1")})["child"].(map[string]any)["id"].(string)
+
+	asm := parent.must(201, "POST", "/assessments", map[string]any{"child_id": childID, "subject_id": subjectID(e, "matematika")})["assessment"].(map[string]any)
+	asmID := asm["id"].(string)
+	cur := asm["current"].(map[string]any)
+	parent.must(200, "POST", "/assessments/"+asmID+"/answers",
+		map[string]any{"item_id": cur["id"], "response": correctResponse(e, cur["id"].(string)), "response_time_ms": 1000})
+
+	// Make the rollup recompute fail inside the savepoint.
+	if _, err := e.pool.Exec(ctx, `DROP TABLE question_attribution`); err != nil {
+		t.Fatal(err)
+	}
+
+	if code, out := parent.do("POST", "/assessments/"+asmID+"/complete", nil); code != 200 {
+		t.Fatalf("session completion must survive a rollup failure, got %d: %v", code, out)
+	}
+	var n int
+	if err := e.pool.QueryRow(ctx, `SELECT count(*) FROM daily_progress WHERE child_id = $1`, childID).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	if n != 1 {
+		t.Fatalf("daily progress not committed after savepoint rollback: %d rows", n)
 	}
 }

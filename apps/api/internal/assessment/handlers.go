@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"math/rand"
 	"net/http"
 	"time"
@@ -15,6 +16,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 
 	"github.com/nocify/eduplay/api/internal/analytics"
+	"github.com/nocify/eduplay/api/internal/attribution"
 	"github.com/nocify/eduplay/api/internal/auth"
 	"github.com/nocify/eduplay/api/internal/children"
 	"github.com/nocify/eduplay/api/internal/db"
@@ -698,6 +700,25 @@ func (h Handler) Complete(w http.ResponseWriter, r *http.Request) {
 	for sid := range skillSet {
 		skillIDs = append(skillIDs, sid)
 	}
+	// Attribution covers every question the session SERVED, not only the ones
+	// answered: `usage_count` counts served items, and the lazy addNextItem can
+	// leave a served-but-unanswered tail item when a session ends early.
+	qrows, err := tx.Query(ctx, `SELECT DISTINCT question_id FROM assessment_items WHERE assessment_id = $1`, id)
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	var questionIDs []uuid.UUID
+	for qrows.Next() {
+		var qid uuid.UUID
+		if err := qrows.Scan(&qid); err != nil {
+			qrows.Close()
+			httpx.Internal(w, r, err)
+			return
+		}
+		questionIDs = append(questionIDs, qid)
+	}
+	qrows.Close()
 
 	before := map[int]float64{}
 	brows, err := tx.Query(ctx, `SELECT skill_id, mastery::float8 FROM skill_progress WHERE child_id = $1 AND skill_id = ANY($2)`, v.ChildID, skillIDs)
@@ -721,6 +742,12 @@ func (h Handler) Complete(w http.ResponseWriter, r *http.Request) {
 	if err := progress.RecomputeSkills(ctx, tx, v.ChildID, skillIDs); err != nil {
 		httpx.Internal(w, r, err)
 		return
+	}
+	// Creator attribution rollup (§39). Best-effort: a failure here must never
+	// block a child's session, so RecomputeBestEffort runs it in a savepoint and
+	// the error is only logged. `eduplay recompute-attribution` reconciles drift.
+	if err := attribution.RecomputeBestEffort(ctx, tx, questionIDs); err != nil {
+		slog.ErrorContext(ctx, "attribution recompute failed", "err", err, "assessment_id", id)
 	}
 	today := time.Now().In(h.TZ).Format("2006-01-02")
 	if _, err := tx.Exec(ctx, `INSERT INTO daily_progress (child_id, day, challenges_completed, questions_answered, correct_answers, xp)

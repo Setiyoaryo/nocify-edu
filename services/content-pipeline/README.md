@@ -273,7 +273,12 @@ uv run pytest
 
 ## Not yet (next milestones)
 
-Creator/revenue attribution (M8). The scheduler is a plain cron/loop for now (§34) — for M7 run
+**M8 creator/revenue attribution is not a pipeline milestone** — it adds no staging tables and no
+Python code. The data is canonical/product-side (questions, attempts, sessions), so it lives in the
+Go API + web (`internal/creators`, `/app/admin/creators`). The pipeline's only touchpoint is that
+publish attributes pipeline content to the canonical system creator via `question_provenance`.
+
+The scheduler is a plain cron/loop for now (§34) — for M7 run
 `content-pipeline watch --due` from cron; the advisory lock makes overlapping runs safe.
 
 The deterministic cloze template is intentionally narrow; scenario/comprehension items come from
