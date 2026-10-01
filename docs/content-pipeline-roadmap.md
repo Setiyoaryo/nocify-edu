@@ -263,6 +263,7 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
 - Baru (M5): `candidate_publications` — ledger review + antrian publish (`kind`, `candidate_id`, `decision`, `status`, `checklist`, `decided_by`, `canonical_question_id`, `attempts`, `last_error`).
 - Baru (M7): `curriculum_change_reviews` — ledger keputusan reviewer atas perubahan kurikulum (`change_event_id` staging id by value, snapshot `document_code`/`observed_hash`/hitungan, `status ∈ pending|acknowledged|dismissed|deferred`, FK `source_document_id`/`decided_by`); indeks `question_provenance_cp_idx`.
 - Baru (M8): `creators` (identitas penulis, `user_id` opsional, `share_pct`, `kind ∈ system|staff|external`, `status`), `questions.creator_id` (nullable), `question_attribution` (rollup usage/completion/quality per soal); `question_provenance` + `adaptation_type`/`adapted_by`/`reviewed_by` (lineage adaptasi §39).
+- Baru (M8 lanjutan): indeks `assessment_items_question_idx` pada `assessment_items (question_id)` — rollup/prune/rebuild mencari bukti per soal, dan kolom itu sebelumnya tidak terindeks (`0008_assessment_items_question_idx.sql`).
 
 ### Staging (dikelola Python)
 - `source_registry`, `crawl_runs`, `crawl_items`, `source_documents`, `document_chunks`, `mapping_candidates`, `material_candidates`, `question_candidates`, `jobs`.

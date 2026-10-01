@@ -73,3 +73,9 @@ captures the affected questions first and rebuilds their rollup **in the same tr
 stale row is left behind. `recompute-attribution` therefore only needs to be run by hand after a
 data repair or a formula change — not after routine erasure (it remains safe and idempotent if you do).
 
+The rollup looks evidence up by question, backed by `assessment_items_question_idx` (migration
+`0008`). Embedded migrations run inside a transaction, so on an **already-large** `assessment_items`
+table pre-create the index out-of-band with `CREATE INDEX CONCURRENTLY assessment_items_question_idx
+ON assessment_items (question_id)` before deploying — the migration's `IF NOT EXISTS` then skips it,
+avoiding a write-blocking lock.
+
