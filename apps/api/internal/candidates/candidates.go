@@ -138,6 +138,7 @@ type detailRow struct {
 	Language            string
 	Confidence          float64
 	QA                  []byte
+	AIGenerated         bool
 	Status              string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
@@ -180,6 +181,7 @@ type CandidateDetail struct {
 	Status            string          `json:"status"`
 	Confidence        float64         `json:"confidence"`
 	QA                json.RawMessage `json:"qa_issues"`
+	AIGenerated       bool            `json:"ai_generated"`
 	ContentHash       string          `json:"content_hash"`
 	Language          string          `json:"language"`
 	Template          string          `json:"template"`
@@ -254,7 +256,7 @@ const questionDetailSQL = `
 	SELECT q.id, q.source_id, q.skill_id, q.cp_id, q.phase_code, q.grade_code, q.subject_code,
 	       q.template, q.type, q.difficulty, q.learning_objective, '' AS title, '' AS summary,
 	       q.prompt, q.payload, q.content_hash, NULL::jsonb AS readability, d.language,
-	       q.confidence::float8, q.qa_issues, q.status, q.created_at, q.updated_at,
+	       q.confidence::float8, q.qa_issues, q.ai_generated, q.status, q.created_at, q.updated_at,
 	       s.code, s.name, s.base_url,
 	       d.id, d.title, d.canonical_url, d.retrieved_at, d.license,
 	       c.id, c.heading, c.text, c.page_start, c.page_end,
@@ -285,7 +287,7 @@ const materialDetailSQL = `
 	           'avg_sentence_length', m.avg_sentence_length,
 	           'visual_required', m.visual_required, 'audio_required', m.audio_required) AS readability,
 	       m.language,
-	       m.confidence::float8, m.qa_issues, m.status, m.created_at, m.updated_at,
+	       m.confidence::float8, m.qa_issues, m.ai_generated, m.status, m.created_at, m.updated_at,
 	       s.code, s.name, s.base_url,
 	       d.id, d.title, d.canonical_url, d.retrieved_at, d.license,
 	       c.id, c.heading, c.text, c.page_start, c.page_end,
@@ -314,6 +316,7 @@ func (d detailRow) toDetail(kind string) CandidateDetail {
 		Status:            d.Status,
 		Confidence:        d.Confidence,
 		QA:                json.RawMessage(d.QA),
+		AIGenerated:       d.AIGenerated,
 		ContentHash:       d.ContentHash,
 		Language:          d.Language,
 		Template:          d.Template,

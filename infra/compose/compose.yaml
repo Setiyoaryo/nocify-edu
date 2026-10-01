@@ -93,6 +93,13 @@ services:
       S3_USE_SSL: "false"
       STORAGE_ACCESS_KEY: eduplay
       STORAGE_SECRET_KEY: eduplay-dev-secret
+      # AI provider (M6). Defaults to the deterministic mock so dev runs need no key.
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_EMBEDDING_MODEL: ${AI_EMBEDDING_MODEL:-}
+      AI_CHAT_MODEL: ${AI_CHAT_MODEL:-}
+      AI_GENERATION_CAP: ${AI_GENERATION_CAP:-50}
     depends_on:
       postgres: { condition: service_healthy }
       s3: { condition: service_healthy }

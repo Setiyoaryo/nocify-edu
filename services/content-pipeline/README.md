@@ -1,6 +1,6 @@
 # content-pipeline
 
-Python **content intelligence** service for Nocify EduPlay (M1: source registry + official crawler; M2: extraction + chunks; M3: curriculum mapping; M4: material candidates).
+Python **content intelligence** service for Nocify EduPlay (M1: source registry + official crawler; M2: extraction + chunks; M3: curriculum mapping; M4: material/question candidates; M5: reviewer CMS + publish; M6: embeddings, semantic mapping/dedup, AI-assisted generation).
 
 This service owns the `content_staging` PostgreSQL schema. It never writes canonical
 content — approved candidates are handed to the Go API through the publish contract.
@@ -73,6 +73,56 @@ See [`docs/content-pipeline-roadmap.md`](../../docs/content-pipeline-roadmap.md)
   `packages/contracts/question-candidate.schema.json` document the envelopes the Go reviewer CMS
   will consume in M5.
 
+## What M5 does (Go side)
+
+- **Reviewer CMS + publish**: the Go API gains `/admin/candidates` (queue + detail + decision) and
+  `eduplay publish-candidates`. The publish queue is the canonical ledger `candidate_publications`
+  (not a staging table — Go is read-only on `content_staging`). Approving a question queues it;
+  `publish-candidates` re-validates with the canonical schema and writes `questions`,
+  `question_provenance`, `question_reviews` and `audit_logs`. This service only *writes candidates*;
+  it never publishes (roadmap D3).
+
+## What M6 does
+
+- **Embeddings** (§17): cached vectors in `content_staging.embeddings`, keyed by
+  `(owner_kind, owner_id, model)` with the sha256 of the embedded text, so a re-run only pays for
+  text that changed. One polymorphic store for both consumers: `chunk` (near-dup) and `skill`
+  (semantic mapping). Vectors are `double precision[]` — no pgvector; cosine is computed in Python.
+- **Provider abstraction** (`provider.py`): one interface for embeddings + chat, implemented by
+  `OpenAICompatibleProvider` (any OpenAI-shaped endpoint) and a deterministic offline `MockProvider`
+  (no key — mirrors the Go `PAYMENT_PROVIDER=mock`). Configure with `AI_PROVIDER` (`""`/`mock`/
+  `openai`), `AI_BASE_URL`, `AI_API_KEY`, `AI_EMBEDDING_MODEL`, `AI_CHAT_MODEL`,
+  `AI_TIMEOUT_SECONDS`, `AI_MAX_OUTPUT_TOKENS`, `AI_GENERATION_CAP`,
+  `AI_EMBEDDING_BATCH_SIZE`, `AI_PROMPT_VERSION`. `DATABASE_URL` stays the only required variable.
+- **Semantic mapping** (§18): `map --semantic` blends the lexical score with embedding similarity:
+  `confidence = max(lexical, 0.5·(lexical+semantic))`. The semantic signal may only *lift* the
+  deterministic score, never lower it, so existing results and the §18 bands (0.90 / 0.75) are
+  preserved. Confidence is a signal, never a publish gate.
+- **Near-duplicate dedup** (§29): `dedup` compares cached chunk vectors and assigns each chunk
+  `exact` / `near_duplicate` (cosine ≥ 0.92, blocking) / `related` (0.80–0.92, advisory) /
+  `unique`, storing the result in `duplicate_relations` and copying it onto material/question
+  candidates (`duplicate_of` + `qa_issues`) without clobbering a human decision.
+- **AI-assisted generation** (§23–§24): `generate` produces *scenario* and *comprehension*
+  candidates. The server — not the model — assembles the payload: the model supplies free text
+  only, `code`/`skill` come from canonical ids, and the answer type is fixed to `short_answer` so
+  grounding is checkable. The source is passed as delimited untrusted data (`<SUMBER>…</SUMBER>`),
+  the answer must occur in the source (`answer_mismatch`) and the prompt must reuse the source's
+  vocabulary (`ungrounded`). Every AI candidate is marked `ai_generated` and carries a blocking
+  `ai_generated_unverified`, so it can never leave `needs_review` without a human (§24).
+- **Cost control**: one question per `(chunk, template)`, a strict cache in `generation_ledger`
+  keyed by `sha256(chunk_hash|template|model|prompt_version)` (a re-run reuses the stored output
+  without re-billing), a per-run `--cap`, and `--dry-run` that makes **no provider call and writes
+  nothing**. Sources with an `unknown` licence are skipped unless `--allow-unknown-license` (§25).
+  A provider error is recorded per item (`failed` + `attempts`) and the run aborts after three
+  consecutive failures; it resumes from the cache.
+- **AI-origin visibility**: `ai_generated` is added to both candidate tables and surfaces through
+  the Go detail endpoint and the reviewer CMS badge ("Dibuat AI — wajib review").
+
+> **Mock caveat:** `MockProvider` embeds by sha256, so distinct texts are orthogonal — on the dev
+> corpus `map --semantic` legitimately falls back to `lexical` and `dedup` reports `unique`. The
+> classification logic itself is covered by unit tests with crafted vectors; real near-duplicate
+> detection needs a real embedding model (`AI_PROVIDER=openai`).
+
 ## Setup
 
 ```bash
@@ -124,6 +174,21 @@ uv run content-pipeline materials --source my-source --force # rebuild in place
 # Build question candidates (validated against packages/question-schema)
 uv run content-pipeline questions --source my-source --limit 50
 uv run content-pipeline questions --source my-source --force # rebuild in place
+
+# M6 — cache embeddings for chunks and skills (needs AI_PROVIDER; mock needs no key)
+uv run content-pipeline embed --source my-source
+uv run content-pipeline embed --kind skill --force             # re-embed skills only
+
+# Map with the semantic blend (run `embed` first; falls back to lexical per chunk)
+uv run content-pipeline map --source my-source --semantic --force
+
+# Near-duplicate detection over cached chunk vectors (§29)
+uv run content-pipeline dedup --source my-source
+
+# AI-assisted scenario/comprehension questions (§23) — cached, capped, never auto-approved
+uv run content-pipeline generate --dry-run                     # report only: no calls, no writes
+uv run content-pipeline generate --allow-unknown-license --cap 20
+uv run content-pipeline generate --template scenario --force   # re-generate (re-bills)
 ```
 
 ## Layout
@@ -151,6 +216,11 @@ src/content_pipeline/
   qa.py         shared quality-issue primitives (§40)
   validation.py shared question-schema loading and payload validation
   questions.py  deterministic question candidates + QA (§22/§23/§40)
+  provider.py   AI provider abstraction: OpenAI-compatible + offline mock (M6)
+  similarity.py cosine + semantic confidence and dedup thresholds (M6)
+  embeddings.py embedding cache store, batcher and builder (M6)
+  dedup.py      near-duplicate detection over chunk vectors (§29, M6)
+  assisted.py   AI-assisted scenario/comprehension generation + grounding (M6)
 sql/            content_staging migrations + roles/grants
 tests/          unit tests (no database required)
 ```
@@ -165,10 +235,10 @@ uv run pytest
 
 ## Not yet (next milestones)
 
-Reviewer CMS + publish (M5), embeddings/semantic dedup and assisted (AI) question generation
-(M6). The scheduler is a plain cron/loop for now (§34).
+Curriculum change detection (M7) and creator/revenue attribution (M8). The scheduler is a plain
+cron/loop for now (§34).
 
-The deterministic question template is intentionally narrow: it can only ground a question when
-the chunk contains a usable term, and it produces vocabulary/recognition items, not
-scenario/comprehension items. Those are §23 *assisted* generation and arrive in M6; every
-candidate is still reviewed by a human (§24).
+The deterministic cloze template is intentionally narrow; scenario/comprehension items come from
+M6 assisted generation, and every candidate — deterministic or AI — is still reviewed by a human
+(§24). With `AI_PROVIDER=mock` the semantic layer is deliberately inert (orthogonal vectors); use a
+real embedding model for genuine near-duplicate detection.

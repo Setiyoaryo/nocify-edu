@@ -53,6 +53,17 @@ class Settings:
     s3_use_ssl: bool
     storage_access_key: str
     storage_secret_key: str
+    # AI provider (M6). Empty ai_provider disables every AI-backed command.
+    ai_provider: str
+    ai_base_url: str
+    ai_api_key: str
+    ai_embedding_model: str
+    ai_chat_model: str
+    ai_timeout_seconds: float
+    ai_max_output_tokens: int
+    ai_generation_cap: int
+    ai_embedding_batch_size: int
+    ai_prompt_version: str
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -72,9 +83,31 @@ class Settings:
             s3_use_ssl=_env_bool("S3_USE_SSL", True),
             storage_access_key=_env("STORAGE_ACCESS_KEY"),
             storage_secret_key=_env("STORAGE_SECRET_KEY"),
+            ai_provider=_env("AI_PROVIDER"),
+            ai_base_url=_env("AI_BASE_URL"),
+            ai_api_key=_env("AI_API_KEY"),
+            ai_embedding_model=_env("AI_EMBEDDING_MODEL"),
+            ai_chat_model=_env("AI_CHAT_MODEL"),
+            ai_timeout_seconds=_env_float("AI_TIMEOUT_SECONDS", 30.0),
+            ai_max_output_tokens=_env_int("AI_MAX_OUTPUT_TOKENS", 700),
+            ai_generation_cap=_env_int("AI_GENERATION_CAP", 50),
+            ai_embedding_batch_size=_env_int("AI_EMBEDDING_BATCH_SIZE", 64),
+            ai_prompt_version=_env("AI_PROMPT_VERSION", "scenario-v1"),
         )
 
     @property
     def raw_storage_enabled(self) -> bool:
         """Raw archive is optional so the crawler can run without object storage."""
         return bool(self.s3_bucket)
+
+    @property
+    def ai_enabled(self) -> bool:
+        """True when any provider is selected (mock or openai)."""
+        return bool(self.ai_provider)
+
+    @property
+    def ai_configured(self) -> bool:
+        """True when the selected provider can actually be reached."""
+        if self.ai_provider == "mock":
+            return True
+        return self.ai_provider == "openai" and bool(self.ai_base_url) and bool(self.ai_api_key)
