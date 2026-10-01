@@ -1,4 +1,10 @@
-package creators
+// Package attribution owns the creator-attribution rollup (§39): a derived,
+// rebuildable view of how each question performs, computed from raw assessment
+// evidence.
+//
+// It is a leaf package (it imports only db) so both the creators API and the
+// erasure paths in children/auth can refresh the rollup without an import cycle.
+package attribution
 
 import (
 	"context"
@@ -60,11 +66,57 @@ type questionStats struct {
 
 // RecomputeQuestions rebuilds the rollup for specific questions. Safe to call
 // inside the session-complete transaction (mirrors progress.RecomputeSkills).
+//
+// It first drops any rollup in the set whose evidence has disappeared — e.g.
+// after a child erasure cascades `assessment_items` away — so a caller that
+// erases evidence can pass the affected question ids and leave no stale row.
 func RecomputeQuestions(ctx context.Context, q db.DBTX, questionIDs []uuid.UUID) error {
 	if len(questionIDs) == 0 {
 		return nil
 	}
+	if _, err := q.Exec(ctx, `
+		DELETE FROM question_attribution a
+		WHERE a.question_id = ANY($1)
+		  AND NOT EXISTS (SELECT 1 FROM assessment_items i WHERE i.question_id = a.question_id)`,
+		questionIDs); err != nil {
+		return err
+	}
 	return recompute(ctx, q, questionIDs)
+}
+
+// QuestionsForChild returns the distinct question ids with assessment evidence
+// from one child. Call it *before* erasing the child so the rollup can be
+// refreshed afterwards (erasure cascades `assessment_items` away).
+func QuestionsForChild(ctx context.Context, q db.DBTX, childID uuid.UUID) ([]uuid.UUID, error) {
+	return questionIDs(ctx, q, `WHERE a.child_id = $1`, childID)
+}
+
+// QuestionsForParent returns the distinct question ids with assessment evidence
+// from every child of a parent. Call it *before* erasing the account.
+func QuestionsForParent(ctx context.Context, q db.DBTX, parentID uuid.UUID) ([]uuid.UUID, error) {
+	return questionIDs(ctx, q, `WHERE c.parent_id = $1`, parentID)
+}
+
+func questionIDs(ctx context.Context, q db.DBTX, filter string, arg uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.Query(ctx, `
+		SELECT DISTINCT i.question_id
+		FROM assessment_items i
+		JOIN assessments a ON a.id = i.assessment_id
+		JOIN children c ON c.id = a.child_id
+		`+filter, arg)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var ids []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
 }
 
 // RecomputeAll rebuilds every question's rollup from raw evidence and drops

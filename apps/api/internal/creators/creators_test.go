@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/nocify/eduplay/api/internal/attribution"
 	"github.com/nocify/eduplay/api/internal/db"
 	"github.com/nocify/eduplay/api/internal/seed"
 )
@@ -149,7 +150,7 @@ func TestRecomputeRollupIsIdempotent(t *testing.T) {
 		{finalized: false},
 	})
 	for run := 0; run < 2; run++ {
-		if err := RecomputeQuestions(ctx, f.pool, []uuid.UUID{f.question}); err != nil {
+		if err := attribution.RecomputeQuestions(ctx, f.pool, []uuid.UUID{f.question}); err != nil {
 			t.Fatal(err)
 		}
 		usage, completion, correct, firstTry, hint, quality, _ := attributionOf(t, f.pool, f.question)
@@ -161,7 +162,7 @@ func TestRecomputeRollupIsIdempotent(t *testing.T) {
 		}
 	}
 	// A full rebuild agrees with the incremental one.
-	if err := RecomputeAll(ctx, f.pool); err != nil {
+	if err := attribution.RecomputeAll(ctx, f.pool); err != nil {
 		t.Fatal(err)
 	}
 	if _, _, _, _, _, quality, _ := attributionOf(t, f.pool, f.question); quality != 53.33 {
@@ -219,7 +220,7 @@ func TestRollupMatchesEvidence(t *testing.T) {
 	})
 	makeEvidence(t, f.pool, q2, skill2, []item{{finalized: true, correct: false, firstTry: false}})
 
-	if err := RecomputeQuestions(ctx, f.pool, []uuid.UUID{f.question, q2}); err != nil {
+	if err := attribution.RecomputeQuestions(ctx, f.pool, []uuid.UUID{f.question, q2}); err != nil {
 		t.Fatal(err)
 	}
 	if missing, orphans, values := driftCounts(t, f.pool); missing != 0 || orphans != 0 || values != 0 {
@@ -258,7 +259,7 @@ func TestAssignAndUnassignFollowsRollup(t *testing.T) {
 	f := setupEnv(t)
 	ctx := context.Background()
 	makeEvidence(t, f.pool, f.question, f.skillID, []item{{finalized: true, correct: true, firstTry: true}})
-	if err := RecomputeQuestions(ctx, f.pool, []uuid.UUID{f.question}); err != nil {
+	if err := attribution.RecomputeQuestions(ctx, f.pool, []uuid.UUID{f.question}); err != nil {
 		t.Fatal(err)
 	}
 	var creatorID uuid.UUID

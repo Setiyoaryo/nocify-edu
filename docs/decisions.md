@@ -55,3 +55,7 @@ Each entry says what differs from the spec, why, and when to revisit.
     rebuilt from `assessment_items` the same way `skill_progress` is rebuilt, and adaptation lineage
     (`adaptation_type`, `adapted_by`, `reviewed_by`) extends `question_provenance`. M8 is readiness
     only: it records the inputs for revenue share and computes no money (that stays in Phase 5, #6).
+    The rollup lives in a leaf package (`internal/attribution`, importing only `db`) so the erasure
+    paths — which are below `creators` in the import graph — can refresh it: child/account deletion
+    captures the affected questions and rebuilds their rollup in the same transaction, and the
+    recompute drops rows whose evidence is gone. No stale attribution survives an erasure.

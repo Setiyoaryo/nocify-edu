@@ -24,10 +24,10 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/nocify/eduplay/api/internal/attribution"
 	"github.com/nocify/eduplay/api/internal/auth"
 	"github.com/nocify/eduplay/api/internal/candidates"
 	"github.com/nocify/eduplay/api/internal/config"
-	"github.com/nocify/eduplay/api/internal/creators"
 	"github.com/nocify/eduplay/api/internal/db"
 	"github.com/nocify/eduplay/api/internal/media"
 	"github.com/nocify/eduplay/api/internal/progress"
@@ -203,7 +203,7 @@ func run(cmd string, args []string) error {
 			if err != nil {
 				return err
 			}
-			if err := creators.RecomputeQuestions(ctx, pool, []uuid.UUID{id}); err != nil {
+			if err := attribution.RecomputeQuestions(ctx, pool, []uuid.UUID{id}); err != nil {
 				return err
 			}
 			slog.Info("recomputed attribution", "questions", 1)
@@ -226,12 +226,12 @@ func run(cmd string, args []string) error {
 				qids = append(qids, qid)
 			}
 			rows.Close()
-			if err := creators.RecomputeQuestions(ctx, pool, qids); err != nil {
+			if err := attribution.RecomputeQuestions(ctx, pool, qids); err != nil {
 				return err
 			}
 			slog.Info("recomputed attribution", "creator", *creatorID, "questions", len(qids))
 		default:
-			if err := creators.RecomputeAll(ctx, pool); err != nil {
+			if err := attribution.RecomputeAll(ctx, pool); err != nil {
 				return err
 			}
 			slog.Info("recomputed attribution", "scope", "all")

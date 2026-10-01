@@ -23,8 +23,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/nocify/eduplay/api/internal/attribution"
 	"github.com/nocify/eduplay/api/internal/config"
 	"github.com/nocify/eduplay/api/internal/db"
 	"github.com/nocify/eduplay/api/internal/media"
@@ -637,5 +639,88 @@ func TestCandidateReviewRBAC(t *testing.T) {
 	}
 	if code, _ := reviewer.do("POST", decision, map[string]any{"decision": "rejected"}); code != 409 {
 		t.Fatalf("deciding after publish must be 409, got %d", code)
+	}
+}
+
+// seedEvidence inserts one finalized, correct assessment item for childID on a
+// published question, rebuilds that question's attribution rollup, and returns
+// the question id.
+func seedEvidence(t *testing.T, e *env, childID string) uuid.UUID {
+	t.Helper()
+	ctx := context.Background()
+	child, err := uuid.Parse(childID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var qid, versionID uuid.UUID
+	var skillID, subjectID, childGrade int
+	if err := e.pool.QueryRow(ctx, `SELECT id, skill_id FROM questions WHERE status = 'published' ORDER BY code LIMIT 1`).
+		Scan(&qid, &skillID); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.pool.QueryRow(ctx, `SELECT id FROM subjects ORDER BY id LIMIT 1`).Scan(&subjectID); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.pool.QueryRow(ctx, `SELECT COALESCE(published_version_id, current_version_id) FROM questions WHERE id = $1`, qid).
+		Scan(&versionID); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.pool.QueryRow(ctx, `SELECT grade_id FROM children WHERE id = $1`, child).Scan(&childGrade); err != nil {
+		t.Fatal(err)
+	}
+	var assessmentID uuid.UUID
+	if err := e.pool.QueryRow(ctx, `INSERT INTO assessments (child_id, subject_id, grade_id, status, planned_count)
+		VALUES ($1, $2, $3, 'in_progress', 1) RETURNING id`, child, subjectID, childGrade).Scan(&assessmentID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.pool.Exec(ctx, `INSERT INTO assessment_items
+		(assessment_id, position, question_id, question_version_id, skill_id, difficulty, attempts,
+		 final_correct, first_try_correct, finalized_at)
+		VALUES ($1, 1, $2, $3, $4, 1, 1, true, true, now())`, assessmentID, qid, versionID, skillID); err != nil {
+		t.Fatal(err)
+	}
+	if err := attribution.RecomputeQuestions(ctx, e.pool, []uuid.UUID{qid}); err != nil {
+		t.Fatal(err)
+	}
+	return qid
+}
+
+func rollupRows(t *testing.T, e *env, qid uuid.UUID) int {
+	t.Helper()
+	var n int
+	if err := e.pool.QueryRow(context.Background(), `SELECT count(*) FROM question_attribution WHERE question_id = $1`, qid).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	return n
+}
+
+// TestErasureRefreshesAttribution: erasing a child, or the whole account,
+// cascades assessment evidence away. The derived attribution rollup must not
+// keep the vanished evidence (§39).
+func TestErasureRefreshesAttribution(t *testing.T) {
+	e := setup(t)
+	parent := e.client()
+	parent.register("erase@test")
+
+	// Child erasure.
+	childID := parent.must(201, "POST", "/children", map[string]any{"nickname": "Hapus", "grade_id": gradeID(e, "sd-1")})["child"].(map[string]any)["id"].(string)
+	qid := seedEvidence(t, e, childID)
+	if n := rollupRows(t, e, qid); n != 1 {
+		t.Fatalf("pre-erasure rollup rows = %d, want 1", n)
+	}
+	parent.must(204, "DELETE", "/children/"+childID, nil)
+	if n := rollupRows(t, e, qid); n != 0 {
+		t.Fatalf("child erasure left %d stale attribution rows", n)
+	}
+
+	// Whole-account erasure.
+	child2 := parent.must(201, "POST", "/children", map[string]any{"nickname": "Hapus2", "grade_id": gradeID(e, "sd-1")})["child"].(map[string]any)["id"].(string)
+	qid2 := seedEvidence(t, e, child2)
+	if n := rollupRows(t, e, qid2); n != 1 {
+		t.Fatalf("pre-erasure rollup rows = %d, want 1", n)
+	}
+	parent.must(204, "DELETE", "/me", map[string]any{"password": "rahasia123"})
+	if n := rollupRows(t, e, qid2); n != 0 {
+		t.Fatalf("account erasure left %d stale attribution rows", n)
 	}
 }

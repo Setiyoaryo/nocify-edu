@@ -1,4 +1,4 @@
-package creators
+package attribution
 
 import (
 	"math"

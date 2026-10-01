@@ -16,9 +16,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 
 	"github.com/nocify/eduplay/api/internal/analytics"
+	"github.com/nocify/eduplay/api/internal/attribution"
 	"github.com/nocify/eduplay/api/internal/auth"
 	"github.com/nocify/eduplay/api/internal/children"
-	"github.com/nocify/eduplay/api/internal/creators"
 	"github.com/nocify/eduplay/api/internal/db"
 	"github.com/nocify/eduplay/api/internal/httpx"
 	"github.com/nocify/eduplay/api/internal/progress"
@@ -745,7 +745,7 @@ func (h Handler) Complete(w http.ResponseWriter, r *http.Request) {
 	}
 	// Creator attribution rollup (§39). Best-effort: a failure here must never
 	// block a child's session, and `eduplay recompute-attribution` can rebuild.
-	if err := creators.RecomputeQuestions(ctx, tx, questionIDs); err != nil {
+	if err := attribution.RecomputeQuestions(ctx, tx, questionIDs); err != nil {
 		slog.ErrorContext(ctx, "attribution recompute failed", "err", err, "assessment_id", id)
 	}
 	today := time.Now().In(h.TZ).Format("2006-01-02")

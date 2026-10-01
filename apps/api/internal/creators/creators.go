@@ -4,7 +4,7 @@
 // quality score derived from real assessment evidence — so revenue share can be
 // built later without another migration. M8 is readiness only: it computes no
 // money. The rollup itself lives in `question_attribution` and is rebuilt from
-// raw evidence by attribution.go.
+// raw evidence by the `internal/attribution` package.
 //
 // Creator identity is decoupled from `users` because `questions.created_by`
 // conflates the author with whoever pressed publish, and external authors have
@@ -24,6 +24,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/nocify/eduplay/api/internal/attribution"
 	"github.com/nocify/eduplay/api/internal/audit"
 	"github.com/nocify/eduplay/api/internal/auth"
 	"github.com/nocify/eduplay/api/internal/httpx"
@@ -397,7 +398,7 @@ func (h Handler) setCreator(ctx context.Context, questionID uuid.UUID, creatorID
 	if tag.RowsAffected() == 0 {
 		return ErrQuestionNotFound
 	}
-	if err := RecomputeQuestions(ctx, tx, []uuid.UUID{questionID}); err != nil {
+	if err := attribution.RecomputeQuestions(ctx, tx, []uuid.UUID{questionID}); err != nil {
 		return err
 	}
 	action := "question.creator_unassign"
