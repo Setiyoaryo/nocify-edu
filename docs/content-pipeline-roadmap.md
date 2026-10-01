@@ -93,7 +93,7 @@ Pertanyaannya: bagaimana Python dan Go berbagi data tanpa saling merusak.
 
 1. **Kepemilikan tabel.** Python menulis hanya di `content_staging`. Go menulis `public`. Tidak ada tabel yang ditulis dua service.
 2. **Role DB terpisah.**
-   - `content_pipeline`: `ALL` pada schema `content_staging`; `SELECT` pada `curriculum_versions, education_levels, grades, subjects, chapters, skills`; **tanpa** hak tulis ke kanonik.
+   - `content_pipeline`: `ALL` pada schema `content_staging`; `SELECT` pada `curriculum_versions, education_levels, grades, subjects, chapters, skills, phases, curriculum_cp, curriculum_source_documents, questions, question_provenance`; **tanpa** hak tulis ke kanonik.
    - `eduplay` (existing): akses penuh ke `public`; `SELECT` pada `content_staging` (untuk CMS review & publish).
 3. **Publish = operasi Go.** Kandidat yang di-approve masuk antrian publish. Perintah `eduplay publish-candidates` (atau job di worker) membaca antrian, **memvalidasi ulang** dengan `questions.Validate` + `packages/question-schema`, lalu menulis kanonik dalam satu transaksi per kandidat, mencatat `question_reviews` + `audit_logs`.
    - **Realisasi M5:** antrian = tabel kanonik `candidate_publications`, bukan `content_staging.publish_queue` (lihat M5 §6 dan §9 keputusan 9).
@@ -215,7 +215,24 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
   - **Batasan yang diketahui:** `MockProvider` memakai vektor sha256 (teks berbeda → ortogonal), jadi pada korpus dev ambang semantik tidak pernah terlampaui — ini disengaja; deteksi near-duplicate/related yang sebenarnya memerlukan model embedding nyata (`AI_PROVIDER=openai`). Layer embedding/LLM tidak menyentuh request path produk; produk tetap `make up` tanpa Python.
 
 ### M7 — Curriculum Change Detection
-- Watcher sumber resmi → diff dokumen → CP terdampak → skill/soal terdampak → review queue §44.
+- **Deliverable:** watcher sumber resmi → diff dokumen → CP terdampak → skill/soal terdampak → review queue §44.
+- **Artefak (staging):** `curriculum_watch_state` (baseline berjalan + state conditional fetch), `curriculum_change_events`, `curriculum_change_impacts`, `curriculum_change_questions` (`sql/0007_curriculum_changes.sql`).
+- **Artefak (kanonik, migrasi Go):** `curriculum_change_reviews` — ledger keputusan reviewer + indeks `question_provenance_cp_idx` (`0006_curriculum_change_reviews.sql`).
+- **Artefak (kode):** `curriculum_diff.py` (ekstraksi + diff CP murni), `watch.py` (`CurriculumWatcher`, `WatchStore`, impact, advisory lock), CLI `watch`/`watch register`/`changes`; Go `internal/changes` (`GET /admin/curriculum-changes`, `GET /admin/curriculum-changes/{id}`, `POST /admin/curriculum-changes/{id}/decision`); web `/app/admin/curriculum-changes` + `/[id]`.
+- **DoD:** deteksi hanya saat hash berubah; diff CP deterministik (perbedaan format diabaikan); impact = soal per skill **dan** per provenance; keputusan reviewer ditulis kanonik oleh Go (D3); pipeline **tidak pernah** menulis kanonik; cron `watch --due` aman dari tumpang tindih (advisory lock).
+- **Status:** ✅ **selesai (2026-10-01)** — dua commit di branch `feat/content-pipeline-m7` (stacked di M6/PR #9).
+  - **Keputusan kunci:** M7 adalah **deteksi + tinjauan saja**; kurikulum kanonik tidak diubah. Baseline berjalan hidup di staging (`curriculum_watch_state`) karena `curriculum_source_documents.document_hash` kanonik adalah *anchor* yang sudah disetujui dan tidak boleh digeser oleh watcher. Ledger keputusan (`curriculum_change_reviews`) kanonik & milik Go, seperti `candidate_publications` (M5).
+  - **Kontrak teks, bukan parser khusus:** `extract_cp_statements` membaca pernyataan dari baris yang token pertamanya kode `CP-…` diikuti pemisah (`:`, en/em dash, atau *spasi*-hyphen); hyphen **wajib** berspasi agar hyphen di dalam kode CP tidak pernah dianggap pemisah. Perbandingan memakai `normalise_statement` (NFKC, NBSP, whitespace, case) → edit format saja tidak dilaporkan. Parser khusus PDF/HTML bisa menggantikan isi fungsi ini nanti di balik signature yang sama.
+  - **Impact:** satu CP berubah memengaruhi setiap soal pada skill yang menunjuk CP itu (`skills.cp_id`) dan setiap soal yang tertaut langsung lewat `question_provenance.cp_id`. Snapshot dibekukan di `curriculum_change_impacts` + `curriculum_change_questions` agar antrian reviewer tidak bergeser bila taksonomi berubah.
+  - **Staging `0007`:** `curriculum_watch_state` (`UNIQUE (source_document_id)`, `baseline_source ∈ canonical|observed`, `check_frequency ∈ daily|weekly|monthly|manual`, `last_status`); `curriculum_change_events` (`detection ∈ content_hash|etag|last_modified|first_seen`, `status ∈ detected|analyzed|failed|superseded`, indeks unik parsial hanya untuk event *terbuka* agar analisis gagal bisa dicoba ulang); `curriculum_change_impacts` (satu baris per CP, `UNIQUE (change_event_id, cp_code)`, `cp_id` NULL untuk CP `added`); `curriculum_change_questions` (snapshot soal + `match ∈ skill|provenance`).
+  - **Kanonik `0006`:** `curriculum_change_reviews` (`UNIQUE (change_event_id)`, FK `source_document_id → curriculum_source_documents`, FK `decided_by → users`; `change_event_id` **tanpa FK** — staging id disalin by value, D4; snapshot `document_code`/`observed_hash`/hitungan disalin agar ledger tetap bermakna setelah staging di-prune; `status ∈ pending|acknowledged|dismissed|deferred`). Plus `question_provenance_cp_idx` (lookup `question_provenance.cp_id` oleh watcher).
+  - **CLI:** `watch` (`--dry-run`/`--force`/`--due`/`--from-file`), `watch register` (URL override di staging), `changes` (daftar event). `--due` menghormati `check_frequency` untuk cron eksternal; advisory lock **727275** (berbeda dari lock migrasi Go 727274) membuat run bersamaan aman.
+  - **Grants:** role pipeline diberi `SELECT` pada `public.curriculum_source_documents`, `public.questions`, `public.question_provenance` (read-only, sama seperti taksonomi lain) — sebelumnya celah nyata.
+  - **API Go:** `GET /admin/curriculum-changes` (antrian + `counts`, degradasi `available:false` bila pipeline belum jalan), `GET /admin/curriculum-changes/{id}` (event + impacts + soal + tinjauan), `POST /admin/curriculum-changes/{id}/decision` (reviewer/admin; `RecordDecision` menyalin snapshot event by value ke ledger kanonik, idempoten via `ON CONFLICT (change_event_id)`). Tidak ada jalur tulis ke `curriculum_cp`/`skills`/`questions`.
+  - **Web:** `/app/admin/curriculum-changes` (antrian + filter status/q) dan `/[id]` (diff sebelum/sesudah per CP, soal terdampak per skill/provenance, panel keputusan Terima/Tunda/Abaikan); helper di `src/lib/curriculumChanges.ts`; entri nav "Perubahan kurikulum".
+  - **Terverifikasi (unit):** `ruff` bersih; `mypy --strict` bersih (60 file); `pytest` **221 tes** hijau (DB-free/network-free: `MockTransport` + `WatchStore` palsu + `resolve_host` di-stub); `make test-api` (Go, unit + integrasi DB) hijau; `svelte-check` 0 error; `vitest` hijau (11 tes).
+  - **Terverifikasi (end-to-end, dev stack):** `migrate` menerapkan `0007` (staging) & Go `0006`; `watch register` → baseline kanonik; `watch --from-file` dengan dokumen v2 → event + 2 impact (1 added, 1 changed) + soal terdampak; `changes` menampilkan event; API `GET /admin/curriculum-changes` → `pending`; keputusan reviewer → ledger kanonik; `curriculum_cp` tidak berubah (dibuktikan dengan membandingkan statement sebelum/sesudah).
+  - **Catatan:** ekstraksi CP memakai kontrak teks sederhana (lihat atas) — dokumen resmi Kemendikdasmen belum punya format machine-readable stabil, jadi parser khusus menunggu kebutuhan nyata. M7 tidak memutuskan perubahan kanonik apa pun; ia hanya menyiapkan antrian tinjauan.
 
 ### M8 — Creator / Revenue Attribution
 - `creator_id`, usage/completion/quality, adaptation lineage §39; marketplace §47 Fase 5.
@@ -230,11 +247,13 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
 - `skills`: `+ cp_id` (nullable).
 - Baru: `question_provenance` (question_id, cp_id, skill_id, source_document_ref, original_url, retrieved_at).
 - Baru (M5): `candidate_publications` — ledger review + antrian publish (`kind`, `candidate_id`, `decision`, `status`, `checklist`, `decided_by`, `canonical_question_id`, `attempts`, `last_error`).
+- Baru (M7): `curriculum_change_reviews` — ledger keputusan reviewer atas perubahan kurikulum (`change_event_id` staging id by value, snapshot `document_code`/`observed_hash`/hitungan, `status ∈ pending|acknowledged|dismissed|deferred`, FK `source_document_id`/`decided_by`); indeks `question_provenance_cp_idx`.
 - M8: `questions.creator_id` + tabel atribusi.
 
 ### Staging (dikelola Python)
 - `source_registry`, `crawl_runs`, `crawl_items`, `source_documents`, `document_chunks`, `mapping_candidates`, `material_candidates`, `question_candidates`, `jobs`.
 - M6: `embeddings` (cache vektor polimorfik), `duplicate_relations` (status dedup §29), `generation_ledger` (cache + audit generasi AI); kolom `ai_generated` pada `question_candidates`/`material_candidates`.
+- M7: `curriculum_watch_state` (baseline berjalan + state conditional fetch, `UNIQUE (source_document_id)`), `curriculum_change_events`, `curriculum_change_impacts`, `curriculum_change_questions`.
 - Tidak ada `publish_queue`: antrian publish tinggal di kanonik (`candidate_publications`, M5) karena Go read-only pada staging (D2/D5).
 - Semua status/lifecycle sesuai §5, §9, §21, §41.
 
@@ -268,6 +287,7 @@ Mengadopsi §48 rencana, ditambah aturan repo ini:
 | 8 | Allowlist awal | 5 sumber resmi (§45), semua `discovered`/disabled; sumber lain boleh ditambah setelah review |
 | 9 | Antrian publish (M5) | **Ledger kanonik `candidate_publications`**, bukan `content_staging.publish_queue` — Go read-only pada staging (D2/D5) |
 | 10 | Materi saat M5 | **Review-only** (belum ada tabel kanonik materi); publish kanonik baru untuk soal |
+| 11 | Perubahan kurikulum (M7) | **Deteksi + tinjauan saja**; kurikulum kanonik tidak diubah. Baseline berjalan di staging (`curriculum_watch_state`), ledger keputusan kanonik `curriculum_change_reviews` (Go). Kontrak teks untuk ekstraksi CP (parser khusus menyusul); impact = soal per skill ∪ per provenance |
 
 
 ---

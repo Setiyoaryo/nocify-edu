@@ -1,0 +1,3 @@
+CP-A-MAT-BILANGAN: Peserta didik dapat membilang banyak benda sampai 20.
+CP-A-MAT-PENJUMLAHAN: Peserta didik dapat menjumlahkan dua bilangan sampai 20.
+CP-A-IND-MEMBACA: Peserta didik dapat membaca kata sederhana.

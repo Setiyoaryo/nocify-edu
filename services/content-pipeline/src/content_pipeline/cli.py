@@ -14,11 +14,15 @@
     content-pipeline questions [--source CODE] [--limit N] [--force]
     content-pipeline generate [--source CODE] [--limit N] [--template T] [--force]
                               [--dry-run] [--cap N] [--allow-unknown-license]
+    content-pipeline watch [--document-code CODE] [--limit N] [--dry-run] [--force] [--due] [--from-file PATH]
+    content-pipeline watch register --document-code CODE --url URL [--hash H] [--frequency F]
+    content-pipeline changes [--document-code CODE] [--status S] [--limit N] [--json]
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from collections.abc import Sequence
@@ -45,6 +49,11 @@ from content_pipeline.registry import (
 )
 from content_pipeline.storage import RawArchive
 from content_pipeline.validation import QuestionSchema
+from content_pipeline.watch import (
+    CurriculumWatcher,
+    list_change_events,
+    register_document,
+)
 
 SOURCE_TYPES = ("official_curriculum", "institution", "licensed", "public", "community")
 STATUSES = ("discovered", "verified", "approved", "active", "paused", "retired")
@@ -137,6 +146,28 @@ def _build_parser() -> argparse.ArgumentParser:
         "--allow-unknown-license", action="store_true",
         help="allow generation from sources with an unknown licence (§25)",
     )
+
+    watch = sub.add_parser("watch", help="detect curriculum source-document changes (§44)")
+    watch.add_argument("--document-code", action="append", dest="documents", metavar="CODE")
+    watch.add_argument("--limit", type=int, help="max documents to check")
+    watch.add_argument("--dry-run", action="store_true", help="fetch and diff without writing anything")
+    watch.add_argument("--force", action="store_true", help="re-analyse even when the hash is unchanged")
+    watch.add_argument("--due", action="store_true", help="only check documents whose frequency is due")
+    watch.add_argument("--from-file", metavar="PATH", help="read the body from a local file (offline/dev)")
+    watch_sub = watch.add_subparsers(dest="watch_command")
+    register = watch_sub.add_parser("register", help="register a watched document URL (staging override)")
+    register.add_argument("--document-code", required=True, dest="register_document")
+    register.add_argument("--url", required=True)
+    register.add_argument("--hash", default="", help="seed the baseline hash (defaults to canonical)")
+    register.add_argument(
+        "--frequency", choices=("daily", "weekly", "monthly", "manual"), default="weekly"
+    )
+
+    changes = sub.add_parser("changes", help="list detected curriculum changes (§44)")
+    changes.add_argument("--document-code", action="append", dest="documents", metavar="CODE")
+    changes.add_argument("--status", choices=("detected", "analyzed", "failed", "superseded"))
+    changes.add_argument("--limit", type=int, default=50)
+    changes.add_argument("--json", action="store_true", help="print JSON")
 
     return parser
 
@@ -422,6 +453,68 @@ def _cmd_generate(db: Database, settings: Settings, args: argparse.Namespace) ->
     return 0
 
 
+def _cmd_watch(db: Database, settings: Settings, args: argparse.Namespace) -> int:
+    if args.watch_command == "register":
+        if args.from_file:
+            print("error: --from-file is not valid with register", file=sys.stderr)
+            return 2
+        code = register_document(
+            db, code=args.register_document, url=args.url, baseline_hash=args.hash,
+            frequency=args.frequency,
+        )
+        if code is None:
+            print(f"error: unknown curriculum source document {args.register_document!r}", file=sys.stderr)
+            return 1
+        print(f"{code}: watching {args.url} (frequency={args.frequency})")
+        return 0
+
+    if args.from_file and not args.documents:
+        print("error: --from-file requires --document-code", file=sys.stderr)
+        return 2
+    if args.from_file and len(args.documents) != 1:
+        print("error: --from-file accepts exactly one --document-code", file=sys.stderr)
+        return 2
+
+    report = CurriculumWatcher(db, settings).run(
+        codes=args.documents, limit=args.limit, dry_run=args.dry_run, force=args.force,
+        due=args.due, from_file=args.from_file,
+    )
+    if report.locked:
+        print("another watch run is in progress; nothing done")
+        return 0
+    if not report.summaries:
+        print(
+            "no watched curriculum documents "
+            "(register one with: watch register --document-code X --url Y)"
+        )
+        return 0
+    prefix = "dry-run " if report.dry_run else ""
+    for summary in report.summaries:
+        print(
+            f"{prefix}{summary.document_code}: {summary.status} "
+            f"added={summary.cp_added} changed={summary.cp_changed} removed={summary.cp_removed} "
+            f"affected_questions={summary.affected_questions} ({summary.message})"
+        )
+    return 0
+
+
+def _cmd_changes(db: Database, args: argparse.Namespace) -> int:
+    events = list_change_events(db, codes=args.documents, status=args.status, limit=args.limit)
+    if args.json:
+        print(json.dumps([event.__dict__ for event in events], default=str, ensure_ascii=False))
+        return 0
+    if not events:
+        print("no curriculum changes detected")
+        return 0
+    for event in events:
+        print(
+            f"#{event.id} {event.document_code} {event.status} "
+            f"added={event.cp_added} changed={event.cp_changed} removed={event.cp_removed} "
+            f"{event.created_at:%Y-%m-%d %H:%M} {event.url}"
+        )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     logging.basicConfig(
@@ -450,6 +543,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_questions(db, args)
         if args.command == "generate":
             return _cmd_generate(db, settings, args)
+        if args.command == "watch":
+            return _cmd_watch(db, settings, args)
+        if args.command == "changes":
+            return _cmd_changes(db, args)
     return 2
 
 

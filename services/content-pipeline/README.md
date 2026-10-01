@@ -123,6 +123,31 @@ See [`docs/content-pipeline-roadmap.md`](../../docs/content-pipeline-roadmap.md)
 > classification logic itself is covered by unit tests with crafted vectors; real near-duplicate
 > detection needs a real embedding model (`AI_PROVIDER=openai`).
 
+## What M7 does
+
+- **Curriculum change detection** (§27, §28, §44): `watch` polls the canonical curriculum source
+  documents, hashes the fetched bytes, and — only when the hash changed — diffs their CP statements
+  against canonical `curriculum_cp`, then records a frozen impact snapshot. **M7 is detect + review
+  only: it never mutates canonical curriculum.** The running baseline lives in staging
+  (`curriculum_watch_state`); the canonical `document_hash` stays the untouched approved anchor.
+- **Text contract, not a bespoke parser**: `curriculum_diff.extract_cp_statements` reads a CP
+  statement from a line whose first token is a `CP-…` code followed by a separator (`:`, en/em dash,
+  or a *spaced* hyphen); following non-empty lines continue it. The hyphen must be spaced so code
+  hyphens are never the separator. Statements are compared after `normalise_statement` (NFKC, NBSP,
+  whitespace, case), so formatting-only edits are not reported.
+- **Impact = questions, not just CPs** (§44): a changed CP affects every question on a skill that
+  points at it (`skills.cp_id`) and every question linked directly through
+  `question_provenance.cp_id`. The snapshot is frozen in `curriculum_change_impacts` +
+  `curriculum_change_questions`, so the reviewer queue does not drift if the taxonomy later changes.
+- **Reviewer decision is canonical (Go-owned)**: `watch` writes only `content_staging`; the
+  `curriculum_change_reviews` ledger and the reviewer queue/detail screens live in the Go API + web.
+- **Operations**: an advisory lock (`727275`, distinct from the migration lock `727274`) makes
+  concurrent runs safe; `--due` respects each document's `check_frequency` (`daily`/`weekly`/
+  `monthly`/`manual`) for an external cron; `--dry-run` fetches and diffs without writing anything;
+  `--from-file` replays a local document offline.
+- **Grants**: the pipeline role was granted `SELECT` on `public.curriculum_source_documents`,
+  `public.questions` and `public.question_provenance` (read-only, same as the rest of canonical).
+
 ## Setup
 
 ```bash
@@ -189,7 +214,18 @@ uv run content-pipeline dedup --source my-source
 uv run content-pipeline generate --dry-run                     # report only: no calls, no writes
 uv run content-pipeline generate --allow-unknown-license --cap 20
 uv run content-pipeline generate --template scenario --force   # re-generate (re-bills)
+
+# M7 — detect curriculum source-document changes (§44); detect + review only
+uv run content-pipeline watch register --document-code KEMENDIKDASMEN-KURIKULUM \
+  --url https://example.go.id/kurikulum.pdf --frequency weekly
+uv run content-pipeline watch --dry-run                        # fetch + diff, write nothing
+uv run content-pipeline watch --due                            # only documents whose frequency is due
+uv run content-pipeline watch --from-file ./kurikulum.txt --document-code KEMENDIKDASMEN-KURIKULUM
+uv run content-pipeline changes --status analyzed --limit 20   # list detected changes
 ```
+
+The Go reviewer API + web screens for M7 (`/api/curriculum-changes`, the reviewer queue) are part
+of the same milestone but live outside this service.
 
 ## Layout
 
@@ -221,6 +257,8 @@ src/content_pipeline/
   embeddings.py embedding cache store, batcher and builder (M6)
   dedup.py      near-duplicate detection over chunk vectors (§29, M6)
   assisted.py   AI-assisted scenario/comprehension generation + grounding (M6)
+  curriculum_diff.py  pure CP-statement extraction + diff (M7)
+  watch.py      curriculum change watcher, impacts and advisory lock (M7)
 sql/            content_staging migrations + roles/grants
 tests/          unit tests (no database required)
 ```
@@ -235,8 +273,8 @@ uv run pytest
 
 ## Not yet (next milestones)
 
-Curriculum change detection (M7) and creator/revenue attribution (M8). The scheduler is a plain
-cron/loop for now (§34).
+Creator/revenue attribution (M8). The scheduler is a plain cron/loop for now (§34) — for M7 run
+`content-pipeline watch --due` from cron; the advisory lock makes overlapping runs safe.
 
 The deterministic cloze template is intentionally narrow; scenario/comprehension items come from
 M6 assisted generation, and every candidate — deterministic or AI — is still reviewed by a human

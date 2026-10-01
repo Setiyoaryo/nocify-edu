@@ -1,0 +1,5 @@
+CP-A-MAT-BILANGAN :  peserta didik dapat membilang banyak benda sampai 20.
+
+CP-A-MAT-PENJUMLAHAN: Peserta didik dapat menjumlahkan dua bilangan sampai 100.
+
+CP-A-MAT-PENGURANGAN: Peserta didik dapat mengurangkan bilangan sampai 20.
