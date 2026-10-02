@@ -808,3 +808,59 @@ func TestCompletionSurvivesAttributionFailure(t *testing.T) {
 		t.Fatalf("daily progress not committed after savepoint rollback: %d rows", n)
 	}
 }
+
+// TestContentStudioRBAC covers the M9 read endpoints: anonymous is rejected,
+// parents never reach the CMS, editors can browse, the view degrades cleanly
+// when the pipeline has not run, and an unknown skill is a clean 404.
+func TestContentStudioRBAC(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+
+	mkStaff := func(email, role string) *client {
+		c := e.client()
+		c.register(email)
+		if _, err := e.pool.Exec(ctx, `UPDATE users SET role = $2 WHERE email = $1`, email, role); err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	editor := mkStaff("studio-editor@example.test", "content_editor")
+
+	var skillID int
+	if err := e.pool.QueryRow(ctx, `SELECT id FROM skills ORDER BY id LIMIT 1`).Scan(&skillID); err != nil {
+		t.Fatal(err)
+	}
+	lessonPath := fmt.Sprintf("/admin/content-studio/lessons/%d", skillID)
+
+	if code, _ := e.client().do("GET", "/admin/content-studio/tree", nil); code != 401 {
+		t.Fatalf("anonymous tree must be 401, got %d", code)
+	}
+
+	parent := e.client()
+	parent.register("studio-parent@example.test")
+	if code, _ := parent.do("GET", "/admin/content-studio/tree", nil); code != 403 {
+		t.Fatalf("parent tree must be 403, got %d", code)
+	}
+	if code, _ := parent.do("GET", lessonPath, nil); code != 403 {
+		t.Fatalf("parent lesson must be 403, got %d", code)
+	}
+
+	// Without the pipeline schema both views degrade to available:false, not 500.
+	if _, err := e.pool.Exec(ctx, `DROP SCHEMA IF EXISTS content_staging CASCADE`); err != nil {
+		t.Fatal(err)
+	}
+	if tree := editor.must(200, "GET", "/admin/content-studio/tree", nil); tree["available"] != false {
+		t.Fatalf("tree without pipeline should be available:false, got %v", tree["available"])
+	}
+	lesson := editor.must(200, "GET", lessonPath, nil)
+	if lesson["available"] != false {
+		t.Fatalf("lesson without pipeline should be available:false, got %v", lesson["available"])
+	}
+	if _, ok := lesson["published"].([]any); !ok {
+		t.Fatalf("lesson must still return a published array, got %v", lesson["published"])
+	}
+
+	if code, _ := editor.do("GET", "/admin/content-studio/lessons/999999", nil); code != 404 {
+		t.Fatalf("unknown skill must be 404, got %d", code)
+	}
+}

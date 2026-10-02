@@ -63,3 +63,15 @@ Each entry says what differs from the spec, why, and when to revisit.
     (UU PDP), so a recompute failure is logged and the delete still commits — `eduplay
     recompute-attribution` reconciles the drift. The session-complete refresh uses the same helper, so
     a rollup error can never abort a child's session.
+19. **Content Studio is a read-only, per-lesson view over existing tables (M9).** The flat review queue
+    (M5) makes it hard to see what the pipeline produced for a given lesson, so M9 adds a browse path
+    `grade → subject → chapter → skill` and a lesson detail page. "Lesson" is the existing `skills` row —
+    there is no separate lesson table. Material↔question lineage is the shared `chunk_id`; questions
+    without a matching chunk surface as `orphan_questions`, and candidates with a NULL `skill_id` go to
+    an `unmapped` bucket. The page shows pipeline candidates and already-published canonical questions
+    side by side but separated (`published` joins `questions.published_version_id`, the live version),
+    and inline approve/reject reuses `POST /admin/candidates/{kind}/{id}/decision` unchanged, so the
+    11-item checklist and `ValidateDecision` are the same as the queue. Materials stay review-only.
+    No migration: the two new endpoints are pure reads. Auto-generating figures/images is a separate
+    follow-up milestone — M9 only surfaces the existing `visual_required`/`has_visual` signals so a
+    reviewer can see which questions are still text-only.

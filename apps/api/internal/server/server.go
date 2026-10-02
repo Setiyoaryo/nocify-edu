@@ -149,6 +149,8 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 					r.Get("/curriculum", adminH.Curriculum)
 					r.Get("/candidates", candH.ListCandidates)
 					r.Get("/candidates/{kind}/{id}", candH.GetCandidate)
+					r.Get("/content-studio/tree", candH.ContentStudioTree)
+					r.Get("/content-studio/lessons/{skillID}", candH.ContentStudioLesson)
 					r.Get("/curriculum-changes", changeH.ListChanges)
 					r.Get("/curriculum-changes/{id}", changeH.GetChange)
 					r.Get("/creators", creatorH.ListCreators)

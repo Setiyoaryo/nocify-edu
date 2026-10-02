@@ -184,6 +184,8 @@ type CandidateDetail struct {
 	AIGenerated       bool            `json:"ai_generated"`
 	ContentHash       string          `json:"content_hash"`
 	Language          string          `json:"language"`
+	HasVisual         bool            `json:"has_visual"`
+	HasAudio          bool            `json:"has_audio"`
 	Template          string          `json:"template"`
 	Type              string          `json:"type"`
 	Difficulty        *int            `json:"difficulty"`
@@ -252,7 +254,11 @@ type Publication struct {
 	PublishedAt         *time.Time      `json:"published_at"`
 }
 
-const questionDetailSQL = `
+// questionDetailSelect is the shared column list for a question candidate
+// detail. It is deliberately split from the WHERE so other queries (e.g. the
+// Content Studio lesson view) can reuse the exact same column order that
+// detailRow scans positionally.
+const questionDetailSelect = `
 	SELECT q.id, q.source_id, q.skill_id, q.cp_id, q.phase_code, q.grade_code, q.subject_code,
 	       q.template, q.type, q.difficulty, q.learning_objective, '' AS title, '' AS summary,
 	       q.prompt, q.payload, q.content_hash, NULL::jsonb AS readability, d.language,
@@ -274,10 +280,13 @@ const questionDetailSQL = `
 	LEFT JOIN grades g ON g.code = q.grade_code
 	LEFT JOIN subjects sub ON sub.code = q.subject_code
 	LEFT JOIN candidate_publications p ON p.kind = 'question' AND p.candidate_id = q.id
-	LEFT JOIN users u ON u.id = p.decided_by
+	LEFT JOIN users u ON u.id = p.decided_by`
+
+const questionDetailSQL = questionDetailSelect + `
 	WHERE q.id = $1`
 
-const materialDetailSQL = `
+// materialDetailSelect mirrors questionDetailSelect for materials (see above).
+const materialDetailSelect = `
 	SELECT m.id, m.source_id, m.skill_id, m.cp_id, m.phase_code, m.grade_code, m.subject_code,
 	       '' AS template, '' AS type, m.difficulty_hint, m.learning_objective, m.title, m.summary,
 	       '' AS prompt, NULL::jsonb AS payload, m.content_hash,
@@ -305,7 +314,9 @@ const materialDetailSQL = `
 	LEFT JOIN grades g ON g.code = m.grade_code
 	LEFT JOIN subjects sub ON sub.code = m.subject_code
 	LEFT JOIN candidate_publications p ON p.kind = 'material' AND p.candidate_id = m.id
-	LEFT JOIN users u ON u.id = p.decided_by
+	LEFT JOIN users u ON u.id = p.decided_by`
+
+const materialDetailSQL = materialDetailSelect + `
 	WHERE m.id = $1`
 
 func (d detailRow) toDetail(kind string) CandidateDetail {
@@ -348,6 +359,16 @@ func (d detailRow) toDetail(kind string) CandidateDetail {
 	if len(d.Readability) > 0 {
 		detail.Readability = json.RawMessage(d.Readability)
 	}
+	// Derived visual/audio signals so the Content Studio can flag text-only
+	// questions. Not stored: computed from the payload (question) or readability
+	// flags (material).
+	if kind == KindMaterial {
+		detail.HasVisual = jsonFlag(d.Readability, "visual_required")
+		detail.HasAudio = jsonFlag(d.Readability, "audio_required")
+	} else {
+		detail.HasVisual = payloadHasVisual(d.Payload)
+		detail.HasAudio = payloadHasAudio(d.Payload)
+	}
 	if d.PubStatus != nil {
 		pub := Publication{
 			Kind: kind, CandidateID: d.ID,
@@ -371,6 +392,66 @@ func deref[T any](p *T) T {
 		return zero
 	}
 	return *p
+}
+
+// payloadHasVisual reports whether a question payload renders a picture: icon
+// figures or an image asset, either as a content-level stimulus
+// (content.figures / content.image) or per option (image_choice options).
+func payloadHasVisual(raw []byte) bool {
+	if len(raw) == 0 {
+		return false
+	}
+	type visual struct {
+		Figures []json.RawMessage `json:"figures"`
+		Image   string            `json:"image"`
+	}
+	var p struct {
+		Content struct {
+			visual
+			Options []visual `json:"options"`
+		} `json:"content"`
+	}
+	if err := json.Unmarshal(raw, &p); err != nil {
+		return false
+	}
+	if len(p.Content.Figures) > 0 || p.Content.Image != "" {
+		return true
+	}
+	for _, o := range p.Content.Options {
+		if len(o.Figures) > 0 || o.Image != "" {
+			return true
+		}
+	}
+	return false
+}
+
+// payloadHasAudio reports whether a question payload carries read-aloud text.
+func payloadHasAudio(raw []byte) bool {
+	if len(raw) == 0 {
+		return false
+	}
+	var p struct {
+		Content struct {
+			AudioText string `json:"audio_text"`
+		} `json:"content"`
+	}
+	if err := json.Unmarshal(raw, &p); err != nil {
+		return false
+	}
+	return p.Content.AudioText != ""
+}
+
+// jsonFlag reads a boolean field from a JSON object; false on any error.
+func jsonFlag(raw []byte, key string) bool {
+	if len(raw) == 0 {
+		return false
+	}
+	var m map[string]any
+	if err := json.Unmarshal(raw, &m); err != nil {
+		return false
+	}
+	b, _ := m[key].(bool)
+	return b
 }
 
 func (h Handler) GetCandidate(w http.ResponseWriter, r *http.Request) {
