@@ -6,6 +6,7 @@
 	import SquaresFour from 'phosphor-svelte/lib/SquaresFour';
 	import Question from 'phosphor-svelte/lib/Question';
 	import ClipboardText from 'phosphor-svelte/lib/ClipboardText';
+	import MagicWand from 'phosphor-svelte/lib/MagicWand';
 	import GitDiff from 'phosphor-svelte/lib/GitDiff';
 	import UsersThree from 'phosphor-svelte/lib/UsersThree';
 	import TreeStructure from 'phosphor-svelte/lib/TreeStructure';
@@ -17,6 +18,7 @@
 		{ href: '/app/admin', label: 'Ringkasan', icon: SquaresFour },
 		{ href: '/app/admin/questions', label: 'Bank soal', icon: Question },
 		{ href: '/app/admin/review', label: 'Antrian review', icon: ClipboardText },
+		{ href: '/app/admin/content-studio', label: 'Content Studio', icon: MagicWand },
 		{ href: '/app/admin/curriculum-changes', label: 'Perubahan kurikulum', icon: GitDiff },
 		{ href: '/app/admin/creators', label: 'Kreator', icon: UsersThree },
 		{ href: '/app/admin/curriculum', label: 'Kurikulum', icon: TreeStructure },

@@ -89,6 +89,8 @@ export interface CandidateDetail {
 	ai_generated: boolean;
 	content_hash: string;
 	language: string;
+	has_visual: boolean;
+	has_audio: boolean;
 	template: string;
 	type: string;
 	difficulty: number | null;
