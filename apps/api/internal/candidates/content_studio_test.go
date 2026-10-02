@@ -267,6 +267,7 @@ func TestPayloadHasVisual(t *testing.T) {
 		{"option figures", `{"content":{"options":[{"figures":[{"icon":"orange","count":2}]}]}}`, true, false},
 		{"option image", `{"content":{"options":[{"image":"/api/v1/media/x"}]}}`, true, false},
 		{"image", `{"content":{"image":"/api/v1/media/x"}}`, true, false},
+		{"tap_count symbol", `{"content":{"symbol":"orange","count":3}}`, true, false},
 		{"audio only", `{"content":{"audio_text":"Baca"}}`, false, true},
 		{"text only", `{"content":{"prompt":"x"}}`, false, false},
 		{"empty", ``, false, false},

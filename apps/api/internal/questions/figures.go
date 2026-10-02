@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+//go:generate go run ./gen
+
 // Figure is one pictured object in a question: an icon from the approved set,
 // repeated Count times, optionally tinted. Questions carry no emoji or free
 // images; the web client renders each name from its licensed icon set
@@ -15,22 +17,9 @@ type Figure struct {
 	Color string `json:"color,omitempty"`
 }
 
-var Icons = []string{
-	// food
-	"orange", "cherries", "carrot", "pepper", "avocado", "cake", "cookie", "pizza", "ice-cream", "bread", "egg", "hamburger", "popcorn",
-	// nature & weather
-	"star", "heart", "sun", "moon", "cloud", "cloud-rain", "drop", "snowflake", "lightning", "rainbow",
-	"flower", "flower-tulip", "leaf", "plant", "tree", "acorn",
-	// animals
-	"fish", "bird", "cat", "dog", "rabbit", "butterfly", "cow", "horse", "bug",
-	// vehicles
-	"car", "bus", "boat", "train", "airplane", "bicycle", "rocket", "sailboat",
-	// school, home, play
-	"book", "book-open", "backpack", "pencil", "ruler", "palette", "puzzle", "balloon", "soccer-ball", "basketball", "gift", "bell",
-	"house", "tent", "bed", "tooth", "hand-soap", "shovel",
-	// shapes & marks
-	"circle", "triangle", "square", "hexagon", "diamond", "question",
-}
+// Icons is generated from packages/figures/figures.json (see figures_gen.go);
+// that file is the single source of truth shared with the web client and the
+// Python pipeline.
 
 var Colors = []string{"red", "orange", "yellow", "green", "blue", "purple", "pink", "brown", "gray"}
 

@@ -20,16 +20,24 @@ import hashlib
 import json
 import logging
 import re
-from dataclasses import dataclass
-from typing import Any
+from dataclasses import dataclass, replace
+from typing import Any, Protocol
 
 from content_pipeline.db import Database
+from content_pipeline.figures import FigureVocab
 from content_pipeline.mapping import REVIEW_CONFIDENCE, STOPWORDS
 from content_pipeline.materials import build_learning_objective
 from content_pipeline.qa import QaIssue, has_blocking
 from content_pipeline.readability import analyse, difficulty_hint, sentences
 from content_pipeline.taxonomy import SkillRef, Taxonomy, load_taxonomy
 from content_pipeline.validation import QuestionSchema, SchemaValidation
+from content_pipeline.visuals import (
+    VisualPlanner,
+    apply_visual,
+    grounded_icons,
+    visual_need,
+    visual_quality_checks,
+)
 
 log = logging.getLogger("content_pipeline.questions")
 
@@ -53,8 +61,23 @@ PHASE_TYPE: dict[str, str] = {
 }
 DEFAULT_TYPE = "single_choice"
 
+# Picture-based templates for TK/Fase A (M10). They reuse the Go types
+# tap_count and image_choice unchanged; a draft is only emitted when the source
+# actually grounds the number and the object.
+COUNT_TEMPLATE = "count_objects"
+PICK_TEMPLATE = "pick_object"
+PICK_DISTRACTORS = 3
+
+NUMBER_WORDS: dict[str, int] = {
+    "satu": 1, "dua": 2, "tiga": 3, "empat": 4, "lima": 5,
+    "enam": 6, "tujuh": 7, "delapan": 8, "sembilan": 9, "sepuluh": 10,
+}
+COUNTING_HINTS = ("hitung", "banyak", "jumlah", "bilangan", "angka", "berhitung")
+RECOGNITION_HINTS = ("kenal", "pilih", "tunjuk", "gambar", "bentuk", "warna", "buah", "hewan", "huruf")
+
 _WORD = re.compile(r"[A-Za-z][A-Za-z-]*")
 _WHITESPACE = re.compile(r"\s+")
+_LOWER_WORD = re.compile(r"[a-z0-9]+")
 
 
 @dataclass(frozen=True)
@@ -246,6 +269,233 @@ def build_question(
     )
 
 
+# ------------------------------------------------------- picture templates (M10)
+
+
+def _lower_words(text: str) -> list[str]:
+    return _LOWER_WORD.findall(text.lower())
+
+
+def _mentions(hints: tuple[str, ...], *parts: str) -> bool:
+    haystack = " ".join(parts).lower()
+    return any(hint in haystack for hint in hints)
+
+
+def _skill_text(skill: SkillRef | None) -> str:
+    if skill is None:
+        return ""
+    return f"{skill.name} {skill.description} {skill.chapter_name}"
+
+
+def find_count(text: str) -> tuple[int, str] | None:
+    """First grounded count as ``(value, source_word)``. Pure."""
+    for token in _lower_words(text):
+        if token.isdigit():
+            value = int(token)
+            if 1 <= value <= 10:
+                return value, token
+        elif token in NUMBER_WORDS:
+            return NUMBER_WORDS[token], token
+    return None
+
+
+def _choices_around(value: int) -> list[int]:
+    """Two to five distinct positive choices that include the answer."""
+    candidates = {max(1, value - 1), value, value + 1}
+    if len(candidates) < 2:
+        candidates.add(value + 2)
+    return sorted(candidates)
+
+
+def _ranked(items: list[str], *, seed: str) -> list[str]:
+    """Deterministic ordering of items by a hash of the seed (no RNG)."""
+    digest = hashlib.sha256(seed.encode("utf-8")).digest()
+    return sorted(items, key=lambda item: hashlib.sha256(digest + item.encode("utf-8")).hexdigest())
+
+
+def _objective(skill: SkillRef | None) -> str:
+    if skill is not None and skill.name:
+        return build_learning_objective(skill.name, skill.cp_code)
+    return FALLBACK_OBJECTIVE
+
+
+def _code(source_code: str, content_hash: str) -> str:
+    return f"Q-{source_code.upper().replace('_', '-')}-{content_hash[:8].upper()}"
+
+
+def build_count_question(
+    text: str,
+    *,
+    source_code: str,
+    skill: SkillRef | None,
+    phase_code: str = "",
+    grade_code: str = "",
+    vocab: FigureVocab,
+) -> QuestionDraft | None:
+    """A ``tap_count`` question grounded in a number and an object in the source. Pure."""
+    if not _mentions(COUNTING_HINTS, _skill_text(skill)):
+        return None
+    counted = find_count(text)
+    icons = grounded_icons(text, vocab)
+    if counted is None or not icons:
+        return None
+    value, word = counted
+    icon = icons[0]
+    label = vocab.label(icon)
+    objective = _objective(skill)
+    readability = analyse(text, phase_code=phase_code, grade_code=grade_code)
+    difficulty = difficulty_hint(readability)
+    prompt = f"Berapa banyak {label}? Ketuk angkanya."
+    content: dict[str, Any] = {
+        "prompt": prompt,
+        "audio_text": prompt,
+        "symbol": icon,
+        "count": value,
+        "color": vocab.default_color(icon),
+        "choices": _choices_around(value),
+    }
+    content_hash = question_hash(prompt, word)
+    payload: dict[str, Any] = {
+        "code": _code(source_code, content_hash),
+        "skill": skill.code if skill is not None else "",
+        "type": "tap_count",
+        "difficulty": difficulty,
+        "learning_objective": objective,
+        "content": content,
+        "answer": {"value": value},
+        "explanation": f"Jawaban: {value}. Ada {word} {label}.",
+    }
+    return QuestionDraft(
+        template=COUNT_TEMPLATE,
+        type="tap_count",
+        difficulty=difficulty,
+        learning_objective=objective,
+        prompt=prompt,
+        payload=payload,
+        answer_text=word,
+        content_hash=content_hash,
+        source_sentence=text,
+        term=word,
+    )
+
+
+def build_pick_question(
+    text: str,
+    *,
+    source_code: str,
+    skill: SkillRef | None,
+    phase_code: str = "",
+    grade_code: str = "",
+    vocab: FigureVocab,
+) -> QuestionDraft | None:
+    """An ``image_choice`` recognition question grounded in an object in the source. Pure."""
+    if not _mentions(RECOGNITION_HINTS, _skill_text(skill)):
+        return None
+    icons = grounded_icons(text, vocab)
+    if not icons:
+        return None
+    target = icons[0]
+    distractors = _ranked([icon for icon in vocab.icons if icon not in set(icons)], seed=text)[:PICK_DISTRACTORS]
+    if not distractors:
+        return None
+    label = vocab.label(target)
+    prompt = f"Pilih gambar {label}."
+    objective = _objective(skill)
+    readability = analyse(text, phase_code=phase_code, grade_code=grade_code)
+    difficulty = difficulty_hint(readability)
+
+    options: list[dict[str, Any]] = []
+    answer_id = ""
+    for index, icon in enumerate(_ranked([target, *distractors], seed=f"order:{text}")):
+        option_id = CHOICE_LETTERS[index]
+        # No visible label: the child must recognise the picture, not read the answer.
+        options.append(
+            {
+                "id": option_id,
+                "label": "",
+                "figures": [{"icon": icon, "count": 1, "color": vocab.default_color(icon)}],
+            }
+        )
+        if icon == target:
+            answer_id = option_id
+
+    content_hash = question_hash(prompt, label)
+    payload: dict[str, Any] = {
+        "code": _code(source_code, content_hash),
+        "skill": skill.code if skill is not None else "",
+        "type": "image_choice",
+        "difficulty": difficulty,
+        "learning_objective": objective,
+        "content": {"prompt": prompt, "audio_text": prompt, "options": options},
+        "answer": {"option_id": answer_id},
+        "explanation": f"Jawaban: {label}.",
+    }
+    return QuestionDraft(
+        template=PICK_TEMPLATE,
+        type="image_choice",
+        difficulty=difficulty,
+        learning_objective=objective,
+        prompt=prompt,
+        payload=payload,
+        answer_text=label,
+        content_hash=content_hash,
+        source_sentence=text,
+        term=label,
+    )
+
+
+class _TemplateBuilder(Protocol):
+    def __call__(
+        self,
+        text: str,
+        *,
+        source_code: str,
+        skill: SkillRef | None,
+        phase_code: str,
+        grade_code: str,
+    ) -> QuestionDraft | None: ...
+
+
+def _count_builder(vocab: FigureVocab) -> _TemplateBuilder:
+    def build(
+        text: str,
+        *,
+        source_code: str,
+        skill: SkillRef | None,
+        phase_code: str,
+        grade_code: str,
+    ) -> QuestionDraft | None:
+        return build_count_question(
+            text, source_code=source_code, skill=skill, phase_code=phase_code, grade_code=grade_code, vocab=vocab
+        )
+
+    return build
+
+
+def _pick_builder(vocab: FigureVocab) -> _TemplateBuilder:
+    def build(
+        text: str,
+        *,
+        source_code: str,
+        skill: SkillRef | None,
+        phase_code: str,
+        grade_code: str,
+    ) -> QuestionDraft | None:
+        return build_pick_question(
+            text, source_code=source_code, skill=skill, phase_code=phase_code, grade_code=grade_code, vocab=vocab
+        )
+
+    return build
+
+
+def _templates(vocab: FigureVocab | None) -> tuple[tuple[str, _TemplateBuilder], ...]:
+    templates: list[tuple[str, _TemplateBuilder]] = [(TEMPLATE, build_question)]
+    if vocab is not None:
+        templates.append((COUNT_TEMPLATE, _count_builder(vocab)))
+        templates.append((PICK_TEMPLATE, _pick_builder(vocab)))
+    return tuple(templates)
+
+
 def question_quality_checks(
     draft: QuestionDraft,
     validation: SchemaValidation,
@@ -269,11 +519,7 @@ def question_quality_checks(
 
     answer = draft.payload["answer"]
     content = draft.payload["content"]
-    if draft.type == "short_answer":
-        accepted = answer.get("accepted") or []
-        if not accepted:
-            issues.append(QaIssue("empty_answer", "no accepted answer", True))
-    else:
+    if draft.type in ("single_choice", "image_choice"):
         option_id = answer.get("option_id", "")
         options = content.get("options") or []
         ids = [option["id"] for option in options]
@@ -281,6 +527,13 @@ def question_quality_checks(
             issues.append(QaIssue("empty_answer", "no option selected as answer", True))
         if len(options) < 2 or len(set(ids)) != len(ids) or option_id not in ids:
             issues.append(QaIssue("invalid_options", "options are missing or inconsistent", True))
+    elif draft.type == "short_answer":
+        accepted = answer.get("accepted") or []
+        if not accepted:
+            issues.append(QaIssue("empty_answer", "no accepted answer", True))
+    elif draft.type in ("tap_count", "number_input"):
+        if answer.get("value") is None:
+            issues.append(QaIssue("empty_answer", "no numeric answer", True))
 
     if draft.answer_text.lower() not in source_text.lower():
         issues.append(QaIssue("answer_mismatch", f"{draft.answer_text!r} not in the source", True))
@@ -315,12 +568,21 @@ class _Pending:
     confidence: float
     heading: str
     text: str
+    existing: frozenset[str]
 
 
 class QuestionBuilder:
-    def __init__(self, db: Database, schema: QuestionSchema) -> None:
+    def __init__(
+        self,
+        db: Database,
+        schema: QuestionSchema,
+        planner: VisualPlanner | None = None,
+        vocab: FigureVocab | None = None,
+    ) -> None:
         self._db = db
         self._schema = schema
+        self._planner = planner
+        self._templates = _templates(vocab)
 
     def run(
         self,
@@ -333,66 +595,85 @@ class QuestionBuilder:
         skills = {skill.id: skill for skill in taxonomy.skills}
 
         counters: dict[str, dict[str, int]] = {}
-        for pending in self._pending(codes, limit, force):
+        for pending in self._pending(codes, limit):
             counts = counters.setdefault(
                 pending.source_code,
                 {"generated": 0, "drafts": 0, "needs_review": 0, "duplicates": 0,
                  "skipped": 0, "invalid": 0},
             )
             skill = skills.get(pending.skill_id) if pending.skill_id is not None else None
-            draft = build_question(
-                pending.text,
-                source_code=pending.source_code,
-                skill=skill,
-                phase_code=pending.phase_code,
-                grade_code=pending.grade_code,
-            )
-            if draft is None:
+            made = 0
+            for template, build in self._templates:
+                if template in pending.existing and not force:
+                    continue
+                draft = build(
+                    pending.text,
+                    source_code=pending.source_code,
+                    skill=skill,
+                    phase_code=pending.phase_code,
+                    grade_code=pending.grade_code,
+                )
+                if draft is None:
+                    continue
+
+                visual_issues: list[QaIssue] = []
+                if self._planner is not None:
+                    readability = analyse(
+                        pending.text, phase_code=pending.phase_code, grade_code=pending.grade_code
+                    )
+                    need = visual_need(pending.phase_code, readability, draft.type)
+                    visual = self._planner.propose(
+                        draft.payload,
+                        phase_code=pending.phase_code,
+                        readability=readability,
+                        source_text=pending.text,
+                    )
+                    draft = replace(draft, payload=apply_visual(draft.payload, visual))
+                    visual_issues = visual_quality_checks(
+                        draft.payload, need=need, vocab=self._planner.vocab, source_text=pending.text
+                    )
+
+                validation = self._schema.validate(draft.payload)
+                if not validation.ok:
+                    # A payload that fails the shared schema never enters staging.
+                    log.warning("question for chunk %s failed the schema: %s",
+                                pending.chunk_id, "; ".join(validation.errors))
+                    counts["invalid"] += 1
+                    continue
+
+                duplicate_of = self._duplicate_of(draft.content_hash, pending.chunk_id)
+                issues = question_quality_checks(
+                    draft,
+                    validation,
+                    skill_id=pending.skill_id,
+                    cp_id=pending.cp_id,
+                    confidence=pending.confidence,
+                    duplicate_of=duplicate_of,
+                    source_text=pending.text,
+                )
+                issues += visual_issues
+                status = "needs_review" if has_blocking(issues) else "draft"
+                self._store(pending, taxonomy, draft, issues, status, duplicate_of)
+
+                counts["generated"] += 1
+                counts["needs_review" if status == "needs_review" else "drafts"] += 1
+                if duplicate_of is not None:
+                    counts["duplicates"] += 1
+                made += 1
+
+            if made == 0 and not pending.existing:
                 counts["skipped"] += 1
-                continue
-
-            validation = self._schema.validate(draft.payload)
-            if not validation.ok:
-                # A payload that fails the shared schema never enters staging.
-                log.warning("question for chunk %s failed the schema: %s",
-                            pending.chunk_id, "; ".join(validation.errors))
-                counts["invalid"] += 1
-                continue
-
-            duplicate_of = self._duplicate_of(draft.content_hash, pending.chunk_id)
-            issues = question_quality_checks(
-                draft,
-                validation,
-                skill_id=pending.skill_id,
-                cp_id=pending.cp_id,
-                confidence=pending.confidence,
-                duplicate_of=duplicate_of,
-                source_text=pending.text,
-            )
-            status = "needs_review" if has_blocking(issues) else "draft"
-            self._store(pending, taxonomy, draft, issues, status, duplicate_of)
-
-            counts["generated"] += 1
-            counts["needs_review" if status == "needs_review" else "drafts"] += 1
-            if duplicate_of is not None:
-                counts["duplicates"] += 1
 
         return [QuestionSummary(source_code=code, **counters[code]) for code in sorted(counters)]
 
     # ----------------------------------------------------------------- internal
 
-    def _pending(self, codes: list[str] | None, limit: int | None, force: bool) -> list[_Pending]:
+    def _pending(self, codes: list[str] | None, limit: int | None) -> list[_Pending]:
         conditions = ["mc.status = 'candidate'"]
         params: list[object] = []
         if codes:
             conditions.append("s.code = ANY(%s)")
             params.append(codes)
-        if not force:
-            conditions.append(
-                "NOT EXISTS (SELECT 1 FROM content_staging.question_candidates q "
-                "WHERE q.chunk_id = mc.chunk_id AND q.template = %s)"
-            )
-            params.append(TEMPLATE)
         where = " AND ".join(conditions)
         limit_sql = ""
         if limit:
@@ -402,7 +683,9 @@ class QuestionBuilder:
         sql = f"""
             SELECT mc.chunk_id, mc.document_id, mc.source_id, s.code,
                    mc.skill_id, mc.cp_id, mc.phase_code, mc.grade_code, mc.confidence,
-                   c.heading, c.text
+                   c.heading, c.text,
+                   COALESCE((SELECT array_agg(q.template) FROM content_staging.question_candidates q
+                             WHERE q.chunk_id = mc.chunk_id), '{{}}') AS existing
             FROM content_staging.mapping_candidates mc
             JOIN content_staging.document_chunks c ON c.id = mc.chunk_id
             JOIN content_staging.source_documents d ON d.id = mc.document_id
@@ -427,6 +710,7 @@ class QuestionBuilder:
                 confidence=float(row[8]),
                 heading=str(row[9]),
                 text=str(row[10]),
+                existing=frozenset(str(template) for template in (row[11] or [])),
             )
             for row in rows
         ]

@@ -40,6 +40,7 @@ type Asset struct {
 	ModificationNotes string     `json:"modification_notes"`
 	AIGenerated       bool       `json:"ai_generated"`
 	Usage             []string   `json:"usage"`
+	Tags              []string   `json:"tags"`
 	MimeType          *string    `json:"mime_type"`
 	SizeBytes         *int64     `json:"size_bytes"`
 	Status            string     `json:"status"`
@@ -49,7 +50,7 @@ type Asset struct {
 }
 
 const selectAsset = `SELECT a.id, a.code, a.name, a.kind, a.source, a.creator, a.license_id, l.name, a.license_url, a.downloaded_at,
-	a.original_file, a.modified, a.modification_notes, a.ai_generated, a.usage, a.mime_type, a.size_bytes, a.status,
+	a.original_file, a.modified, a.modification_notes, a.ai_generated, a.usage, a.tags, a.mime_type, a.size_bytes, a.status,
 	a.storage_key IS NOT NULL, a.updated_at
 	FROM assets a LEFT JOIN asset_licenses l ON l.id = a.license_id`
 
@@ -57,7 +58,7 @@ func scanAsset(row pgx.Row) (Asset, error) {
 	var a Asset
 	var hasFile bool
 	err := row.Scan(&a.ID, &a.Code, &a.Name, &a.Kind, &a.Source, &a.Creator, &a.LicenseID, &a.LicenseName, &a.LicenseURL, &a.DownloadedAt,
-		&a.OriginalFile, &a.Modified, &a.ModificationNotes, &a.AIGenerated, &a.Usage, &a.MimeType, &a.SizeBytes, &a.Status, &hasFile, &a.UpdatedAt)
+		&a.OriginalFile, &a.Modified, &a.ModificationNotes, &a.AIGenerated, &a.Usage, &a.Tags, &a.MimeType, &a.SizeBytes, &a.Status, &hasFile, &a.UpdatedAt)
 	if hasFile {
 		u := "/api/v1/media/" + a.ID.String()
 		a.URL = &u
@@ -71,7 +72,8 @@ func (h Handler) List(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.DB.Query(r.Context(), selectAsset+`
 		WHERE ($1 = '' OR a.status = $1) AND ($2 = '' OR a.kind = $2)
 		  AND ($3 = '' OR a.name ILIKE '%' || $3 || '%' OR a.code ILIKE '%' || $3 || '%' OR a.source ILIKE '%' || $3 || '%' OR a.creator ILIKE '%' || $3 || '%')
-		ORDER BY a.updated_at DESC LIMIT 200`, q.Get("status"), q.Get("kind"), q.Get("q"))
+		  AND ($4 = '' OR $4 = ANY(a.tags))
+		ORDER BY a.updated_at DESC LIMIT 200`, q.Get("status"), q.Get("kind"), q.Get("q"), q.Get("tag"))
 	if err != nil {
 		httpx.Internal(w, r, err)
 		return
@@ -97,6 +99,7 @@ type assetInput struct {
 	ModificationNotes *string   `json:"modification_notes"`
 	AIGenerated       *bool     `json:"ai_generated"`
 	Usage             *[]string `json:"usage"`
+	Tags              *[]string `json:"tags"`
 }
 
 var codePrefix = map[string]string{
@@ -192,9 +195,9 @@ func applyInput(r *http.Request, tx pgx.Tx, id uuid.UUID, in assetInput) error {
 		name = COALESCE($2, name), kind = COALESCE($3, kind), source = COALESCE($4, source), creator = COALESCE($5, creator),
 		license_id = COALESCE($6, license_id), license_url = COALESCE($7, license_url), downloaded_at = COALESCE($8, downloaded_at),
 		original_file = COALESCE($9, original_file), modified = COALESCE($10, modified), modification_notes = COALESCE($11, modification_notes),
-		ai_generated = COALESCE($12, ai_generated), usage = COALESCE($13, usage), updated_at = now()
+		ai_generated = COALESCE($12, ai_generated), usage = COALESCE($13, usage), tags = COALESCE($14, tags), updated_at = now()
 		WHERE id = $1`, id, in.Name, in.Kind, in.Source, in.Creator, in.LicenseID, in.LicenseURL, dl, in.OriginalFile, in.Modified,
-		in.ModificationNotes, in.AIGenerated, in.Usage)
+		in.ModificationNotes, in.AIGenerated, in.Usage, in.Tags)
 	return err
 }
 
