@@ -148,6 +148,25 @@ See [`docs/content-pipeline-roadmap.md`](../../docs/content-pipeline-roadmap.md)
 - **Grants**: the pipeline role was granted `SELECT` on `public.curriculum_source_documents`,
   `public.questions` and `public.question_provenance` (read-only, same as the rest of canonical).
 
+## What M10 does
+
+- **Pictured stimuli for TK/Fase A** (§22, §30): `visuals` proposes a visual for early-band question
+  candidates and `questions` attaches one at generation time. Two forms, both *suggestions* a reviewer
+  approves: **icon figures** (an Indonesian noun in the source that is also an approved figure) and
+  **licensed context illustrations** (a `published`, non-AI asset whose tags match the source,
+  referenced by `/api/v1/media/<uuid>` — never a fabricated id).
+- **One vocabulary, no drift**: `packages/figures/figures.json` is the single source of truth. The Go
+  API generates its `Icons` allowlist from it, the web client maps each name to a Phosphor component,
+  and `figures.py` loads it here (override with `FIGURES_PATH`). Parity tests cover all three sides.
+- **Two invariants**: **no answer leak** (a visual must not depict `answer_text` — `visual_answer_leak`
+  is blocking) and **grounding** (only concepts present in the source; `visual_ungrounded` is advisory).
+- **New picture templates**: `count_objects → tap_count` and `pick_object → image_choice`, using the
+  Go types unchanged. They emit only when the skill/objective is about counting/recognising objects
+  *and* the number/object is grounded in the source. `QuestionBuilder` now runs several templates per
+  chunk (unique key `(chunk_id, template)`).
+- **Grants**: matching an illustration needs read-only access to `public.assets` / `public.asset_licenses`
+  (see `sql/roles_grants.sql`). Without it the pipeline fails closed and proposes icons only.
+
 ## Setup
 
 ```bash
@@ -222,6 +241,11 @@ uv run content-pipeline watch --dry-run                        # fetch + diff, w
 uv run content-pipeline watch --due                            # only documents whose frequency is due
 uv run content-pipeline watch --from-file ./kurikulum.txt --document-code KEMENDIKDASMEN-KURIKULUM
 uv run content-pipeline changes --status analyzed --limit 20   # list detected changes
+
+# M10 — propose pictured stimuli for early-band (TK/Fase A) questions
+uv run content-pipeline visuals --source my-source             # propose icons / illustrations
+uv run content-pipeline visuals --source my-source --dry-run   # report only: no writes
+uv run content-pipeline visuals --source my-source --force     # also revisit questions that already have one
 ```
 
 The Go reviewer API + web screens for M7 (`/api/curriculum-changes`, the reviewer queue) are part
@@ -252,6 +276,8 @@ src/content_pipeline/
   qa.py         shared quality-issue primitives (§40)
   validation.py shared question-schema loading and payload validation
   questions.py  deterministic question candidates + QA (§22/§23/§40)
+  figures.py    shared figure vocabulary loader (packages/figures/figures.json, M10)
+  visuals.py    visual-need decisions + grounded visual proposals (M10)
   provider.py   AI provider abstraction: OpenAI-compatible + offline mock (M6)
   similarity.py cosine + semantic confidence and dedup thresholds (M6)
   embeddings.py embedding cache store, batcher and builder (M6)
@@ -285,3 +311,7 @@ The deterministic cloze template is intentionally narrow; scenario/comprehension
 M6 assisted generation, and every candidate — deterministic or AI — is still reviewed by a human
 (§24). With `AI_PROVIDER=mock` the semantic layer is deliberately inert (orthogonal vectors); use a
 real embedding model for genuine near-duplicate detection.
+
+**M10 deferrals:** the optional semantic match between source terms and asset tags (a `visual_tag`
+embedding owner) is not implemented — exact tag intersection is enough for the first cut. Importing
+the curated DrawKit illustrations is an operator task through the CMS, not a pipeline step.

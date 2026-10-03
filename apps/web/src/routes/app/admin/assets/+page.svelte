@@ -10,6 +10,7 @@
 	let licenses = $state<any[]>([]);
 	let q = $state('');
 	let status = $state('');
+	let tag = $state('');
 	let err = $state('');
 	const isReviewer = $derived(session.user?.role === 'reviewer' || session.user?.role === 'admin');
 	const kinds = ['illustration', 'character', 'mascot', 'icon', 'sticker', 'reward', 'background', 'shape', 'animation', 'sound', 'diagram', 'photo', 'logo'];
@@ -17,12 +18,12 @@
 	const label: Record<string, string> = { imported: 'Diimpor', license_verified: 'Lisensi terverifikasi', design_approved: 'Desain disetujui', performance_checked: 'Performa dicek', published: 'Tayang', rejected: 'Ditolak' };
 
 	async function load() {
-		assets = (await get(`/admin/assets?${new URLSearchParams({ q, status })}`)).assets;
+		assets = (await get(`/admin/assets?${new URLSearchParams({ q, status, tag })}`)).assets;
 	}
 	load();
 	get('/admin/licenses').then((r) => (licenses = r.licenses));
 
-	let form = $state({ name: '', kind: 'illustration', source: '', creator: '', license_id: null as number | null, license_url: '', downloaded_at: '', original_file: '', modified: false, modification_notes: '', ai_generated: false, usage: '' });
+	let form = $state({ name: '', kind: 'illustration', source: '', creator: '', license_id: null as number | null, license_url: '', downloaded_at: '', original_file: '', modified: false, modification_notes: '', ai_generated: false, usage: '', tags: '' });
 	let file: FileList | undefined = $state();
 	let fields = $state<Record<string, string>>({});
 
@@ -30,7 +31,7 @@
 		e.preventDefault();
 		fields = {};
 		const fd = new FormData();
-		fd.set('meta', JSON.stringify({ ...form, usage: form.usage.split(',').map((s) => s.trim()).filter(Boolean), downloaded_at: form.downloaded_at || undefined, license_id: form.license_id ?? undefined }));
+		fd.set('meta', JSON.stringify({ ...form, usage: form.usage.split(',').map((s) => s.trim()).filter(Boolean), tags: form.tags.split(',').map((s) => s.trim()).filter(Boolean), downloaded_at: form.downloaded_at || undefined, license_id: form.license_id ?? undefined }));
 		if (file?.[0]) fd.set('file', file[0]);
 		try {
 			await api('POST', '/admin/assets', fd);
@@ -69,6 +70,7 @@
 		<option value="">Semua status</option>
 		{#each Object.entries(label) as [k, v]}<option value={k}>{v}</option>{/each}
 	</select>
+	<input class="field !min-h-11 w-48" placeholder="Filter tag" aria-label="Filter tag" bind:value={tag} onkeydown={(e) => e.key === 'Enter' && load()} />
 </div>
 {#if err}<p class="field-error px-4 pt-3" role="alert">{err}</p>{/if}
 
@@ -134,6 +136,7 @@
 	<label class="flex min-h-11 items-center gap-3"><input type="checkbox" class="size-5 accent-primary" bind:checked={form.modified} />Dimodifikasi</label>
 	<label class="md:col-span-2"><span class="label">Catatan modifikasi</span><input class="field" bind:value={form.modification_notes} /></label>
 	<label class="md:col-span-2"><span class="label">Dipakai di (pisahkan koma)</span><input class="field" placeholder="landing-page, onboarding" bind:value={form.usage} /></label>
+	<label><span class="label">Tag (pisahkan koma)</span><input class="field" placeholder="buah, hitung, tk-a" bind:value={form.tags} /></label>
 	<label class="flex min-h-11 items-center gap-3"><input type="checkbox" class="size-5 accent-primary" bind:checked={form.ai_generated} />Dibuat dengan AI</label>
 	<button class="btn btn-primary md:col-span-3 md:justify-self-start">Impor</button>
 </form>

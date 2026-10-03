@@ -11,7 +11,10 @@
 	import {
 		hasAudio,
 		hasVisual,
-		visualLabel,
+		needsVisual,
+		visualKindLabel,
+		visualKindOf,
+		visualSummaryOf,
 		type CanonicalQuestion,
 		type LessonDetail,
 		type StudioMaterialGroup
@@ -20,6 +23,14 @@
 	const skillId = page.params.skillId;
 	let detail = $state<LessonDetail | null>(null);
 	let err = $state('');
+	let onlyNeedsVisual = $state(false);
+
+	const materialsView = $derived(
+		(detail?.materials ?? [])
+			.map((g) => ({ ...g, questions: g.questions.filter((q) => !onlyNeedsVisual || needsVisual(q)) }))
+			.filter((g) => !onlyNeedsVisual || g.questions.length > 0)
+	);
+	const orphanView = $derived((detail?.orphan_questions ?? []).filter((q) => !onlyNeedsVisual || needsVisual(q)));
 
 	get(`/admin/content-studio/lessons/${skillId}`)
 		.then((r: LessonDetail) => (detail = r))
@@ -50,14 +61,18 @@
 	};
 </script>
 
-{#snippet visualPill(hasV: boolean, hasA: boolean)}
-	{#if hasV}
-		<span class="pill bg-leaf-tint text-leaf-deep">Ada visual</span>
-	{:else if hasA}
-		<span class="pill bg-sun-tint text-ink">Butuh audio</span>
-	{:else}
-		<span class="pill bg-paper-deep text-ink-soft">Teks saja</span>
-	{/if}
+{#snippet visualPill(hasV: boolean, hasA: boolean, content: Record<string, unknown> | undefined)}
+	{@const kind = visualKindOf(hasV, hasA, content)}
+	{@const summary = visualSummaryOf(content)}
+	<span
+		class="pill {kind === 'image' || kind === 'icon'
+			? 'bg-leaf-tint text-leaf-deep'
+			: kind === 'audio'
+				? 'bg-sun-tint text-ink'
+				: 'bg-paper-deep text-ink-soft'}"
+	>
+		{visualKindLabel(kind)}{#if summary && (kind === 'image' || kind === 'icon')} · {summary}{/if}
+	</span>
 {/snippet}
 
 {#snippet questionCard(q: CandidateDetail)}
@@ -65,7 +80,7 @@
 		<div class="flex flex-wrap items-center gap-2">
 			<span class="pill bg-paper-deep text-ink-soft">{q.type || 'soal'}</span>
 			{#if q.difficulty}<span class="text-xs text-ink-soft">Kesulitan {q.difficulty}/5</span>{/if}
-			{@render visualPill(hasVisual(q), hasAudio(q))}
+			{@render visualPill(hasVisual(q), hasAudio(q), q.payload?.content)}
 			<span class="ml-auto font-mono text-xs text-ink-soft">#{q.id}</span>
 		</div>
 		{#if q.payload}
@@ -101,7 +116,7 @@
 			<span class="pill bg-leaf-tint text-leaf-deep">Tayang</span>
 			<span class="pill bg-paper-deep text-ink-soft">{p.type || 'soal'}</span>
 			{#if p.difficulty}<span class="text-xs text-ink-soft">Kesulitan {p.difficulty}/5</span>{/if}
-			{@render visualPill(p.has_visual, p.has_audio)}
+			{@render visualPill(p.has_visual, p.has_audio, p.content)}
 			<span class="ml-auto font-mono text-xs text-ink-soft">{p.code}</span>
 		</div>
 		<div class="mt-3 rounded-xl bg-paper-deep/50 p-3 sm:p-4">
@@ -137,6 +152,11 @@
 		{#if detail.skill.description}<p class="mt-2 text-ink-soft">{detail.skill.description}</p>{/if}
 	</header>
 
+	<label class="mt-4 inline-flex min-h-11 items-center gap-3">
+		<input type="checkbox" class="size-5 accent-primary" bind:checked={onlyNeedsVisual} />
+		<span class="text-sm font-semibold">Hanya soal yang butuh visual</span>
+	</label>
+
 	{#if !detail.available}
 		<div class="card mt-6 p-6">
 			<p class="text-ink-soft">Pipeline konten belum dijalankan di lingkungan ini.</p>
@@ -150,9 +170,9 @@
 		<p class="mt-1 text-sm text-ink-soft">
 			Materi bersifat review-only: yang tayang ke kelas adalah soal turunannya. Soal dikelompokkan berdasarkan chunk sumber yang sama.
 		</p>
-		{#if detail.materials.length}
+		{#if materialsView.length}
 			<div class="mt-4 space-y-6">
-				{#each detail.materials as g (g.material.id)}
+				{#each materialsView as g (g.material.id)}
 					{@const m = g.material}
 					{@const readability = (m.readability ?? null) as Record<string, unknown> | null}
 					<div class="card p-5 sm:p-6">
@@ -209,17 +229,21 @@
 				{/each}
 			</div>
 		{:else}
-			<p class="mt-4 text-ink-soft">Tidak ada materi pipeline untuk pelajaran ini.</p>
+			<p class="mt-4 text-ink-soft">
+				{onlyNeedsVisual
+					? 'Tidak ada soal yang butuh visual di materi pipeline.'
+					: 'Tidak ada materi pipeline untuk pelajaran ini.'}
+			</p>
 		{/if}
 	</section>
 
 	<!-- 2. Questions with no material -->
-	{#if detail.orphan_questions.length}
+	{#if orphanView.length}
 		<section class="mt-10" aria-labelledby="orphan">
-			<h2 id="orphan" class="text-2xl">Soal tanpa materi ({detail.orphan_questions.length})</h2>
+			<h2 id="orphan" class="text-2xl">Soal tanpa materi ({orphanView.length})</h2>
 			<p class="mt-1 text-sm text-ink-soft">Soal ini tidak punya chunk sumber yang cocok, jadi tidak dikelompokkan di bawah materi mana pun.</p>
 			<div class="mt-4 space-y-4">
-				{#each detail.orphan_questions as q (q.id)}{@render questionCard(q)}{/each}
+				{#each orphanView as q (q.id)}{@render questionCard(q)}{/each}
 			</div>
 		</section>
 	{/if}

@@ -12,6 +12,7 @@
     content-pipeline dedup [--source CODE] [--limit N] [--kind material|question|all]
     content-pipeline materials [--source CODE] [--limit N] [--force]
     content-pipeline questions [--source CODE] [--limit N] [--force]
+    content-pipeline visuals [--source CODE] [--limit N] [--force] [--dry-run]
     content-pipeline generate [--source CODE] [--limit N] [--template T] [--force]
                               [--dry-run] [--cap N] [--allow-unknown-license]
     content-pipeline watch [--document-code CODE] [--limit N] [--dry-run] [--force] [--due] [--from-file PATH]
@@ -35,6 +36,7 @@ from content_pipeline.db import Database
 from content_pipeline.dedup import MATERIAL, QUESTION, Deduplicator, MissingEmbeddingsError
 from content_pipeline.embeddings import OWNER_CHUNK, OWNER_SKILL, EmbeddingBuilder, EmbeddingStore
 from content_pipeline.extract import Extractor
+from content_pipeline.figures import FigureVocab, load_vocab
 from content_pipeline.mapping import Mapper
 from content_pipeline.materials import MaterialBuilder
 from content_pipeline.migrate import migrate
@@ -49,6 +51,7 @@ from content_pipeline.registry import (
 )
 from content_pipeline.storage import RawArchive
 from content_pipeline.validation import QuestionSchema
+from content_pipeline.visuals import DbAssetCatalog, VisualBuilder, VisualPlanner
 from content_pipeline.watch import (
     CurriculumWatcher,
     list_change_events,
@@ -130,6 +133,12 @@ def _build_parser() -> argparse.ArgumentParser:
     questions.add_argument("--limit", type=int, help="max candidates to build")
     questions.add_argument("--force", action="store_true", help="rebuild existing candidates")
 
+    visuals = sub.add_parser("visuals", help="propose pictured stimuli for early-band questions (M10)")
+    visuals.add_argument("--source", action="append", dest="sources", metavar="CODE")
+    visuals.add_argument("--limit", type=int, help="max candidates to consider")
+    visuals.add_argument("--force", action="store_true", help="also consider candidates that already have a stimulus")
+    visuals.add_argument("--dry-run", action="store_true", help="report without writing anything")
+
     generate = sub.add_parser(
         "generate", help="AI-assisted scenario/comprehension questions (M6, §23)"
     )
@@ -197,6 +206,15 @@ def _embed_kinds(value: str) -> tuple[str, ...]:
 
 def _dedup_kinds(value: str) -> tuple[str, ...]:
     return (MATERIAL, QUESTION) if value == "all" else (value,)
+
+
+def _load_vocab() -> FigureVocab | None:
+    """Load the shared figure vocabulary, or None (with a warning) when it is missing."""
+    try:
+        return load_vocab()
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"warning: visual vocabulary unavailable ({exc}); continuing without visuals", file=sys.stderr)
+        return None
 
 
 def _cmd_migrate(db: Database) -> int:
@@ -398,7 +416,11 @@ def _cmd_questions(db: Database, args: argparse.Namespace) -> int:
     except FileNotFoundError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    summaries = QuestionBuilder(db, schema).run(codes=args.sources, limit=args.limit, force=args.force)
+    vocab = _load_vocab()
+    planner = VisualPlanner(vocab, DbAssetCatalog(db)) if vocab is not None else None
+    summaries = QuestionBuilder(db, schema, planner=planner, vocab=vocab).run(
+        codes=args.sources, limit=args.limit, force=args.force
+    )
     if not summaries:
         print("nothing to build (map first, or use --force)")
         return 0
@@ -407,6 +429,31 @@ def _cmd_questions(db: Database, args: argparse.Namespace) -> int:
             f"{summary.source_code}: generated={summary.generated} drafts={summary.drafts} "
             f"needs_review={summary.needs_review} duplicates={summary.duplicates} "
             f"skipped={summary.skipped} invalid={summary.invalid}"
+        )
+    return 0
+
+
+def _cmd_visuals(db: Database, args: argparse.Namespace) -> int:
+    try:
+        schema = QuestionSchema.load()
+    except FileNotFoundError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    vocab = _load_vocab()
+    if vocab is None:
+        return 2
+    summaries = VisualBuilder(db, schema, VisualPlanner(vocab, DbAssetCatalog(db))).run(
+        codes=args.sources, limit=args.limit, force=args.force, dry_run=args.dry_run
+    )
+    if not summaries:
+        print("nothing to consider (build questions first)")
+        return 0
+    prefix = "dry-run " if args.dry_run else ""
+    for summary in summaries:
+        print(
+            f"{prefix}{summary.source_code}: considered={summary.considered} "
+            f"proposed={summary.proposed} figures={summary.figures} images={summary.images} "
+            f"already={summary.already} skipped={summary.skipped} needs_review={summary.needs_review}"
         )
     return 0
 
@@ -541,6 +588,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_materials(db, args)
         if args.command == "questions":
             return _cmd_questions(db, args)
+        if args.command == "visuals":
+            return _cmd_visuals(db, args)
         if args.command == "generate":
             return _cmd_generate(db, settings, args)
         if args.command == "watch":

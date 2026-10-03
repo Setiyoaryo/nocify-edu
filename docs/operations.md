@@ -58,8 +58,20 @@ The pipeline is a separate container and never runs in the product request path;
   makes a second run a no-op. **M7 never writes canonical curriculum**; a reviewer decides in the
   CMS (`/app/admin/curriculum-changes`), and the decision is recorded in the canonical
   `curriculum_change_reviews` ledger.
+- **Visuals (M10):** `content-pipeline visuals` proposes a pictured stimulus (icon figures or a
+  licensed context illustration) for TK/Fase A questions that don't have one yet — `--source`,
+  `--limit`, `--force` (also consider candidates that already have a stimulus), `--dry-run`. It only
+  writes `content_staging.question_candidates`; a reviewer still approves in the CMS. The `questions`
+  command also attaches a proposal at generation time when the shared vocabulary is present. The
+  illustration path reads `public.assets`, which needs the one-time grant below; without it the
+  pipeline fails closed and only the icon path works.
 - **Secrets/env:** `DATABASE_URL` is the only required variable; AI steps need `AI_PROVIDER`
   (`mock` needs no key). Sources with an `unknown` licence are skipped unless `--allow-unknown-license`.
+- **Asset read grant (M10, manual):** to match a question to a licensed illustration, the pipeline needs
+  read-only access to `public.assets` and `public.asset_licenses`. Run the `GRANT SELECT` block in
+  `services/content-pipeline/sql/roles_grants.sql` once per environment as a DB owner. It is **not**
+  applied automatically; until it is, the illustration path returns nothing (fail-closed) and questions
+  are proposed with icons only.
 
 ## Creator attribution (M8)
 `eduplay recompute-attribution` rebuilds `question_attribution` (usage/completion/quality per question)

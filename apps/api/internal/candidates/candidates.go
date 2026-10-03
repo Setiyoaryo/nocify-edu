@@ -396,7 +396,8 @@ func deref[T any](p *T) T {
 
 // payloadHasVisual reports whether a question payload renders a picture: icon
 // figures or an image asset, either as a content-level stimulus
-// (content.figures / content.image) or per option (image_choice options).
+// (content.figures / content.image) or per option (image_choice options). A
+// tap_count stimulus is its symbol, so that counts too.
 func payloadHasVisual(raw []byte) bool {
 	if len(raw) == 0 {
 		return false
@@ -409,12 +410,13 @@ func payloadHasVisual(raw []byte) bool {
 		Content struct {
 			visual
 			Options []visual `json:"options"`
+			Symbol  string   `json:"symbol"`
 		} `json:"content"`
 	}
 	if err := json.Unmarshal(raw, &p); err != nil {
 		return false
 	}
-	if len(p.Content.Figures) > 0 || p.Content.Image != "" {
+	if len(p.Content.Figures) > 0 || p.Content.Image != "" || p.Content.Symbol != "" {
 		return true
 	}
 	for _, o := range p.Content.Options {

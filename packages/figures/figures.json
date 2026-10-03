@@ -1,0 +1,462 @@
+[
+  {
+    "name": "orange",
+    "label": "jeruk",
+    "color": "orange"
+  },
+  {
+    "name": "cherries",
+    "label": "ceri",
+    "color": "red"
+  },
+  {
+    "name": "carrot",
+    "label": "wortel",
+    "color": "orange"
+  },
+  {
+    "name": "pepper",
+    "label": "cabai",
+    "color": "red"
+  },
+  {
+    "name": "avocado",
+    "label": "alpukat",
+    "color": "green"
+  },
+  {
+    "name": "cake",
+    "label": "kue",
+    "color": "pink"
+  },
+  {
+    "name": "cookie",
+    "label": "biskuit",
+    "color": "brown"
+  },
+  {
+    "name": "pizza",
+    "label": "pizza",
+    "color": "orange"
+  },
+  {
+    "name": "ice-cream",
+    "label": "es krim",
+    "color": "pink"
+  },
+  {
+    "name": "bread",
+    "label": "roti",
+    "color": "brown"
+  },
+  {
+    "name": "egg",
+    "label": "telur",
+    "color": "yellow"
+  },
+  {
+    "name": "hamburger",
+    "label": "burger",
+    "color": "brown"
+  },
+  {
+    "name": "popcorn",
+    "label": "popcorn",
+    "color": "yellow"
+  },
+  {
+    "name": "star",
+    "label": "bintang",
+    "color": "yellow"
+  },
+  {
+    "name": "heart",
+    "label": "hati",
+    "color": "red"
+  },
+  {
+    "name": "sun",
+    "label": "matahari",
+    "color": "yellow"
+  },
+  {
+    "name": "moon",
+    "label": "bulan",
+    "color": "purple"
+  },
+  {
+    "name": "cloud",
+    "label": "awan",
+    "color": "blue"
+  },
+  {
+    "name": "cloud-rain",
+    "label": "awan hujan",
+    "color": "blue"
+  },
+  {
+    "name": "drop",
+    "label": "tetes air",
+    "color": "blue"
+  },
+  {
+    "name": "snowflake",
+    "label": "kepingan salju",
+    "color": "blue"
+  },
+  {
+    "name": "lightning",
+    "label": "petir",
+    "color": "yellow"
+  },
+  {
+    "name": "rainbow",
+    "label": "pelangi",
+    "color": "purple"
+  },
+  {
+    "name": "flower",
+    "label": "bunga",
+    "color": "pink"
+  },
+  {
+    "name": "flower-tulip",
+    "label": "bunga tulip",
+    "color": "red"
+  },
+  {
+    "name": "leaf",
+    "label": "daun",
+    "color": "green"
+  },
+  {
+    "name": "plant",
+    "label": "tanaman",
+    "color": "green"
+  },
+  {
+    "name": "tree",
+    "label": "pohon",
+    "color": "green"
+  },
+  {
+    "name": "acorn",
+    "label": "biji",
+    "color": "brown"
+  },
+  {
+    "name": "fish",
+    "label": "ikan",
+    "color": "blue"
+  },
+  {
+    "name": "bird",
+    "label": "burung",
+    "color": "yellow"
+  },
+  {
+    "name": "cat",
+    "label": "kucing",
+    "color": "orange"
+  },
+  {
+    "name": "dog",
+    "label": "anjing",
+    "color": "brown"
+  },
+  {
+    "name": "rabbit",
+    "label": "kelinci",
+    "color": "pink"
+  },
+  {
+    "name": "butterfly",
+    "label": "kupu-kupu",
+    "color": "purple"
+  },
+  {
+    "name": "cow",
+    "label": "sapi",
+    "color": "brown"
+  },
+  {
+    "name": "horse",
+    "label": "kuda",
+    "color": "brown"
+  },
+  {
+    "name": "bug",
+    "label": "serangga",
+    "color": "red"
+  },
+  {
+    "name": "car",
+    "label": "mobil",
+    "color": "blue"
+  },
+  {
+    "name": "bus",
+    "label": "bus",
+    "color": "yellow"
+  },
+  {
+    "name": "boat",
+    "label": "perahu",
+    "color": "blue"
+  },
+  {
+    "name": "train",
+    "label": "kereta",
+    "color": "red"
+  },
+  {
+    "name": "airplane",
+    "label": "pesawat",
+    "color": "blue"
+  },
+  {
+    "name": "bicycle",
+    "label": "sepeda",
+    "color": "green"
+  },
+  {
+    "name": "rocket",
+    "label": "roket",
+    "color": "red"
+  },
+  {
+    "name": "sailboat",
+    "label": "perahu layar",
+    "color": "blue"
+  },
+  {
+    "name": "book",
+    "label": "buku",
+    "color": "purple"
+  },
+  {
+    "name": "book-open",
+    "label": "buku terbuka",
+    "color": "purple"
+  },
+  {
+    "name": "backpack",
+    "label": "tas sekolah",
+    "color": "red"
+  },
+  {
+    "name": "pencil",
+    "label": "pensil",
+    "color": "yellow"
+  },
+  {
+    "name": "ruler",
+    "label": "penggaris",
+    "color": "yellow"
+  },
+  {
+    "name": "palette",
+    "label": "palet",
+    "color": "purple"
+  },
+  {
+    "name": "puzzle",
+    "label": "puzzle",
+    "color": "green"
+  },
+  {
+    "name": "balloon",
+    "label": "balon",
+    "color": "red"
+  },
+  {
+    "name": "soccer-ball",
+    "label": "bola",
+    "color": "gray"
+  },
+  {
+    "name": "basketball",
+    "label": "bola basket",
+    "color": "orange"
+  },
+  {
+    "name": "gift",
+    "label": "hadiah",
+    "color": "pink"
+  },
+  {
+    "name": "bell",
+    "label": "lonceng",
+    "color": "yellow"
+  },
+  {
+    "name": "house",
+    "label": "rumah",
+    "color": "orange"
+  },
+  {
+    "name": "tent",
+    "label": "tenda",
+    "color": "green"
+  },
+  {
+    "name": "bed",
+    "label": "tempat tidur",
+    "color": "blue"
+  },
+  {
+    "name": "tooth",
+    "label": "gigi",
+    "color": "gray"
+  },
+  {
+    "name": "hand-soap",
+    "label": "sabun",
+    "color": "blue"
+  },
+  {
+    "name": "shovel",
+    "label": "sekop",
+    "color": "brown"
+  },
+  {
+    "name": "circle",
+    "label": "lingkaran",
+    "color": "blue"
+  },
+  {
+    "name": "triangle",
+    "label": "segitiga",
+    "color": "blue"
+  },
+  {
+    "name": "square",
+    "label": "persegi",
+    "color": "blue"
+  },
+  {
+    "name": "hexagon",
+    "label": "segi enam",
+    "color": "blue"
+  },
+  {
+    "name": "diamond",
+    "label": "belah ketupat",
+    "color": "blue"
+  },
+  {
+    "name": "question",
+    "label": "tanda tanya",
+    "color": "gray"
+  },
+  {
+    "name": "sneaker",
+    "label": "sepatu",
+    "color": "blue"
+  },
+  {
+    "name": "t-shirt",
+    "label": "baju",
+    "color": "red"
+  },
+  {
+    "name": "sock",
+    "label": "kaus kaki",
+    "color": "pink"
+  },
+  {
+    "name": "boot",
+    "label": "sepatu bot",
+    "color": "brown"
+  },
+  {
+    "name": "umbrella",
+    "label": "payung",
+    "color": "purple"
+  },
+  {
+    "name": "cactus",
+    "label": "kaktus",
+    "color": "green"
+  },
+  {
+    "name": "cheese",
+    "label": "keju",
+    "color": "yellow"
+  },
+  {
+    "name": "bowl-food",
+    "label": "semangkuk makanan",
+    "color": "orange"
+  },
+  {
+    "name": "fork-knife",
+    "label": "sendok dan garpu",
+    "color": "gray"
+  },
+  {
+    "name": "notebook",
+    "label": "buku catatan",
+    "color": "blue"
+  },
+  {
+    "name": "chalkboard",
+    "label": "papan tulis",
+    "color": "green"
+  },
+  {
+    "name": "scissors",
+    "label": "gunting",
+    "color": "gray"
+  },
+  {
+    "name": "eraser",
+    "label": "penghapus",
+    "color": "pink"
+  },
+  {
+    "name": "paperclip",
+    "label": "klip kertas",
+    "color": "gray"
+  },
+  {
+    "name": "clock",
+    "label": "jam",
+    "color": "blue"
+  },
+  {
+    "name": "calendar",
+    "label": "kalender",
+    "color": "red"
+  },
+  {
+    "name": "globe",
+    "label": "bola dunia",
+    "color": "blue"
+  },
+  {
+    "name": "hand",
+    "label": "tangan",
+    "color": "orange"
+  },
+  {
+    "name": "crown",
+    "label": "mahkota",
+    "color": "yellow"
+  },
+  {
+    "name": "paint-brush",
+    "label": "kuas",
+    "color": "brown"
+  },
+  {
+    "name": "map-trifold",
+    "label": "peta",
+    "color": "green"
+  },
+  {
+    "name": "smiley",
+    "label": "wajah senyum",
+    "color": "yellow"
+  }
+]

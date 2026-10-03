@@ -130,7 +130,7 @@ Pertanyaannya: bagaimana Python dan Go berbagi data tanpa saling merusak.
 
 ---
 
-## 6. Roadmap M1–M8 (konkret)
+## 6. Roadmap M1–M10 (konkret)
 
 Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§54 rencana karena sudah disesuaikan ke repo.
 
@@ -267,6 +267,24 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
   - **Terverifikasi:** `gofmt`/`go vet` bersih; tes Go `internal/candidates` (DB-gated, `TEST_DATABASE_URL`) hijau; `make test-api` hijau (termasuk `TestContentStudioRBAC` — anonim 401, parent 403, editor 200, degradasi `available:false`, skill tak dikenal 404); `svelte-check` 0 error; `npm run build` hijau; vitest **22 tes** hijau (7 baru di `contentStudio.test.ts`).
   - **Out of scope (milestone berikutnya):** pembuatan **figure/gambar** otomatis untuk soal. M9 hanya menampilkan sinyal `visual_required`/`has_visual` agar reviewer bisa melihat soal mana yang masih teks saja — mesin generasi gambar berdiri sendiri.
 
+### M10 — Visual Assets & Figure Attachment (TK & Fase A)
+- **Deliverable:** soal latihan untuk **TK (Fase Fondasi) & Fase A** tidak lagi teks polos. Pipeline **mengusulkan** stimulus bergambar per soal kandidat; reviewer menyetujui. Dua bentuk: (1) **ilustrasi konteks berlisensi** ditempel ke soal cloze yang ada (tanpa membocorkan jawaban); (2) **soal bergambar baru** (hitung/kenali objek) memakai ikon objek — memanfaatkan tipe `tap_count`/`image_choice` yang **sudah ada** di Go.
+- **Catatan lingkup:** kualitas ("keren, bukan murahan") dijaga oleh katalog aset berlisensi yang dikurasi + siklus `design_approved` yang sudah ada + palet & ukuran konsisten. **Tidak ada AI-generated imagery** — ditegakkan DB (`assets_no_ai_in_production`) + gate Go `design_approved` + `docs/brand-assets.md`.
+- **Artefak (kosakata ikon, satu sumber kebenaran):** `packages/figures/figures.json` (`{name,label,color}`, 92 entri). Go meng-*generate* `Icons` dari file itu (`internal/questions/gen/main.go` → `figures_gen.go`, `//go:generate`); web memetakan `name → komponen Phosphor` dan mengambil label/warna dari JSON (`src/lib/figures.ts`); Python memuatnya (`content_pipeline/figures.py`, override `FIGURES_PATH`). Tiga tes parity (Go↔JSON, web↔JSON, Python memuat) menutup drift.
+- **Artefak (tag aset, Go):** migrasi `0009_asset_tags.sql` — `assets.tags text[] NOT NULL DEFAULT '{}'` + GIN `assets_tags_idx`. `internal/media/handlers.go`: `Tags` di `Asset`/`assetInput`/`applyInput` + filter `?tag=` di `List`. **Tag bukan provenance** — edit tag saja tidak me-reset status. Grant baca `public.assets`/`asset_licenses` ke role pipeline (manual, per environment).
+- **Artefak (engine usulan, Python):** `content_pipeline/visuals.py` — `visual_need(phase, readability, type)` (murni), `propose_visual(...)` (murni; jalur ikon dari label yang ter-ground di sumber, jalur ilustrasi hanya dari aset `published`+`NOT ai_generated`+`tags && $1`, `None` bila tak ada yang jujur), `visual_quality_checks(...)`, `VisualPlanner`, `DbAssetCatalog` (fail-closed bila grant belum ada), dan `VisualBuilder` untuk CLI. Integrasi di `questions.py` (`QuestionBuilder` menerima planner opsional) + CLI `content-pipeline visuals`.
+- **Artefak (template bergambar, Python):** `count_objects → tap_count` (`symbol` + `count` 1–20 + `choices` 2–5 memuat jawaban) dan `pick_object → image_choice` (opsi ber-`figures`, **label kosong** agar anak mengenali gambar, bukan membaca jawaban). Hanya emit bila ter-ground: skill/objective menyebut hitung/kenali objek **dan** angka/objek ada di sumber. `QuestionBuilder` kini menjalankan **beberapa template** per chunk (kunci unik `(chunk_id, template)`); `_pending` membawa daftar template yang sudah ada agar idempoten per-template.
+- **Kode QA baru** (`visuals.visual_quality_checks`): `unknown_icon`, `alt_missing`, `asset_unpublished`, `visual_answer_leak` (**blocking**); `visual_ungrounded`, `visual_required_missing` (**advisory** — agar tidak menahan kandidat fondasi/a).
+- **Artefak (permukaan review, web):** `contentStudio.ts` — `visualKindOf`/`visualSummaryOf`/`needsVisual`; halaman pelajaran membedakan pill "Visual: gambar" vs "Visual: ikon" (dengan label ikon / `image_alt`) dan menambah filter "Hanya soal yang butuh visual". `QuestionRenderer` sudah mempratinjau figures/image; tanpa endpoint baru.
+- **DoD:** anti-bocor-jawaban (visual tidak boleh merepresentasikan `answer_text`; kalau lolos → QA `visual_answer_leak`); grounding (visual hanya untuk konsep yang ada di sumber); publish tetap diblokir bila soal menautkan aset belum `published` (gate `linkMedia` Go — perilaku benar, bukan bug); materi tetap review-only; checklist review 11 item tak berubah.
+- **Status:** ✅ **selesai (2026-10-02)** — satu PR, branch `feat/visual-assets-m10`.
+  - **Kosakata:** 92 ikon (70 lama + 22 objek TK/Fase A yang benar-benar ada di `phosphor-svelte`). Objek tanpa glyph (mis. `apple`, `banana`) **tidak** dipaksakan ke ikon salah → jatuh ke ilustrasi berlisensi; bila tak ada, **tanpa** visual.
+  - **`payloadHasVisual` (Go) kini menghitung `content.symbol`** — `tap_count` membawa stimulusnya sebagai symbol+count, bukan daftar figures, sehingga tanpa perbaikan ini soal hitung salah tampil sebagai "Teks saja".
+  - **Multi-template builder:** `QuestionBuilder` menjalankan cloze + (bila kosakata tersedia) `count_objects`/`pick_object`; template yang sudah ada dilewati kecuali `--force`; hitungan `skipped` = chunk yang tak menghasilkan draft dan belum punya kandidat.
+  - **Jalur ilustrasi** sengaja **fallback**: hanya dicoba bila tak ada ikon yang cocok; `DbAssetCatalog` gagal-tertutup (grant belum dijalankan → kosong, jalur ikon tetap jalan).
+  - **Terverifikasi:** Python `ruff` bersih, `mypy --strict` 65 file, `pytest` **265 tes** hijau (38 baru: `test_visuals.py` + `test_pictures.py` + parity); Go `gofmt`/`go vet` bersih, `internal/questions` + `internal/candidates` + `internal/media` + e2e `internal/server` hijau (DB-gated, migrasi `0009` + filter tag + `payloadHasVisual` symbol); web `svelte-check` 0 error, vitest **28 tes** hijau.
+  - **Ditunda (opsional):** fallback semantik istilah↔tag aset memakai `embeddings.py` (`VISUAL_MIN_SIMILARITY`/`VISUAL_EMBED_MODEL`) — pencocokan tag eksak sudah cukup untuk cut pertama; kurasi impor ilustrasi **DrawKit free** lewat CMS (kerja operator, metadata lisensi lengkap + tag konsep). Integrasi ke `assisted.py` juga dilewati (generasi AI menyasar band atas, yang tidak butuh stimulus visual).
+
 ---
 
 ## 7. Daftar perubahan skema
@@ -281,6 +299,7 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
 - Baru (M8): `creators` (identitas penulis, `user_id` opsional, `share_pct`, `kind ∈ system|staff|external`, `status`), `questions.creator_id` (nullable), `question_attribution` (rollup usage/completion/quality per soal); `question_provenance` + `adaptation_type`/`adapted_by`/`reviewed_by` (lineage adaptasi §39).
 - Baru (M8 lanjutan): indeks `assessment_items_question_idx` pada `assessment_items (question_id)` — rollup/prune/rebuild mencari bukti per soal, dan kolom itu sebelumnya tidak terindeks (`0008_assessment_items_question_idx.sql`).
 - M9: **tidak ada perubahan skema** — Content Studio read-only di atas tabel yang ada (kandidat staging + soal kanonik).
+- M10: `assets` `+ tags text[] NOT NULL DEFAULT '{}'` + indeks GIN `assets_tags_idx` (`0009_asset_tags.sql`) — tag konsep untuk mencocokkan soal ke ilustrasi berlisensi. Kosakata tag terbuka, pencocokan read-only (`tags && $1`); `status`/`ai_generated` **bukan** tag (tetap filter query).
 
 ### Staging (dikelola Python)
 - `source_registry`, `crawl_runs`, `crawl_items`, `source_documents`, `document_chunks`, `mapping_candidates`, `material_candidates`, `question_candidates`, `jobs`.

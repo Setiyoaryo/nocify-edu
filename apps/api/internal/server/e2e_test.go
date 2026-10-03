@@ -483,6 +483,23 @@ func TestCSRFAndAdminRBAC(t *testing.T) {
 	if code, _ := reviewer.do("POST", "/admin/assets/"+assetID+"/transition", map[string]any{"to": "design_approved"}); code != 409 {
 		t.Fatal("AI-generated asset must not be design-approved")
 	}
+
+	// Tags are editable and filterable; a tag-only edit must not reset the status.
+	tagged := reviewer.must(200, "PATCH", "/admin/assets/"+assetID, map[string]any{"tags": []string{"buah", "hitung"}})["asset"].(map[string]any)
+	if tagged["status"] != "license_verified" {
+		t.Fatalf("tag-only edit must not reset status, got %v", tagged["status"])
+	}
+	if got := tagged["tags"].([]any); len(got) != 2 || got[0] != "buah" {
+		t.Fatalf("tags not stored: %v", tagged["tags"])
+	}
+	hit := reviewer.must(200, "GET", "/admin/assets?tag=buah", nil)["assets"].([]any)
+	if len(hit) != 1 || hit[0].(map[string]any)["id"] != assetID {
+		t.Fatalf("tag filter should return the tagged asset, got %v", hit)
+	}
+	miss := reviewer.must(200, "GET", "/admin/assets?tag=tidak-ada", nil)["assets"].([]any)
+	if len(miss) != 0 {
+		t.Fatalf("unknown tag must match nothing, got %v", miss)
+	}
 }
 
 // applyStagingDDL creates the Python-owned staging schema by replaying its SQL

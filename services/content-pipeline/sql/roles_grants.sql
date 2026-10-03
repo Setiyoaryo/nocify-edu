@@ -33,7 +33,11 @@ GRANT SELECT ON
     public.curriculum_cp,
     public.curriculum_source_documents,
     public.questions,
-    public.question_provenance
+    public.question_provenance,
+    -- M10: match a question to a licensed illustration by tag. Read-only; the
+    -- pipeline still never writes canonical.
+    public.assets,
+    public.asset_licenses
 TO content_pipeline;
 
 -- The application role needs read access to staging for review and publish.

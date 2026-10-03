@@ -75,3 +75,21 @@ Each entry says what differs from the spec, why, and when to revisit.
     No migration: the two new endpoints are pure reads. Auto-generating figures/images is a separate
     follow-up milestone — M9 only surfaces the existing `visual_required`/`has_visual` signals so a
     reviewer can see which questions are still text-only.
+20. **Early-band visuals are proposed, grounded, licensed and reviewer-approved (M10).** TK/Fase A
+    questions need a pictured stimulus, but the pipeline must not invent imagery. Two mechanisms, both
+    suggestions: (a) **icon figures** — an Indonesian noun in the source that is also an approved figure
+    (`packages/figures/figures.json`, the single source of truth shared by Go/web/Python) becomes a
+    `content.figures` entry; (b) **licensed context illustrations** — only a `published`, non-AI asset
+    whose `tags` intersect the source concepts, referenced by `/api/v1/media/<uuid>` (never a fabricated
+    id). The vocabulary lives in one JSON so the Go `Icons` allowlist, the web Phosphor map and the
+    Python loader cannot drift; parity tests enforce it. Assets gain an open `tags text[]` (not a join
+    table — matching is read-only `tags && $1`, and `status`/`ai_generated` stay query filters, not
+    tags); a tag-only edit never resets an asset's review status. Two invariants protect the learner:
+    **no answer leak** (a visual must not depict `answer_text`; `visual_answer_leak` is blocking) and
+    **grounding** (only concepts present in the source; `visual_ungrounded` is advisory). `tap_count`/
+    `image_choice` already exist in Go, so new picture templates (`count_objects`, `pick_object`) add no
+    Go type; `pick_object` options carry **empty labels** so the child recognises the picture rather than
+    reads the answer. AI-generated imagery stays banned end to end (DB `assets_no_ai_in_production` +
+    the Go `design_approved` gate + `docs/brand-assets.md`). Publishing a question that links an
+    unpublished asset is still blocked (`linkMedia`) — the correct behaviour, not a bug. The optional
+    semantic tag match (`embeddings.py`) is deferred; exact tag intersection is enough for the first cut.

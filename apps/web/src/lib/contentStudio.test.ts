@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { hasAudio, hasVisual, skillHasWork, visualLabel } from './contentStudio';
+import {
+	hasAudio,
+	hasVisual,
+	needsVisual,
+	skillHasWork,
+	visualKindLabel,
+	visualKindOf,
+	visualSummaryOf
+} from './contentStudio';
 import type { StudioSkill } from './contentStudio';
 
 function detail(over: Record<string, unknown>) {
@@ -8,11 +16,32 @@ function detail(over: Record<string, unknown>) {
 
 describe('contentStudio', () => {
 	it('labels a question visual treatment', () => {
-		expect(visualLabel(true, false)).toBe('Ada visual');
-		expect(visualLabel(false, true)).toBe('Butuh audio');
-		expect(visualLabel(false, false)).toBe('Teks saja');
-		// Visual wins over audio when both are present.
-		expect(visualLabel(true, true)).toBe('Ada visual');
+		expect(visualKindLabel('image')).toBe('Visual: gambar');
+		expect(visualKindLabel('icon')).toBe('Visual: ikon');
+		expect(visualKindLabel('audio')).toBe('Butuh audio');
+		expect(visualKindLabel('text')).toBe('Teks saja');
+	});
+
+	it('picks the visual kind from the payload', () => {
+		expect(visualKindOf(false, false, { image: '/a.png' })).toBe('image');
+		expect(visualKindOf(false, false, { options: [{ image: '/a.png' }] })).toBe('image');
+		expect(visualKindOf(false, false, { figures: [{ icon: 'orange' }] })).toBe('icon');
+		expect(visualKindOf(false, false, { symbol: 'orange', count: 3 })).toBe('icon');
+		expect(visualKindOf(false, false, { options: [{ figures: [{ icon: 'cat' }] }] })).toBe('icon');
+		// Falls back to the server flags when the payload carries no stimulus.
+		expect(visualKindOf(true, false, { prompt: 'x' })).toBe('icon');
+		expect(visualKindOf(false, true, { prompt: 'x' })).toBe('audio');
+		expect(visualKindOf(false, false, { prompt: 'x' })).toBe('text');
+	});
+
+	it('summarises the pictured objects as Indonesian labels', () => {
+		expect(visualSummaryOf({ symbol: 'orange' })).toBe('jeruk');
+		expect(visualSummaryOf({ figures: [{ icon: 'orange' }, { icon: 'carrot' }] })).toBe('jeruk, wortel');
+		expect(visualSummaryOf({ options: [{ figures: [{ icon: 'orange' }] }, { figures: [{ icon: 'orange' }] }] })).toBe(
+			'jeruk'
+		);
+		expect(visualSummaryOf({ image: '/a.png', image_alt: 'Ilustrasi keluarga.' })).toBe('Ilustrasi keluarga.');
+		expect(visualSummaryOf({ prompt: 'x' })).toBe('');
 	});
 
 	it('prefers the server has_visual flag', () => {
@@ -20,9 +49,10 @@ describe('contentStudio', () => {
 		expect(hasVisual(detail({ has_visual: false }))).toBe(false);
 	});
 
-	it('falls back to content.figures / content.image', () => {
+	it('falls back to content.figures / content.image / content.symbol', () => {
 		expect(hasVisual(detail({ payload: { content: { figures: [{ id: 'f1' }] } } }))).toBe(true);
 		expect(hasVisual(detail({ payload: { content: { image: '/a.png' } } }))).toBe(true);
+		expect(hasVisual(detail({ payload: { content: { symbol: 'orange', count: 3 } } }))).toBe(true);
 		expect(hasVisual(detail({ payload: { content: { figures: [] } } }))).toBe(false);
 		expect(hasVisual(detail({ payload: { content: { text: 'halo' } } }))).toBe(false);
 	});
@@ -49,6 +79,26 @@ describe('contentStudio', () => {
 		expect(hasAudio(detail({ payload: { content: { audio_text: 'baca ini' } } }))).toBe(true);
 		expect(hasAudio(detail({ payload: { content: { audio_text: '' } } }))).toBe(false);
 		expect(hasAudio(detail({}))).toBe(false);
+	});
+
+	it('flags early-band questions that still need a visual', () => {
+		const early = (over: Record<string, unknown>) =>
+			detail({ has_visual: false, has_audio: false, mapping: { phase_code: 'fondasi' }, ...over });
+		expect(needsVisual(early({ payload: { type: 'single_choice', content: { prompt: 'x' } } }))).toBe(true);
+		expect(needsVisual(early({ payload: { type: 'tap_count', content: { prompt: 'x' } } }))).toBe(true);
+		expect(
+			needsVisual(early({ payload: { type: 'single_choice', content: { figures: [{ icon: 'orange' }] } } }))
+		).toBe(false);
+		expect(
+			needsVisual(
+				detail({
+					has_visual: false,
+					has_audio: false,
+					mapping: { phase_code: 'c' },
+					payload: { type: 'short_answer', content: { prompt: 'x' } }
+				})
+			)
+		).toBe(false);
 	});
 
 	it('reports whether a skill has any work', () => {
