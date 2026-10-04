@@ -18,6 +18,7 @@
     content-pipeline watch [--document-code CODE] [--limit N] [--dry-run] [--force] [--due] [--from-file PATH]
     content-pipeline watch register --document-code CODE --url URL [--hash H] [--frequency F]
     content-pipeline changes [--document-code CODE] [--status S] [--limit N] [--json]
+    content-pipeline worker [--once]
 """
 
 from __future__ import annotations
@@ -57,6 +58,7 @@ from content_pipeline.watch import (
     list_change_events,
     register_document,
 )
+from content_pipeline.worker import Worker
 
 SOURCE_TYPES = ("official_curriculum", "institution", "licensed", "public", "community")
 STATUSES = ("discovered", "verified", "approved", "active", "paused", "retired")
@@ -177,6 +179,9 @@ def _build_parser() -> argparse.ArgumentParser:
     changes.add_argument("--status", choices=("detected", "analyzed", "failed", "superseded"))
     changes.add_argument("--limit", type=int, default=50)
     changes.add_argument("--json", action="store_true", help="print JSON")
+
+    worker = sub.add_parser("worker", help="run the pipeline worker daemon (M11)")
+    worker.add_argument("--once", action="store_true", help="process at most one queued job and exit")
 
     return parser
 
@@ -562,6 +567,20 @@ def _cmd_changes(db: Database, args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_worker(db: Database, settings: Settings, args: argparse.Namespace) -> int:
+    # The worker owns the queue table, so apply its migration before serving.
+    result = migrate(db)
+    for name in result.applied:
+        print(f"applied {name}")
+    worker = Worker(db, settings)
+    if args.once:
+        ran = worker.run_once()
+        print("processed one job" if ran else "no queued jobs")
+        return 0
+    worker.serve()
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     logging.basicConfig(
@@ -596,6 +615,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_watch(db, settings, args)
         if args.command == "changes":
             return _cmd_changes(db, args)
+        if args.command == "worker":
+            return _cmd_worker(db, settings, args)
     return 2
 
 

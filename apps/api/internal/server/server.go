@@ -25,6 +25,7 @@ import (
 	"github.com/nocify/eduplay/api/internal/httpx"
 	"github.com/nocify/eduplay/api/internal/media"
 	"github.com/nocify/eduplay/api/internal/missions"
+	"github.com/nocify/eduplay/api/internal/pipeline"
 	"github.com/nocify/eduplay/api/internal/progress"
 	"github.com/nocify/eduplay/api/internal/rewards"
 	"github.com/nocify/eduplay/api/internal/subscriptions"
@@ -57,6 +58,7 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 	creatorH := creators.Handler{DB: pool}
 	anaH := analytics.Handler{DB: pool}
 	misH := missions.Handler{DB: pool}
+	pipeH := pipeline.Handler{DB: pool}
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.Recoverer, httpx.Observe)
@@ -163,6 +165,14 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 					r.Get("/licenses", mediaH.Licenses)
 					r.Get("/audit-logs", adminH.AuditLogs)
 
+					r.Get("/pipeline/sources", pipeH.ListSources)
+					r.Post("/pipeline/sources/{code}/status", pipeH.SetSourceStatus)
+					r.Get("/pipeline/jobs", pipeH.ListJobs)
+					r.Post("/pipeline/jobs", pipeH.EnqueueJob)
+					r.Get("/pipeline/jobs/{id}", pipeH.GetJob)
+					r.Post("/pipeline/jobs/{id}/cancel", pipeH.CancelJob)
+					r.Post("/pipeline/jobs/{id}/retry", pipeH.RetryJob)
+
 					r.Group(func(r chi.Router) {
 						r.Use(auth.RequireRole(auth.RoleEditor))
 						r.Post("/subjects", adminH.CreateSubject)
@@ -183,6 +193,7 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 						r.Post("/curriculum-changes/{id}/decision", changeH.DecideChange)
 						r.Post("/assets/{assetID}/transition", mediaH.Transition)
 						r.Post("/licenses", mediaH.CreateLicense)
+						r.Post("/pipeline/publish", pipeH.Publish)
 					})
 				})
 			})

@@ -121,6 +121,26 @@ func queuedIDs(ctx context.Context, pool *pgxpool.Pool, limit int) ([]int64, err
 	return ids, rows.Err()
 }
 
+// PublishCandidate publishes a single approved candidate by its (kind, id),
+// used by the admin UI's one-click "Terbitkan". Only questions are publishable —
+// materials are review-only in M5. Returns the same outcome strings as a batch
+// run: "published", "linked", "skipped" (not queued/not approved) or "failed".
+func PublishCandidate(ctx context.Context, pool *pgxpool.Pool, kind string, candidateID int64) (string, error) {
+	if kind != KindQuestion {
+		return "", fmt.Errorf("only question candidates can be published (got %q)", kind)
+	}
+	var pubID int64
+	err := pool.QueryRow(ctx, `SELECT id FROM candidate_publications
+		WHERE kind = 'question' AND candidate_id = $1 AND status = 'queued'`, candidateID).Scan(&pubID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "skipped", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return publishOne(ctx, pool, pubID, false)
+}
+
 // publishOne processes a single queued publication in its own transaction.
 func publishOne(ctx context.Context, pool *pgxpool.Pool, pubID int64, dryRun bool) (string, error) {
 	tx, err := pool.Begin(ctx)

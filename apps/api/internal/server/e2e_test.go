@@ -881,3 +881,121 @@ func TestContentStudioRBAC(t *testing.T) {
 		t.Fatalf("unknown skill must be 404, got %d", code)
 	}
 }
+
+// ensurePipelineStaging creates the Python-owned staging schema the Go control
+// API reads, reusing the pipeline's own migrations so the DDL cannot drift.
+func ensurePipelineStaging(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+	ctx := context.Background()
+	for _, name := range []string{"0001_content_staging.sql", "0008_pipeline_jobs.sql"} {
+		ddl, err := os.ReadFile("../../../../services/content-pipeline/sql/" + name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := pool.Exec(ctx, string(ddl)); err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+	}
+}
+
+// TestPipelineControl covers the M11 UI control surface: RBAC, graceful
+// degradation without the pipeline schema, and the enqueue/list/cancel/retry
+// round-trip against a real queue table.
+func TestPipelineControl(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	t.Cleanup(func() {
+		_, _ = e.pool.Exec(context.Background(), `DROP SCHEMA IF EXISTS content_staging CASCADE`)
+	})
+
+	mkStaff := func(email, role string) *client {
+		c := e.client()
+		c.register(email)
+		if _, err := e.pool.Exec(ctx, `UPDATE users SET role = $2 WHERE email = $1`, email, role); err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	editor := mkStaff("pipe-editor@example.test", "content_editor")
+	reviewer := mkStaff("pipe-reviewer@example.test", "reviewer")
+
+	// RBAC: anonymous and parents are rejected; publish is reviewer-only.
+	if code, _ := e.client().do("GET", "/admin/pipeline/sources", nil); code != 401 {
+		t.Fatalf("anonymous sources must be 401, got %d", code)
+	}
+	parent := e.client()
+	parent.register("pipe-parent@example.test")
+	if code, _ := parent.do("GET", "/admin/pipeline/sources", nil); code != 403 {
+		t.Fatalf("parent sources must be 403, got %d", code)
+	}
+	if code, _ := parent.do("POST", "/admin/pipeline/jobs", map[string]any{"kind": "run_pipeline"}); code != 403 {
+		t.Fatalf("parent enqueue must be 403, got %d", code)
+	}
+	if code, _ := editor.do("POST", "/admin/pipeline/publish", map[string]any{"all": true}); code != 403 {
+		t.Fatalf("editor publish must be 403, got %d", code)
+	}
+
+	// Degrade: without the queue table the GETs are available:false and enqueue 409.
+	if _, err := e.pool.Exec(ctx, `DROP SCHEMA IF EXISTS content_staging CASCADE`); err != nil {
+		t.Fatal(err)
+	}
+	if out := editor.must(200, "GET", "/admin/pipeline/sources", nil); out["available"] != false {
+		t.Fatalf("sources without pipeline should be available:false, got %v", out["available"])
+	}
+	if out := editor.must(200, "GET", "/admin/pipeline/jobs", nil); out["available"] != false {
+		t.Fatalf("jobs without pipeline should be available:false, got %v", out["available"])
+	}
+	if code, _ := editor.do("POST", "/admin/pipeline/jobs", map[string]any{"kind": "run_pipeline"}); code != 409 {
+		t.Fatalf("enqueue without pipeline must be 409, got %d", code)
+	}
+
+	// Happy path.
+	ensurePipelineStaging(t, e.pool)
+	if out := editor.must(200, "GET", "/admin/pipeline/sources", nil); out["available"] != true {
+		t.Fatalf("sources should be available:true, got %v", out["available"])
+	}
+
+	created := editor.must(201, "POST", "/admin/pipeline/jobs", map[string]any{
+		"kind": "run_pipeline", "params": map[string]any{"sources": []string{"kemendikdasmen-kurikulum"}},
+	})
+	job, _ := created["job"].(map[string]any)
+	jobID, _ := job["id"].(float64)
+	if job["status"] != "queued" {
+		t.Fatalf("new job should be queued, got %v", job["status"])
+	}
+	list := editor.must(200, "GET", "/admin/pipeline/jobs", nil)
+	if jobs, _ := list["jobs"].([]any); len(jobs) != 1 {
+		t.Fatalf("expected 1 job, got %d", len(jobs))
+	}
+	editor.must(200, "GET", fmt.Sprintf("/admin/pipeline/jobs/%d", int64(jobID)), nil)
+
+	if code, _ := editor.do("POST", "/admin/pipeline/jobs", map[string]any{"kind": "bogus"}); code != 422 {
+		t.Fatalf("invalid kind must be 422, got %d", code)
+	}
+
+	cancelled := editor.must(200, "POST", fmt.Sprintf("/admin/pipeline/jobs/%d/cancel", int64(jobID)), nil)
+	if cj, _ := cancelled["job"].(map[string]any); cj["status"] != "cancelled" {
+		t.Fatalf("job should be cancelled, got %v", cj["status"])
+	}
+	retried := editor.must(200, "POST", fmt.Sprintf("/admin/pipeline/jobs/%d/retry", int64(jobID)), nil)
+	if rj, _ := retried["job"].(map[string]any); rj["status"] != "queued" {
+		t.Fatalf("job should be queued after retry, got %v", rj["status"])
+	}
+
+	// Source governance change is expressed as a job, so Go never writes source_registry.
+	if _, err := e.pool.Exec(ctx, `INSERT INTO content_staging.source_registry
+		(code, name, base_url, source_type, tier) VALUES ('test-src','Test','https://x.test','official_curriculum',1)`); err != nil {
+		t.Fatal(err)
+	}
+	src := editor.must(202, "POST", "/admin/pipeline/sources/test-src/status",
+		map[string]any{"enabled": true, "crawl_frequency": "daily"})
+	if sj, _ := src["job"].(map[string]any); sj["kind"] != "set_source_status" {
+		t.Fatalf("expected a set_source_status job, got %v", sj["kind"])
+	}
+	if code, _ := editor.do("POST", "/admin/pipeline/sources/test-src/status", map[string]any{"crawl_frequency": "hourly"}); code != 422 {
+		t.Fatalf("invalid crawl_frequency must be 422, got %d", code)
+	}
+
+	// Publish: reviewer-only; an empty queue yields a zeroed report.
+	reviewer.must(200, "POST", "/admin/pipeline/publish", map[string]any{"all": true})
+}

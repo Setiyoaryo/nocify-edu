@@ -20,6 +20,9 @@ RUN uv sync --frozen --no-dev
 # against the same question schema the Go API enforces at publish time.
 COPY packages/question-schema/ ./packages/question-schema/
 COPY packages/contracts/ ./packages/contracts/
+# Shared figure vocabulary (M10): the visuals/questions stages load it from
+# packages/figures/figures.json. Without it the pipeline fails closed to icons-only.
+COPY packages/figures/ ./packages/figures/
 
 ENV PATH="/app/.venv/bin:$PATH"
 RUN useradd -u 10001 -m pipeline

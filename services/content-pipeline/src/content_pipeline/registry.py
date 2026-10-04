@@ -207,6 +207,44 @@ def set_status(db: Database, code: str, status: str, *, enabled: bool | None = N
     return _to_source(row) if row is not None else None
 
 
+def set_governance(
+    db: Database,
+    code: str,
+    *,
+    status: str | None = None,
+    enabled: bool | None = None,
+    crawl_frequency: str | None = None,
+) -> Source | None:
+    """Update any subset of a source's governance fields (M11, UI-driven).
+
+    Unlike :func:`set_status`, every field is optional so the admin UI can flip
+    the kill switch or change the crawl cadence without restating the lifecycle.
+    """
+    sets: list[str] = []
+    params: list[Any] = []
+    if status is not None:
+        sets.append("status = %s")
+        params.append(status)
+    if enabled is not None:
+        sets.append("enabled = %s")
+        params.append(enabled)
+    if crawl_frequency is not None:
+        sets.append("crawl_frequency = %s")
+        params.append(crawl_frequency)
+    if not sets:
+        return get_source(db, code)
+    sets.append("updated_at = now()")
+    params.append(code)
+    with db.transaction() as cur:
+        cur.execute(
+            f"UPDATE content_staging.source_registry SET {', '.join(sets)} "
+            f"WHERE code = %s RETURNING {_COLUMNS}",
+            params,
+        )
+        row = cur.fetchone()
+    return _to_source(row) if row is not None else None
+
+
 def mark_crawled(db: Database, source_id: int) -> None:
     with db.transaction() as cur:
         cur.execute(

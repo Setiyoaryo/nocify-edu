@@ -73,6 +73,8 @@ def _settings() -> Settings:
         ai_generation_cap=50,
         ai_embedding_batch_size=64,
         ai_prompt_version="scenario-v1",
+        worker_poll_seconds=5.0,
+        scheduler_seconds=60.0,
     )
 
 

@@ -74,6 +74,35 @@ services:
     environment: *apienv
     depends_on: { api: { condition: service_started } }
 
+  # M11: content pipeline worker — claims UI-triggered jobs and crawls sources on
+  # their schedule. Uses the same database (schema-per-owner) as the API.
+  pipeline-worker:
+    image: ${REGISTRY:-ghcr.io/setiyoaryo}/eduplay-pipeline:${TAG:-latest}
+    restart: unless-stopped
+    command: ["worker"]
+    # No HTTP listener: healthy while the worker process (PID 1) is alive.
+    healthcheck:
+      test: ["CMD-SHELL", "kill -0 1"]
+      interval: 10s
+      retries: 3
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/eduplay?sslmode=disable
+      PIPELINE_USER_AGENT: ${PIPELINE_USER_AGENT:-NocifyEduPlayBot/0.1}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION:-auto}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_USE_SSL: "true"
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      AI_PROVIDER: ${AI_PROVIDER:-}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_EMBEDDING_MODEL: ${AI_EMBEDDING_MODEL:-}
+      AI_CHAT_MODEL: ${AI_CHAT_MODEL:-}
+      PIPELINE_WORKER_POLL_SECONDS: ${PIPELINE_WORKER_POLL_SECONDS:-5}
+      PIPELINE_SCHEDULER_SECONDS: ${PIPELINE_SCHEDULER_SECONDS:-60}
+    depends_on: { postgres: { condition: service_healthy } }
+
   web:
     image: ${REGISTRY:-ghcr.io/setiyoaryo}/eduplay-web:${TAG:-latest}
     restart: unless-stopped
