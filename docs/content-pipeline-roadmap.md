@@ -285,6 +285,18 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
   - **Terverifikasi:** Python `ruff` bersih, `mypy --strict` 65 file, `pytest` **265 tes** hijau (38 baru: `test_visuals.py` + `test_pictures.py` + parity); Go `gofmt`/`go vet` bersih, `internal/questions` + `internal/candidates` + `internal/media` + e2e `internal/server` hijau (DB-gated, migrasi `0009` + filter tag + `payloadHasVisual` symbol); web `svelte-check` 0 error, vitest **28 tes** hijau.
   - **Ditunda (opsional):** fallback semantik istilah↔tag aset memakai `embeddings.py` (`VISUAL_MIN_SIMILARITY`/`VISUAL_EMBED_MODEL`) — pencocokan tag eksak sudah cukup untuk cut pertama; kurasi impor ilustrasi **DrawKit free** lewat CMS (kerja operator, metadata lisensi lengkap + tag konsep). Integrasi ke `assisted.py` juga dilewati (generasi AI menyasar band atas, yang tidak butuh stimulus visual).
 
+### M11 — Pipeline otomatis & kendali penuh dari UI
+- **Deliverable:** pipeline (`crawl → extract → map → materials → questions → visuals → review → publish`) dijalankan **otomatis** dan **sepenuhnya dari UI admin**, tanpa CLI. Worker Python jalan terus: menjalankan job yang diantrikan UI dan crawl sumber sesuai jadwal. Review manusia **tetap wajib**; publish = satu klik tombol **Terbitkan**.
+- **Keputusan (2026-10-03):** (1) otomatis sampai tahap *kandidat*, review tetap gate; (2) terjadwal + tombol manual; (3) jembatan = **antrian DB + worker Python** (tanpa HTTP Go↔Python).
+- **Artefak (antrian, Python):** migrasi `sql/0008_pipeline_jobs.sql` — `content_staging.pipeline_jobs` (`kind ∈ crawl|run_pipeline|set_source_status|watch`, `params`/`progress` jsonb, `status ∈ queued|running|done|failed|cancelled`, `attempts`/`max_attempts`, `requested_by` uuid by value, timestamp) + indeks claim/running/recent. **Pengecualian boundary tunggal:** grant `INSERT, UPDATE` ke role Go (`eduplay`) pada **satu tabel kontrol ini saja** — Go tetap tak bisa menulis tabel data pipeline; ubah status sumber diekspresikan sebagai job.
+- **Artefak (worker, Python):** `content_pipeline/worker.py` — klaim atomik (`UPDATE … WHERE id = (SELECT … FOR UPDATE SKIP LOCKED LIMIT 1)`), dispatch per kind memanggil `run()` yang sudah ada (crawl/extract/map/materials/questions/visuals; `embed`/`generate` opt-in via `params.ai`), progress per tahap (`jsonb_set`), cek cancel antar-tahap, reaper 30 menit, scheduler crawl-due di bawah advisory lock **727276** (beda dari Go 727274 / watch 727275), shutdown SIGTERM/SIGINT (requeue job). CLI `content-pipeline worker [--once]`; config `PIPELINE_WORKER_POLL_SECONDS`/`PIPELINE_SCHEDULER_SECONDS`.
+- **Artefak (API kontrol, Go):** paket `internal/pipeline` — `GET /admin/pipeline/sources`, `POST /admin/pipeline/sources/{code}/status`, `GET|POST /admin/pipeline/jobs`, `GET /admin/pipeline/jobs/{id}`, `POST /admin/pipeline/jobs/{id}/cancel|retry`, dan `POST /admin/pipeline/publish` (reviewer-only, membungkus `candidates.Publish` + helper baru `PublishCandidate`). Degradasi `available:false` via `to_regclass`. Setiap aksi `audit.Log`.
+- **Artefak (UI, web):** halaman `/app/admin/pipeline` (tabel sumber dengan toggle/`crawl_frequency`/"Jalankan sekarang" + tabel job dengan progress live via polling 3 dtk hanya saat ada job aktif; tombol "Terbitkan semua") dan `/app/admin/pipeline/[id]` (counter per tahap, params, error); nav "Pipeline"; tombol **Terbitkan** di halaman detail review. Helper `src/lib/pipeline.ts`.
+- **DoD:** `run_pipeline` manual jalan end-to-end di dev; cancel/reaper jalan; tanpa tulis kanonik dari Python; RBAC (anon 401, parent 403, editor/reviewer 200, publish reviewer-only); degrade tanpa skema staging; publish idempoten (memakai mesin M5).
+- **Status:** ✅ **selesai (2026-10-03)** — branch `feat/pipeline-ui-m11`.
+  - **Terverifikasi:** Python `ruff` bersih, `mypy --strict` 67 file, `pytest` **281 tes** hijau (16 baru: `test_worker.py`); Go `gofmt`/`go vet` bersih, suite penuh hijau (unit `internal/pipeline` + e2e `TestPipelineControl` dengan migrasi staging nyata); web `svelte-check` 0 error, vitest **33 tes** hijau, `npm run build` hijau; dev: migrasi `0008` diterapkan + `worker --once` end-to-end (job `set_source_status` → `done`).
+  - **Ditunda:** prioritas/paralelisme job (satu job sekaligus — `run_pipeline` panjang menunda crawl; mitigasi `limit` per job); retry otomatis di worker (retry manual via UI `/retry`).
+
 ---
 
 ## 7. Daftar perubahan skema
@@ -300,11 +312,13 @@ Setiap milestone: deliverable, artefak, DoD. Urutan ini **menggantikan** §47/§
 - Baru (M8 lanjutan): indeks `assessment_items_question_idx` pada `assessment_items (question_id)` — rollup/prune/rebuild mencari bukti per soal, dan kolom itu sebelumnya tidak terindeks (`0008_assessment_items_question_idx.sql`).
 - M9: **tidak ada perubahan skema** — Content Studio read-only di atas tabel yang ada (kandidat staging + soal kanonik).
 - M10: `assets` `+ tags text[] NOT NULL DEFAULT '{}'` + indeks GIN `assets_tags_idx` (`0009_asset_tags.sql`) — tag konsep untuk mencocokkan soal ke ilustrasi berlisensi. Kosakata tag terbuka, pencocokan read-only (`tags && $1`); `status`/`ai_generated` **bukan** tag (tetap filter query).
+- M11: **tidak ada perubahan skema kanonik** — antrian job ada di staging (`pipeline_jobs`).
 
 ### Staging (dikelola Python)
-- `source_registry`, `crawl_runs`, `crawl_items`, `source_documents`, `document_chunks`, `mapping_candidates`, `material_candidates`, `question_candidates`, `jobs`.
+- `source_registry`, `crawl_runs`, `crawl_items`, `source_documents`, `document_chunks`, `mapping_candidates`, `material_candidates`, `question_candidates`.
 - M6: `embeddings` (cache vektor polimorfik), `duplicate_relations` (status dedup §29), `generation_ledger` (cache + audit generasi AI); kolom `ai_generated` pada `question_candidates`/`material_candidates`.
 - M7: `curriculum_watch_state` (baseline berjalan + state conditional fetch, `UNIQUE (source_document_id)`), `curriculum_change_events`, `curriculum_change_impacts`, `curriculum_change_questions`.
+- M11: `pipeline_jobs` — antrian job yang ditulis UI (Go) dan dijalankan worker (Python); satu-satunya tabel staging tempat Go punya hak tulis (`INSERT, UPDATE`), sebagai kontrol, bukan data.
 - Tidak ada `publish_queue`: antrian publish tinggal di kanonik (`candidate_publications`, M5) karena Go read-only pada staging (D2/D5).
 - Semua status/lifecycle sesuai §5, §9, §21, §41.
 

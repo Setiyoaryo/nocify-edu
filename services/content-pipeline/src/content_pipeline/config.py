@@ -64,6 +64,11 @@ class Settings:
     ai_generation_cap: int
     ai_embedding_batch_size: int
     ai_prompt_version: str
+    # Worker daemon (M11). The poll interval is how often an idle worker looks
+    # for a queued job; the scheduler interval is how often it checks sources
+    # whose crawl cadence is due.
+    worker_poll_seconds: float
+    scheduler_seconds: float
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -93,6 +98,8 @@ class Settings:
             ai_generation_cap=_env_int("AI_GENERATION_CAP", 50),
             ai_embedding_batch_size=_env_int("AI_EMBEDDING_BATCH_SIZE", 64),
             ai_prompt_version=_env("AI_PROMPT_VERSION", "scenario-v1"),
+            worker_poll_seconds=_env_float("PIPELINE_WORKER_POLL_SECONDS", 5.0),
+            scheduler_seconds=_env_float("PIPELINE_SCHEDULER_SECONDS", 60.0),
         )
 
     @property

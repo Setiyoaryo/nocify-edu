@@ -8,6 +8,7 @@
 	import { bandFor, kindLabel, confidenceLabel, type CandidateDetail, type QaIssue } from '$lib/candidates';
 	import WarningCircle from 'phosphor-svelte/lib/WarningCircle';
 	import Info from 'phosphor-svelte/lib/Info';
+	import RocketLaunch from 'phosphor-svelte/lib/RocketLaunch';
 
 	const kind = page.params.kind;
 	const id = page.params.id;
@@ -61,8 +62,7 @@
 		word_count: 'Jumlah kata', sentence_count: 'Jumlah kalimat', avg_sentence_length: 'Rata-rata panjang kalimat'
 	};
 
-	async function decide(decision: 'approved' | 'rejected' | 'changes_requested') {
-		busy = true;
+	async function decide(decision: 'approved' | 'rejected' | 'changes_requested') {		busy = true;
 		msg = err = '';
 		try {
 			const r = await post(`/admin/candidates/${kind}/${id}/decision`, { decision, checklist, notes });
@@ -73,6 +73,25 @@
 				: decision === 'rejected' ? 'Kandidat ditolak.' : 'Perbaikan diminta.';
 		} catch (e) {
 			err = e instanceof ApiError ? e.message : 'Gagal menyimpan keputusan.';
+		} finally {
+			busy = false;
+		}
+	}
+
+	async function publishNow() {
+		busy = true;
+		msg = err = '';
+		try {
+			const r = await post('/admin/pipeline/publish', { kind, id: Number(id) });
+			msg =
+				r.outcome === 'published'
+					? 'Soal diterbitkan ke bank soal.'
+					: r.outcome === 'linked'
+						? 'Soal sudah ada di bank soal; ditautkan.'
+						: 'Belum ada yang bisa diterbitkan (kandidat belum disetujui).';
+			await load();
+		} catch (e) {
+			err = e instanceof ApiError ? e.message : 'Gagal menerbitkan.';
 		} finally {
 			busy = false;
 		}
@@ -230,6 +249,15 @@
 					{#if msg}<p class="mt-3 font-semibold text-leaf-deep" role="status">{msg}</p>{/if}
 				{:else}
 					<p class="mt-4 text-sm text-ink-soft">Hanya reviewer atau admin yang dapat mengambil keputusan.</p>
+				{/if}
+
+				{#if isReviewer && kind === 'question' && pub?.status === 'queued'}
+					<div class="mt-5 rounded-2xl bg-primary-tint p-4">
+						<p class="text-sm font-semibold">Kandidat sudah disetujui dan menunggu terbit.</p>
+						<button class="btn btn-primary mt-3" disabled={busy} onclick={publishNow}>
+							<RocketLaunch size={18} weight="bold" aria-hidden="true" />Terbitkan ke bank soal
+						</button>
+					</div>
 				{/if}
 			</section>
 		</div>

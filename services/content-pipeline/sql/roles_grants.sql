@@ -45,3 +45,10 @@ GRANT USAGE ON SCHEMA content_staging TO eduplay;
 GRANT SELECT ON ALL TABLES IN SCHEMA content_staging TO eduplay;
 ALTER DEFAULT PRIVILEGES IN SCHEMA content_staging
     GRANT SELECT ON TABLES TO eduplay;
+
+-- M11: the admin UI drives the pipeline by writing commands into the job queue.
+-- This is the single control-table exception to "Go is read-only on staging":
+-- Go may INSERT/UPDATE pipeline_jobs only — never a pipeline data table
+-- (source_registry, document_chunks, *_candidates). Source enable/disable is a
+-- `set_source_status` job, so Go does not write source_registry.
+GRANT INSERT, UPDATE ON content_staging.pipeline_jobs TO eduplay;

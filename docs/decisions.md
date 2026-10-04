@@ -93,3 +93,17 @@ Each entry says what differs from the spec, why, and when to revisit.
     the Go `design_approved` gate + `docs/brand-assets.md`). Publishing a question that links an
     unpublished asset is still blocked (`linkMedia`) — the correct behaviour, not a bug. The optional
     semantic tag match (`embeddings.py`) is deferred; exact tag intersection is enough for the first cut.
+21. **The pipeline is driven from the CMS through a DB job queue, and publish is one click (M11).** The
+    pipeline was CLI-only; M11 makes it automatic and UI-driven. The admin UI writes *commands* into
+    `content_staging.pipeline_jobs`; a Python worker daemon claims them (`FOR UPDATE SKIP LOCKED`) and
+    runs the existing stage builders, writing per-stage progress back. This is the **single deliberate
+    exception** to "Go is read-only on `content_staging`": the Go role gets `INSERT, UPDATE` on that one
+    control table — never on a pipeline *data* table. Source enable/disable is itself a job, so Go never
+    writes `source_registry` either. The alternative (Python exposing an HTTP control API) was rejected:
+    it breaks the repo's DB-and-contract boundary and adds a service to secure. **Human review stays
+    mandatory** — the pipeline runs automatically up to the *candidate* stage; a reviewer approves in the
+    CMS, then a one-click **Terbitkan** button calls the same `candidates.Publish` engine the CLI uses.
+    The worker also crawls active sources on their `crawl_frequency` (advisory lock 727276, distinct from
+    the Go migration lock 727274 and the watch lock 727275), and a 30-minute reaper re-queues stuck jobs.
+    Stages are idempotent, so a crash or a graceful shutdown (SIGTERM re-queues the job) resumes safely.
+    Retry is manual (UI `/retry`) rather than automatic, so a systematically failing stage does not spin.

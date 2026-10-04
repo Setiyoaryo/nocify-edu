@@ -96,8 +96,10 @@ jobs:
         run: |
           # Image names must be lowercase; GitHub owners may not be.
           owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          for app in api web; do
+          for app in api web pipeline; do
             image=ghcr.io/$owner/eduplay-$app
-            docker build -f infra/docker/$app.Dockerfile -t $image:${{ github.sha }} -t $image:latest .
+            dockerfile=infra/docker/$app.Dockerfile
+            if [ "$app" = pipeline ]; then dockerfile=infra/docker/content-pipeline.Dockerfile; fi
+            docker build -f $dockerfile -t $image:${{ github.sha }} -t $image:latest .
             docker push --all-tags $image
           done

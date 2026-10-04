@@ -50,7 +50,8 @@ The pipeline is a separate container and never runs in the product request path;
 `make up` without it. Migrations are forward-only SQL tracked in `content_staging.schema_migrations`.
 
 - **Publish (M5):** reviewers approve in the CMS; `eduplay publish-candidates` (Go) drains the
-  canonical `candidate_publications` queue into canonical questions. Run it from cron after review.
+  canonical `candidate_publications` queue into canonical questions. Run it from cron after review, or
+  use the **Terbitkan** button in the CMS (M11) which calls the same engine.
 - **Curriculum watch (M7):** `content-pipeline watch --due` polls the registered canonical source
   documents and records a change event + frozen impact snapshot only when a document's hash changed.
   Run it from an external cron (e.g. hourly); `--due` respects each document's `check_frequency`
@@ -65,8 +66,20 @@ The pipeline is a separate container and never runs in the product request path;
   command also attaches a proposal at generation time when the shared vocabulary is present. The
   illustration path reads `public.assets`, which needs the one-time grant below; without it the
   pipeline fails closed and only the icon path works.
+- **Worker daemon + UI control (M11):** `content-pipeline worker` runs continuously: it claims jobs the
+  admin UI enqueues into `content_staging.pipeline_jobs` and crawls active sources on their
+  `crawl_frequency`. The CMS page `/app/admin/pipeline` lists sources (toggle, cadence, "Jalankan
+  sekarang") and the job queue with live progress; publishing has a one-click button. Run the worker as
+  a long-lived service (`docker compose --profile pipeline up -d pipeline-worker` in dev; always-on in
+  prod). Manual single jobs: `content-pipeline worker --once`. Tuning: `PIPELINE_WORKER_POLL_SECONDS`
+  (idle poll) and `PIPELINE_SCHEDULER_SECONDS` (due-source check). The worker migrates its own schema on
+  boot; a job stuck `running` for 30 minutes is re-queued by the reaper (or failed after `max_attempts`).
 - **Secrets/env:** `DATABASE_URL` is the only required variable; AI steps need `AI_PROVIDER`
   (`mock` needs no key). Sources with an `unknown` licence are skipped unless `--allow-unknown-license`.
+- **Queue grant (M11, manual):** the admin UI drives the pipeline by writing commands, so the Go role
+  needs `INSERT, UPDATE` on the single control table `content_staging.pipeline_jobs`. Run the grant in
+  `services/content-pipeline/sql/roles_grants.sql` once per environment. Go still cannot write any
+  pipeline *data* table; source enable/disable is itself a job.
 - **Asset read grant (M10, manual):** to match a question to a licensed illustration, the pipeline needs
   read-only access to `public.assets` and `public.asset_licenses`. Run the `GRANT SELECT` block in
   `services/content-pipeline/sql/roles_grants.sql` once per environment as a DB owner. It is **not**

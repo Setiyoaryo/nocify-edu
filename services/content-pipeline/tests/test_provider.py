@@ -42,6 +42,8 @@ def _settings(**overrides: Any) -> Settings:
         ai_generation_cap=50,
         ai_embedding_batch_size=64,
         ai_prompt_version="scenario-v1",
+        worker_poll_seconds=5.0,
+        scheduler_seconds=60.0,
     )
     return dataclasses.replace(base, **overrides)
 

@@ -29,7 +29,11 @@
 		superseded: ['Digantikan', 'bg-paper-deep text-ink-soft'],
 		// Creator statuses (M8).
 		active: ['Aktif', 'bg-leaf-tint text-leaf-deep'],
-		inactive: ['Nonaktif', 'bg-paper-deep text-ink-soft']
+		inactive: ['Nonaktif', 'bg-paper-deep text-ink-soft'],
+		// Pipeline job statuses (M11).
+		running: ['Berjalan', 'bg-sky-tint text-[#1a6fa3]'],
+		done: ['Selesai', 'bg-leaf-tint text-leaf-deep'],
+		cancelled: ['Dibatalkan', 'bg-paper-deep text-ink-soft']
 	};
 	const m = $derived(map[status] ?? [status, 'bg-paper-deep text-ink-soft']);
 </script>

@@ -85,7 +85,7 @@ services:
   pipeline:
     profiles: ["pipeline"]
     build: { context: ../.., dockerfile: infra/docker/content-pipeline.Dockerfile }
-    environment:
+    environment: &pipeenv
       DATABASE_URL: postgres://eduplay:eduplay@postgres:5432/eduplay?sslmode=disable
       PIPELINE_USER_AGENT: ${PIPELINE_USER_AGENT:-NocifyEduPlayBot/0.1 (+https://github.com/Setiyoaryo/nocify-edu)}
       S3_ENDPOINT: s3:8333
@@ -100,6 +100,21 @@ services:
       AI_EMBEDDING_MODEL: ${AI_EMBEDDING_MODEL:-}
       AI_CHAT_MODEL: ${AI_CHAT_MODEL:-}
       AI_GENERATION_CAP: ${AI_GENERATION_CAP:-50}
+      # Worker daemon (M11): poll for queued jobs + schedule due sources.
+      PIPELINE_WORKER_POLL_SECONDS: ${PIPELINE_WORKER_POLL_SECONDS:-5}
+      PIPELINE_SCHEDULER_SECONDS: ${PIPELINE_SCHEDULER_SECONDS:-60}
+    depends_on:
+      postgres: { condition: service_healthy }
+      s3: { condition: service_healthy }
+
+  # M11: long-running worker that claims UI-triggered jobs and crawls on
+  # schedule. Opt-in in dev; always-on in production.
+  #   docker compose -f infra/compose/compose.yaml --profile pipeline up -d pipeline-worker
+  pipeline-worker:
+    profiles: ["pipeline"]
+    build: { context: ../.., dockerfile: infra/docker/content-pipeline.Dockerfile }
+    command: ["worker"]
+    environment: *pipeenv
     depends_on:
       postgres: { condition: service_healthy }
       s3: { condition: service_healthy }

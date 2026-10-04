@@ -167,6 +167,20 @@ See [`docs/content-pipeline-roadmap.md`](../../docs/content-pipeline-roadmap.md)
 - **Grants**: matching an illustration needs read-only access to `public.assets` / `public.asset_licenses`
   (see `sql/roles_grants.sql`). Without it the pipeline fails closed and proposes icons only.
 
+## What M11 does
+
+- **Runs the pipeline automatically, from the CMS.** The admin UI (Go) writes *commands* into
+  `content_staging.pipeline_jobs`; `content-pipeline worker` claims them (`FOR UPDATE SKIP LOCKED`) and
+  runs the stage builders, writing per-stage progress back. The CMS page `/app/admin/pipeline` lists
+  sources and jobs with live progress.
+- **Scheduled + manual.** The worker also crawls active sources on their `crawl_frequency` (advisory
+  lock 727276) and can be triggered by a "Jalankan sekarang" button. Human review stays mandatory: the
+  pipeline stops at candidates; a reviewer approves and a one-click **Terbitkan** publishes.
+- **One control-table exception.** The Go role gets `INSERT, UPDATE` on `pipeline_jobs` only — never a
+  pipeline *data* table (source enable/disable is itself a job). Python still never writes canonical.
+- **Resilient.** Stages are idempotent; a 30-minute reaper re-queues stuck jobs; SIGTERM re-queues the
+  current job and exits between stages. Retry is manual (UI `/retry`).
+
 ## Setup
 
 ```bash
@@ -246,6 +260,10 @@ uv run content-pipeline changes --status analyzed --limit 20   # list detected c
 uv run content-pipeline visuals --source my-source             # propose icons / illustrations
 uv run content-pipeline visuals --source my-source --dry-run   # report only: no writes
 uv run content-pipeline visuals --source my-source --force     # also revisit questions that already have one
+
+# M11 — worker daemon (claims UI-queued jobs + crawls due sources)
+uv run content-pipeline worker                                 # run forever (long-lived service)
+uv run content-pipeline worker --once                          # process at most one queued job and exit
 ```
 
 The Go reviewer API + web screens for M7 (`/api/curriculum-changes`, the reviewer queue) are part
@@ -285,6 +303,7 @@ src/content_pipeline/
   assisted.py   AI-assisted scenario/comprehension generation + grounding (M6)
   curriculum_diff.py  pure CP-statement extraction + diff (M7)
   watch.py      curriculum change watcher, impacts and advisory lock (M7)
+  worker.py     job-queue worker daemon: claim/dispatch/schedule/reap (M11)
 sql/            content_staging migrations + roles/grants
 tests/          unit tests (no database required)
 ```
