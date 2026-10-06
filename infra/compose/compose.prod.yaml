@@ -43,17 +43,20 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/eduplay?sslmode=disable
       PUBLIC_URL: https://${DOMAIN}
       SESSION_SECRET: ${SESSION_SECRET}
-      PAYMENT_PROVIDER: midtrans
-      MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-midtrans}
+      PAYMENT_SECRET: ${PAYMENT_SECRET:-}
+      MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY:-}
       MIDTRANS_PRODUCTION: ${MIDTRANS_PRODUCTION:-true}
       MONTHLY_PRICE_IDR: ${MONTHLY_PRICE_IDR:-49000}
-      STORAGE_DRIVER: s3
-      S3_ENDPOINT: ${S3_ENDPOINT}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-s3}
+      STORAGE_DIR: ${STORAGE_DIR:-/data/storage}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
       S3_REGION: ${S3_REGION:-auto}
-      S3_BUCKET: ${S3_BUCKET}
-      S3_USE_SSL: "true"
-      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
-      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_USE_SSL: ${S3_USE_SSL:-true}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-}
+    volumes: [appstorage:/data/storage]
     depends_on: { postgres: { condition: service_healthy } }
     labels:
       - traefik.enable=true
@@ -88,12 +91,12 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/eduplay?sslmode=disable
       PIPELINE_USER_AGENT: ${PIPELINE_USER_AGENT:-NocifyEduPlayBot/0.1}
-      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
       S3_REGION: ${S3_REGION:-auto}
-      S3_BUCKET: ${S3_BUCKET}
-      S3_USE_SSL: "true"
-      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
-      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_USE_SSL: ${S3_USE_SSL:-true}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-}
       AI_PROVIDER: ${AI_PROVIDER:-}
       AI_BASE_URL: ${AI_BASE_URL:-}
       AI_API_KEY: ${AI_API_KEY:-}
@@ -169,3 +172,4 @@ volumes:
   letsencrypt:
   prometheus:
   grafana:
+  appstorage:
