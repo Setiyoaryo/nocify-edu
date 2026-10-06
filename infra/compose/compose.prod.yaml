@@ -56,7 +56,9 @@ services:
       S3_USE_SSL: ${S3_USE_SSL:-true}
       STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-}
       STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-}
-    volumes: [appstorage:/data/storage]
+    volumes:
+      - appstorage:/data/storage
+      - ../../content:/app/content:ro
     depends_on: { postgres: { condition: service_healthy } }
     labels:
       - traefik.enable=true
