@@ -1,110 +1,180 @@
 {
-  "source": "EduPlay seed set v1 (2026-09-25). Drafted with AI assistance — MUST pass academic review before production (§7, §24).",
+  "source": "EduPlay kurikulum resmi SD Kelas 4 (Matematika Kurikulum Merdeka)",
   "questions": [
     {
       "code": "SD4-MAT-KAL-01",
       "skill": "sd4-perkalian",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 1,
       "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
       "content": {
-        "prompt": "6 × 7 = ?"
+        "prompt": "Ibu membeli 6 kotak kue bolu. Setiap kotak berisi 7 potong kue. Berapa potong kue yang dibeli ibu seluruhnya?",
+        "audio_text": "Ibu membeli 6 kotak kue bolu. Setiap kotak berisi 7 potong kue. Berapa potong kue yang dibeli ibu seluruhnya?",
+        "figures": [
+          { "icon": "cake", "count": 6, "color": "pink" }
+        ],
+        "options": [
+          { "id": "a", "label": "36 potong" },
+          { "id": "b", "label": "42 potong" },
+          { "id": "c", "label": "48 potong" },
+          { "id": "d", "label": "54 potong" }
+        ]
       },
       "answer": {
-        "value": 42
+        "option_id": "b"
       },
-      "explanation": "6 × 7 = 42.",
-      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+      "explanation": "6 kotak × 7 potong = 42 potong kue.",
+      "hint": "Kalikan jumlah kotak dengan isi tiap kotak (6 × 7)."
     },
     {
       "code": "SD4-MAT-KAL-02",
       "skill": "sd4-perkalian",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 2,
       "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
       "content": {
-        "prompt": "8 × 9 = ?"
+        "prompt": "Di kebun paman ada 8 baris pohon jeruk. Setiap baris memiliki 9 pohon jeruk. Berapa banyak pohon jeruk seluruhnya?",
+        "audio_text": "Di kebun paman ada 8 baris pohon jeruk. Setiap baris memiliki 9 pohon jeruk. Berapa banyak pohon jeruk seluruhnya?",
+        "figures": [
+          { "icon": "orange", "count": 8, "color": "orange" }
+        ],
+        "options": [
+          { "id": "a", "label": "64 pohon" },
+          { "id": "b", "label": "72 pohon" },
+          { "id": "c", "label": "81 pohon" },
+          { "id": "d", "label": "90 pohon" }
+        ]
       },
       "answer": {
-        "value": 72
+        "option_id": "b"
       },
-      "explanation": "8 × 9 = 72.",
-      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+      "explanation": "8 baris × 9 pohon = 72 pohon jeruk.",
+      "hint": "Gunakan perkalian 8 × 9."
     },
     {
       "code": "SD4-MAT-KAL-03",
       "skill": "sd4-perkalian",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 2,
       "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
       "content": {
-        "prompt": "7 × 12 = ?"
+        "prompt": "Sebuah toko kue mengemas biskuit ke dalam 7 toples. Tiap toples berisi 12 keping biskuit. Berapa keping biskuit semuanya?",
+        "audio_text": "Sebuah toko kue mengemas biskuit ke dalam 7 toples. Tiap toples berisi 12 keping biskuit. Berapa keping biskuit semuanya?",
+        "figures": [
+          { "icon": "cookie", "count": 7, "color": "brown" }
+        ],
+        "options": [
+          { "id": "a", "label": "74 biskuit" },
+          { "id": "b", "label": "82 biskuit" },
+          { "id": "c", "label": "84 biskuit" },
+          { "id": "d", "label": "94 biskuit" }
+        ]
       },
       "answer": {
-        "value": 84
+        "option_id": "c"
       },
-      "explanation": "7 × 12 = 84. Pecah 12 menjadi 10 + 2: (10 × 7) + (2 × 7) = 70 + 14 = 84.",
-      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+      "explanation": "7 toples × 12 keping = 84 keping biskuit. (7 × 10 = 70, 7 × 2 = 14. 70 + 14 = 84).",
+      "hint": "Pecah 12 menjadi 10 dan 2, lalu kalikan masing-masing dengan 7."
     },
     {
       "code": "SD4-MAT-KAL-04",
       "skill": "sd4-perkalian",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 3,
       "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
       "content": {
-        "prompt": "15 × 4 = ?"
+        "prompt": "Pak Guru menyiapkan 4 bungkus hadiah. Setiap bungkus berisi 15 pensil warna. Berapa jumlah seluruh pensil warna?",
+        "audio_text": "Pak Guru menyiapkan 4 bungkus hadiah. Setiap bungkus berisi 15 pensil warna. Berapa jumlah seluruh pensil warna?",
+        "figures": [
+          { "icon": "pencil", "count": 4, "color": "yellow" }
+        ],
+        "options": [
+          { "id": "a", "label": "50 pensil" },
+          { "id": "b", "label": "55 pensil" },
+          { "id": "c", "label": "60 pensil" },
+          { "id": "d", "label": "65 pensil" }
+        ]
       },
       "answer": {
-        "value": 60
+        "option_id": "c"
       },
-      "explanation": "15 × 4 = 60. Pecah 15 menjadi 10 + 5: (10 × 4) + (5 × 4) = 40 + 20 = 60.",
-      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+      "explanation": "4 bungkus × 15 pensil = 60 pensil. (4 × 10 = 40, 4 × 5 = 20. 40 + 20 = 60).",
+      "hint": "Hitung 4 × 10 lalu tambahkan dengan 4 × 5."
     },
     {
       "code": "SD4-MAT-KAL-05",
       "skill": "sd4-perkalian",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 4,
       "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
       "content": {
-        "prompt": "23 × 3 = ?"
+        "prompt": "Tiga regu pramuka masing-masing beranggotakan 23 anak. Berapa jumlah seluruh anggota pramuka dari ketiga regu tersebut?",
+        "audio_text": "Tiga regu pramuka masing-masing beranggotakan 23 anak. Berapa jumlah seluruh anggota pramuka dari ketiga regu tersebut?",
+        "figures": [
+          { "icon": "backpack", "count": 3, "color": "blue" }
+        ],
+        "options": [
+          { "id": "a", "label": "59 anak" },
+          { "id": "b", "label": "66 anak" },
+          { "id": "c", "label": "69 anak" },
+          { "id": "d", "label": "73 anak" }
+        ]
       },
       "answer": {
-        "value": 69
+        "option_id": "c"
       },
-      "explanation": "23 × 3 = 69. Pecah 23 menjadi 20 + 3: (20 × 3) + (3 × 3) = 60 + 9 = 69.",
-      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+      "explanation": "3 regu × 23 anak = 69 anak. (3 × 20 = 60, 3 × 3 = 9. 60 + 9 = 69).",
+      "hint": "Kalikan puluhan (3 × 20) dan satuan (3 × 3), lalu jumlahkan hasilnya."
     },
     {
       "code": "SD4-MAT-KAL-06",
       "skill": "sd4-perkalian",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 4,
       "learning_objective": "Siswa dapat menghitung perkalian bilangan satu dan dua angka.",
       "content": {
-        "prompt": "12 × 11 = ?"
+        "prompt": "Di perpustakaan ada 12 rak buku baru. Setiap rak memuat 11 buku cerita. Berapa total buku cerita di rak tersebut?",
+        "audio_text": "Di perpustakaan ada 12 rak buku baru. Setiap rak memuat 11 buku cerita. Berapa total buku cerita di rak tersebut?",
+        "figures": [
+          { "icon": "book", "count": 6, "color": "purple" }
+        ],
+        "options": [
+          { "id": "a", "label": "120 buku" },
+          { "id": "b", "label": "131 buku" },
+          { "id": "c", "label": "132 buku" },
+          { "id": "d", "label": "142 buku" }
+        ]
       },
       "answer": {
-        "value": 132
+        "option_id": "c"
       },
-      "explanation": "12 × 11 = 132. Pecah 12 menjadi 10 + 2: (10 × 11) + (2 × 11) = 110 + 22 = 132.",
-      "hint": "Perkalian adalah penjumlahan berulang. Pecah bilangan besar menjadi puluhan dan satuan."
+      "explanation": "12 rak × 11 buku = 132 buku cerita. (12 × 10 = 120, 12 × 1 = 12. 120 + 12 = 132).",
+      "hint": "Kalikan 12 dengan 10, lalu tambahkan 12."
     },
     {
       "code": "SD4-MAT-BAG-01",
       "skill": "sd4-pembagian",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 1,
       "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
       "content": {
-        "prompt": "24 : 6 = ?"
+        "prompt": "Kakak memiliki 24 potong pizza yang akan dibagikan sama rata kepada 6 orang temannya. Berapa potong pizza yang didapat setiap teman?",
+        "audio_text": "Kakak memiliki 24 potong pizza yang akan dibagikan sama rata kepada 6 orang temannya. Berapa potong pizza yang didapat setiap teman?",
+        "figures": [
+          { "icon": "pizza", "count": 6, "color": "orange" }
+        ],
+        "options": [
+          { "id": "a", "label": "3 potong" },
+          { "id": "b", "label": "4 potong" },
+          { "id": "c", "label": "5 potong" },
+          { "id": "d", "label": "6 potong" }
+        ]
       },
       "answer": {
-        "value": 4
+        "option_id": "b"
       },
-      "explanation": "24 : 6 = 4, karena 4 × 6 = 24.",
-      "hint": "Cari bilangan yang jika dikali 6 hasilnya 24."
+      "explanation": "24 potong : 6 orang = 4 potong pizza per orang, karena 4 × 6 = 24.",
+      "hint": "Berapa bilangan yang jika dikalikan 6 hasilnya 24?"
     },
     {
       "code": "SD4-MAT-BAG-02",
@@ -113,46 +183,48 @@
       "difficulty": 1,
       "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
       "content": {
-        "prompt": "Berapa hasil 35 : 5?",
+        "prompt": "Paman membagikan 35 wortel segar sama banyak kepada 5 kelinci peliharaannya. Berapa wortel yang didapat setiap kelinci?",
+        "audio_text": "Paman membagikan 35 wortel segar sama banyak kepada 5 kelinci peliharaannya. Berapa wortel yang didapat setiap kelinci?",
+        "figures": [
+          { "icon": "carrot", "count": 5, "color": "orange" }
+        ],
         "options": [
-          {
-            "id": "a",
-            "label": "6"
-          },
-          {
-            "id": "b",
-            "label": "7"
-          },
-          {
-            "id": "c",
-            "label": "8"
-          },
-          {
-            "id": "d",
-            "label": "9"
-          }
+          { "id": "a", "label": "6 wortel" },
+          { "id": "b", "label": "7 wortel" },
+          { "id": "c", "label": "8 wortel" },
+          { "id": "d", "label": "9 wortel" }
         ]
       },
       "answer": {
         "option_id": "b"
       },
-      "explanation": "35 : 5 = 7, karena 7 × 5 = 35.",
-      "hint": "Coba kalikan setiap pilihan dengan 5."
+      "explanation": "35 wortel : 5 kelinci = 7 wortel per kelinci, karena 7 × 5 = 35.",
+      "hint": "Cari angka di perkalian 5 yang menghasilkan 35."
     },
     {
       "code": "SD4-MAT-BAG-03",
       "skill": "sd4-pembagian",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 2,
       "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
       "content": {
-        "prompt": "56 : 8 = ?"
+        "prompt": "Ibu membawa 56 buah ceri manis dan membaginya rata ke dalam 8 mangkuk kecil. Berapa buah ceri di tiap mangkuk?",
+        "audio_text": "Ibu membawa 56 buah ceri manis dan membaginya rata ke dalam 8 mangkuk kecil. Berapa buah ceri di tiap mangkuk?",
+        "figures": [
+          { "icon": "cherries", "count": 8, "color": "red" }
+        ],
+        "options": [
+          { "id": "a", "label": "6 ceri" },
+          { "id": "b", "label": "7 ceri" },
+          { "id": "c", "label": "8 ceri" },
+          { "id": "d", "label": "9 ceri" }
+        ]
       },
       "answer": {
-        "value": 7
+        "option_id": "b"
       },
-      "explanation": "56 : 8 = 7, karena 7 × 8 = 56.",
-      "hint": "Cari bilangan yang jika dikali 8 hasilnya 56."
+      "explanation": "56 buah : 8 mangkuk = 7 buah ceri per mangkuk, karena 7 × 8 = 56.",
+      "hint": "Perkalian 8 yang hasilnya 56 adalah 8 × 7."
     },
     {
       "code": "SD4-MAT-BAG-04",
@@ -161,46 +233,48 @@
       "difficulty": 3,
       "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
       "content": {
-        "prompt": "Berapa hasil 72 : 9?",
+        "prompt": "Sebuah kelas memiliki 72 bintang prestasi yang dibagikan merata kepada 9 kelompok belajar. Berapa bintang yang diterima tiap kelompok?",
+        "audio_text": "Sebuah kelas memiliki 72 bintang prestasi yang dibagikan merata kepada 9 kelompok belajar. Berapa bintang yang diterima tiap kelompok?",
+        "figures": [
+          { "icon": "star", "count": 9, "color": "yellow" }
+        ],
         "options": [
-          {
-            "id": "a",
-            "label": "7"
-          },
-          {
-            "id": "b",
-            "label": "8"
-          },
-          {
-            "id": "c",
-            "label": "9"
-          },
-          {
-            "id": "d",
-            "label": "10"
-          }
+          { "id": "a", "label": "7 bintang" },
+          { "id": "b", "label": "8 bintang" },
+          { "id": "c", "label": "9 bintang" },
+          { "id": "d", "label": "10 bintang" }
         ]
       },
       "answer": {
         "option_id": "b"
       },
-      "explanation": "72 : 9 = 8, karena 8 × 9 = 72.",
-      "hint": "Coba kalikan setiap pilihan dengan 9."
+      "explanation": "72 bintang : 9 kelompok = 8 bintang per kelompok, karena 8 × 9 = 72.",
+      "hint": "Ingat perkalian 9: 9 × 8 = 72."
     },
     {
       "code": "SD4-MAT-BAG-05",
       "skill": "sd4-pembagian",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 4,
       "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
       "content": {
-        "prompt": "96 : 4 = ?"
+        "prompt": "Pak Tono memiliki 96 bibit tanaman yang ditanam sama rata di 4 petak kebun. Berapa bibit tanaman di setiap petak kebun?",
+        "audio_text": "Pak Tono memiliki 96 bibit tanaman yang ditanam sama rata di 4 petak kebun. Berapa bibit tanaman di setiap petak kebun?",
+        "figures": [
+          { "icon": "plant", "count": 4, "color": "green" }
+        ],
+        "options": [
+          { "id": "a", "label": "22 bibit" },
+          { "id": "b", "label": "24 bibit" },
+          { "id": "c", "label": "26 bibit" },
+          { "id": "d", "label": "28 bibit" }
+        ]
       },
       "answer": {
-        "value": 24
+        "option_id": "b"
       },
-      "explanation": "96 : 4 = 24, karena 24 × 4 = 96.",
-      "hint": "Cari bilangan yang jika dikali 4 hasilnya 96."
+      "explanation": "96 : 4 = 24 bibit. (80 : 4 = 20, dan 16 : 4 = 4. 20 + 4 = 24).",
+      "hint": "Bagi 80 : 4 = 20, sisanya 16 : 4 = 4. Jumlahkan hasilnya."
     },
     {
       "code": "SD4-MAT-BAG-06",
@@ -209,91 +283,123 @@
       "difficulty": 4,
       "learning_objective": "Siswa dapat menghitung pembagian tanpa sisa.",
       "content": {
-        "prompt": "Berapa hasil 84 : 7?",
+        "prompt": "Sebuah toko kue menyusun 84 biskuit ke dalam 7 kaleng dengan jumlah sama. Berapa biskuit di dalam setiap kaleng?",
+        "audio_text": "Sebuah toko kue menyusun 84 biskuit ke dalam 7 kaleng dengan jumlah sama. Berapa biskuit di dalam setiap kaleng?",
+        "figures": [
+          { "icon": "cookie", "count": 7, "color": "brown" }
+        ],
         "options": [
-          {
-            "id": "a",
-            "label": "11"
-          },
-          {
-            "id": "b",
-            "label": "12"
-          },
-          {
-            "id": "c",
-            "label": "13"
-          },
-          {
-            "id": "d",
-            "label": "14"
-          }
+          { "id": "a", "label": "11 biskuit" },
+          { "id": "b", "label": "12 biskuit" },
+          { "id": "c", "label": "13 biskuit" },
+          { "id": "d", "label": "14 biskuit" }
         ]
       },
       "answer": {
         "option_id": "b"
       },
-      "explanation": "84 : 7 = 12, karena 12 × 7 = 84.",
-      "hint": "Coba kalikan setiap pilihan dengan 7."
+      "explanation": "84 : 7 = 12 biskuit per kaleng, karena 12 × 7 = 84.",
+      "hint": "70 : 7 = 10, lalu sisanya 14 : 7 = 2. 10 + 2 = 12."
     },
     {
       "code": "SD4-MAT-CRT-01",
       "skill": "sd4-soal-cerita",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 2,
       "learning_objective": "Siswa dapat menyelesaikan soal cerita perkalian dan pembagian.",
       "content": {
-        "prompt": "Satu kotak berisi 8 pensil. Berapa pensil dalam 6 kotak?"
+        "prompt": "Satu kotak pensil berisi 8 pensil warna. Jika Rian membeli 6 kotak pensil warna untuk teman-temannya, berapa pensil warna yang dibeli Rian?",
+        "audio_text": "Satu kotak pensil berisi 8 pensil warna. Jika Rian membeli 6 kotak pensil warna untuk teman-temannya, berapa pensil warna yang dibeli Rian?",
+        "figures": [
+          { "icon": "pencil", "count": 6, "color": "yellow" }
+        ],
+        "options": [
+          { "id": "a", "label": "42 pensil" },
+          { "id": "b", "label": "46 pensil" },
+          { "id": "c", "label": "48 pensil" },
+          { "id": "d", "label": "54 pensil" }
+        ]
       },
       "answer": {
-        "value": 48
+        "option_id": "c"
       },
-      "explanation": "Kalimat matematikanya: 6 × 8 = 48.",
-      "hint": "Beberapa kelompok yang sama banyak berarti dikali; 'dibagi rata' atau 'sama banyak di setiap' berarti dibagi."
+      "explanation": "6 kotak × 8 pensil = 48 pensil warna.",
+      "hint": "Kalikan jumlah kotak dengan isi tiap kotak (6 × 8)."
     },
     {
       "code": "SD4-MAT-CRT-02",
       "skill": "sd4-soal-cerita",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 2,
       "learning_objective": "Siswa dapat menyelesaikan soal cerita perkalian dan pembagian.",
       "content": {
-        "prompt": "45 permen dibagi rata kepada 5 anak. Berapa permen yang diterima setiap anak?"
+        "prompt": "Bibi membawa 45 buah permen manis. Permen tersebut dibagikan sama banyak kepada 5 orang keponakannya. Berapa permen yang diterima setiap keponakan?",
+        "audio_text": "Bibi membawa 45 buah permen manis. Permen tersebut dibagikan sama banyak kepada 5 orang keponakannya. Berapa permen yang diterima setiap keponakan?",
+        "figures": [
+          { "icon": "gift", "count": 5, "color": "pink" }
+        ],
+        "options": [
+          { "id": "a", "label": "7 permen" },
+          { "id": "b", "label": "8 permen" },
+          { "id": "c", "label": "9 permen" },
+          { "id": "d", "label": "10 permen" }
+        ]
       },
       "answer": {
-        "value": 9
+        "option_id": "c"
       },
-      "explanation": "Kalimat matematikanya: 45 : 5 = 9.",
-      "hint": "Beberapa kelompok yang sama banyak berarti dikali; 'dibagi rata' atau 'sama banyak di setiap' berarti dibagi."
+      "explanation": "45 permen : 5 keponakan = 9 permen per anak.",
+      "hint": "Dibagi rata berarti operasi pembagian (45 : 5)."
     },
     {
       "code": "SD4-MAT-CRT-03",
       "skill": "sd4-soal-cerita",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 3,
       "learning_objective": "Siswa dapat menyelesaikan soal cerita perkalian dan pembagian.",
       "content": {
-        "prompt": "Sebuah bus membawa 32 penumpang. Berapa penumpang yang dibawa 4 bus yang sama?"
+        "prompt": "Sebuah bus sekolah dapat mengangkut 32 orang siswa. Berapa banyak siswa yang dapat diangkut oleh 4 bus sekolah yang berukuran sama?",
+        "audio_text": "Sebuah bus sekolah dapat mengangkut 32 orang siswa. Berapa banyak siswa yang dapat diangkut oleh 4 bus sekolah yang berukuran sama?",
+        "figures": [
+          { "icon": "bus", "count": 4, "color": "blue" }
+        ],
+        "options": [
+          { "id": "a", "label": "118 siswa" },
+          { "id": "b", "label": "124 siswa" },
+          { "id": "c", "label": "128 siswa" },
+          { "id": "d", "label": "132 siswa" }
+        ]
       },
       "answer": {
-        "value": 128
+        "option_id": "c"
       },
-      "explanation": "Kalimat matematikanya: 4 × 32 = 128.",
-      "hint": "Beberapa kelompok yang sama banyak berarti dikali; 'dibagi rata' atau 'sama banyak di setiap' berarti dibagi."
+      "explanation": "4 bus × 32 siswa = 128 siswa. (4 × 30 = 120, ditambah 4 × 2 = 8).",
+      "hint": "Kalikan 4 dengan 30, lalu tambahkan dengan hasil 4 × 2."
     },
     {
       "code": "SD4-MAT-CRT-04",
       "skill": "sd4-soal-cerita",
-      "type": "number_input",
+      "type": "single_choice",
       "difficulty": 4,
       "learning_objective": "Siswa dapat menyelesaikan soal cerita perkalian dan pembagian.",
       "content": {
-        "prompt": "Ada 96 buku yang disusun sama banyak di 8 rak. Berapa buku di setiap rak?"
+        "prompt": "Perpustakaan desa menerima sumbangan 96 buku bacaan baru. Buku-buku itu akan disusun sama banyak ke dalam 8 rak buku. Berapa buku di setiap rak?",
+        "audio_text": "Perpustakaan desa menerima sumbangan 96 buku bacaan baru. Buku-buku itu akan disusun sama banyak ke dalam 8 rak buku. Berapa buku di setiap rak?",
+        "figures": [
+          { "icon": "book-open", "count": 8, "color": "purple" }
+        ],
+        "options": [
+          { "id": "a", "label": "11 buku" },
+          { "id": "b", "label": "12 buku" },
+          { "id": "c", "label": "13 buku" },
+          { "id": "d", "label": "14 buku" }
+        ]
       },
       "answer": {
-        "value": 12
+        "option_id": "b"
       },
-      "explanation": "Kalimat matematikanya: 96 : 8 = 12.",
-      "hint": "Beberapa kelompok yang sama banyak berarti dikali; 'dibagi rata' atau 'sama banyak di setiap' berarti dibagi."
+      "explanation": "96 buku : 8 rak = 12 buku per rak, karena 12 × 8 = 96.",
+      "hint": "Gunakan pembagian: 96 dibagi 8."
     },
     {
       "code": "SD4-MAT-PCH-01",
@@ -303,29 +409,15 @@
       "learning_objective": "Siswa dapat mengenali dan membandingkan pecahan sederhana.",
       "content": {
         "prompt": "Pizza dipotong menjadi 4 bagian sama besar. Kamu makan 1 potong. Pecahan pizza yang kamu makan adalah …",
-        "options": [
-          {
-            "id": "a",
-            "label": "1/2"
-          },
-          {
-            "id": "b",
-            "label": "1/4"
-          },
-          {
-            "id": "c",
-            "label": "1/3"
-          },
-          {
-            "id": "d",
-            "label": "4/1"
-          }
-        ],
+        "audio_text": "Pizza dipotong menjadi 4 bagian sama besar. Kamu makan 1 potong. Pecahan pizza yang kamu makan adalah berapa?",
         "figures": [
-          {
-            "icon": "pizza",
-            "color": "orange"
-          }
+          { "icon": "pizza", "count": 1, "color": "orange" }
+        ],
+        "options": [
+          { "id": "a", "label": "1/2" },
+          { "id": "b", "label": "1/4" },
+          { "id": "c", "label": "1/3" },
+          { "id": "d", "label": "4/1" }
         ]
       },
       "answer": {
@@ -341,23 +433,21 @@
       "difficulty": 2,
       "learning_objective": "Siswa dapat mengenali dan membandingkan pecahan sederhana.",
       "content": {
-        "prompt": "Mana yang lebih besar?",
+        "prompt": "Mana yang bagiannya lebih besar?",
+        "audio_text": "Mana yang bagiannya lebih besar antara satu per dua dan satu per empat?",
+        "figures": [
+          { "icon": "cake", "count": 2, "color": "pink" }
+        ],
         "options": [
-          {
-            "id": "a",
-            "label": "1/2"
-          },
-          {
-            "id": "b",
-            "label": "1/4"
-          }
+          { "id": "a", "label": "1/2" },
+          { "id": "b", "label": "1/4" }
         ]
       },
       "answer": {
         "option_id": "a"
       },
       "explanation": "Jika pembilangnya sama (1), penyebut yang lebih kecil berarti bagiannya lebih besar. Jadi 1/2 > 1/4.",
-      "hint": "Bayangkan kue yang dipotong sama besar."
+      "hint": "Satu kue dibagi 2 orang dibandingkan dibagi 4 orang, mana bagian yang lebih besar?"
     },
     {
       "code": "SD4-MAT-PCH-03",
@@ -367,55 +457,45 @@
       "learning_objective": "Siswa dapat mengenali dan membandingkan pecahan sederhana.",
       "content": {
         "prompt": "Pecahan yang senilai dengan 1/2 adalah …",
+        "audio_text": "Pecahan manakah yang nilainya sama dengan satu per dua?",
+        "figures": [
+          { "icon": "pizza", "count": 2, "color": "orange" }
+        ],
         "options": [
-          {
-            "id": "a",
-            "label": "2/3"
-          },
-          {
-            "id": "b",
-            "label": "2/4"
-          },
-          {
-            "id": "c",
-            "label": "1/3"
-          },
-          {
-            "id": "d",
-            "label": "3/4"
-          }
-        ]
-      },
-      "answer": {
-        "option_id": "b"
-      },
-      "explanation": "1/2 = 2/4 karena pembilang dan penyebut sama-sama dikali 2.",
-      "hint": "Bayangkan kue yang dipotong sama besar."
-    },
-    {
-      "code": "SD4-MAT-PCH-04",
-      "skill": "sd4-pecahan-senilai",
-      "type": "single_choice",
-      "difficulty": 2,
-      "learning_objective": "Siswa dapat mengenali dan membandingkan pecahan sederhana.",
-      "content": {
-        "prompt": "Mana yang lebih kecil?",
-        "options": [
-          {
-            "id": "a",
-            "label": "3/8"
-          },
-          {
-            "id": "b",
-            "label": "5/8"
-          }
+          { "id": "a", "label": "2/4" },
+          { "id": "b", "label": "2/3" },
+          { "id": "c", "label": "3/5" },
+          { "id": "d", "label": "1/3" }
         ]
       },
       "answer": {
         "option_id": "a"
       },
-      "explanation": "Penyebutnya sama (8), jadi bandingkan pembilangnya: 3 < 5.",
-      "hint": "Bayangkan kue yang dipotong sama besar."
+      "explanation": "1/2 senilai dengan 2/4 (kalikan pembilang dan penyebut dengan 2).",
+      "hint": "Kalikan atas dan bawah dengan angka yang sama."
+    },
+    {
+      "code": "SD4-MAT-PCH-04",
+      "skill": "sd4-pecahan-senilai",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat mengenali dan membandingkan pecahan sederhana.",
+      "content": {
+        "prompt": "Mana yang nilainya lebih kecil?",
+        "audio_text": "Pecahan mana yang nilainya lebih kecil antara tiga per delapan dan lima per delapan?",
+        "figures": [
+          { "icon": "cookie", "count": 2, "color": "brown" }
+        ],
+        "options": [
+          { "id": "a", "label": "3/8" },
+          { "id": "b", "label": "5/8" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Penyebutnya sama (8), jadi bandingkan pembilangnya: 3 < 5. Maka 3/8 lebih kecil.",
+      "hint": "Karena penyebutnya sudah sama, bandingkan angka yang di atas."
     },
     {
       "code": "SD4-MAT-NTP-01",
@@ -424,31 +504,20 @@
       "difficulty": 2,
       "learning_objective": "Siswa dapat menentukan nilai tempat pada bilangan ribuan.",
       "content": {
-        "prompt": "Nilai tempat angka 7 pada 3.725 adalah …",
+        "prompt": "Nilai tempat angka 7 pada bilangan 3.725 adalah …",
+        "audio_text": "Nilai tempat angka tujuh pada bilangan tiga ribu tujuh ratus dua puluh lima adalah apa?",
         "options": [
-          {
-            "id": "a",
-            "label": "Ribuan"
-          },
-          {
-            "id": "b",
-            "label": "Ratusan"
-          },
-          {
-            "id": "c",
-            "label": "Puluhan"
-          },
-          {
-            "id": "d",
-            "label": "Satuan"
-          }
+          { "id": "a", "label": "Ribuan" },
+          { "id": "b", "label": "Ratusan" },
+          { "id": "c", "label": "Puluhan" },
+          { "id": "d", "label": "Satuan" }
         ]
       },
       "answer": {
         "option_id": "b"
       },
       "explanation": "3.725 = 3 ribuan, 7 ratusan, 2 puluhan, 5 satuan.",
-      "hint": "Dari kanan: satuan, puluhan, ratusan, ribuan."
+      "hint": "Urutan dari kanan ke kiri: satuan, puluhan, ratusan, ribuan."
     },
     {
       "code": "SD4-MAT-NTP-02",
@@ -457,31 +526,20 @@
       "difficulty": 3,
       "learning_objective": "Siswa dapat menentukan nilai tempat pada bilangan ribuan.",
       "content": {
-        "prompt": "Angka 4 pada 4.180 bernilai …",
+        "prompt": "Angka 4 pada bilangan 4.180 bernilai …",
+        "audio_text": "Angka empat pada bilangan empat ribu seratus delapan puluh bernilai berapa?",
         "options": [
-          {
-            "id": "a",
-            "label": "4"
-          },
-          {
-            "id": "b",
-            "label": "40"
-          },
-          {
-            "id": "c",
-            "label": "400"
-          },
-          {
-            "id": "d",
-            "label": "4.000"
-          }
+          { "id": "a", "label": "4" },
+          { "id": "b", "label": "40" },
+          { "id": "c", "label": "400" },
+          { "id": "d", "label": "4.000" }
         ]
       },
       "answer": {
         "option_id": "d"
       },
-      "explanation": "Angka 4 berada di tempat ribuan, jadi nilainya 4.000.",
-      "hint": "Dari kanan: satuan, puluhan, ratusan, ribuan."
+      "explanation": "Angka 4 berada di tempat ribuan, jadi bernilai 4.000.",
+      "hint": "Perhatikan posisinya paling depan di bilangan 4 digit."
     },
     {
       "code": "SD4-MAT-NTP-03",
@@ -490,53 +548,42 @@
       "difficulty": 2,
       "learning_objective": "Siswa dapat mengurutkan bilangan ribuan.",
       "content": {
-        "prompt": "Urutkan dari yang terkecil.",
+        "prompt": "Urutkan bilangan berikut dari yang terkecil:",
+        "audio_text": "Urutkan bilangan berikut dari yang paling kecil.",
         "items": [
-          {
-            "id": "a",
-            "label": "1.089"
-          },
-          {
-            "id": "b",
-            "label": "1.809"
-          },
-          {
-            "id": "c",
-            "label": "1.890"
-          },
-          {
-            "id": "d",
-            "label": "1.980"
-          }
+          { "id": "a", "label": "1.089" },
+          { "id": "b", "label": "1.809" },
+          { "id": "c", "label": "1.890" },
+          { "id": "d", "label": "1.980" }
         ]
       },
       "answer": {
-        "order": [
-          "a",
-          "b",
-          "c",
-          "d"
-        ]
+        "order": ["a", "b", "c", "d"]
       },
-      "explanation": "Ribuannya sama (1). Bandingkan ratusan: 0 < 8 = 8 < 9. Untuk 1.809 dan 1.890, bandingkan puluhan: 0 < 9.",
-      "hint": "Ribuannya sama, jadi lihat angka ratusan dulu."
+      "explanation": "Urutan dari yang terkecil: 1.089 < 1.809 < 1.890 < 1.980.",
+      "hint": "Bandingkan angka ratusan dan puluhannya."
     },
     {
       "code": "SD4-MAT-NTP-04",
       "skill": "sd4-nilai-tempat",
-      "type": "short_answer",
+      "type": "single_choice",
       "difficulty": 3,
       "learning_objective": "Siswa dapat menentukan nilai tempat pada bilangan ribuan.",
       "content": {
-        "prompt": "Tuliskan nama nilai tempat angka 9 pada bilangan 2.495."
-      },
-      "answer": {
-        "accepted": [
-          "puluhan"
+        "prompt": "Bilangan yang terdiri atas 5 ribuan, 0 ratusan, 4 puluhan, dan 8 satuan adalah …",
+        "audio_text": "Bilangan yang terdiri atas lima ribuan, nol ratusan, empat puluhan, dan delapan satuan adalah berapa?",
+        "options": [
+          { "id": "a", "label": "5.480" },
+          { "id": "b", "label": "5.048" },
+          { "id": "c", "label": "5.408" },
+          { "id": "d", "label": "5.840" }
         ]
       },
-      "explanation": "2.495 = 2 ribuan, 4 ratusan, 9 puluhan, 5 satuan.",
-      "hint": "Hitung posisi dari kanan: satuan, puluhan, …"
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "5.000 + 0 + 40 + 8 = 5.048.",
+      "hint": "Ratusannya nol, puluhan 4, satuan 8."
     }
   ]
 }
