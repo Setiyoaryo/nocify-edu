@@ -88,6 +88,8 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 
 			r.With(httpx.RateLimit(10, time.Minute)).Post("/auth/register", authH.Register)
 			r.With(httpx.RateLimit(10, time.Minute)).Post("/auth/login", authH.Login)
+			r.With(httpx.RateLimit(15, time.Minute)).Post("/auth/otp/send", authH.SendOTP)
+			r.With(httpx.RateLimit(20, time.Minute)).Post("/auth/otp/verify", authH.VerifyOTP)
 			r.Post("/auth/logout", authH.Logout)
 
 			r.Get("/grades", curH.Grades)

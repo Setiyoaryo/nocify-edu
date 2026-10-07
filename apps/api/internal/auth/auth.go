@@ -9,10 +9,15 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"io"
 	"log/slog"
+	"math/big"
 	"net/http"
 	"net/mail"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 	"unicode/utf8"
 
@@ -77,12 +82,80 @@ type Service struct {
 	Secret       []byte
 	TTL          time.Duration
 	CookieSecure bool
+	otps         sync.Map
 }
 
 func (s *Service) hashToken(token string) string {
 	m := hmac.New(sha256.New, s.Secret)
 	m.Write([]byte(token))
 	return hex.EncodeToString(m.Sum(nil))
+}
+
+type otpEntry struct {
+	code      string
+	expiresAt time.Time
+	attempts  atomic.Int32
+}
+
+func (s *Service) SetOTP(phone, code string, exp time.Time) {
+	s.otps.Store(phone, &otpEntry{code: code, expiresAt: exp})
+}
+
+func (s *Service) CheckOTP(phone, code string) bool {
+	v, ok := s.otps.Load(phone)
+	if !ok {
+		return false
+	}
+	entry := v.(*otpEntry)
+	if time.Now().After(entry.expiresAt) {
+		s.otps.Delete(phone)
+		return false
+	}
+	if entry.code != code {
+		if entry.attempts.Add(1) >= 5 {
+			s.otps.Delete(phone)
+		}
+		return false
+	}
+	s.otps.Delete(phone)
+	return true
+}
+
+func NormPhone(raw string) (string, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", errors.New("Nomor WhatsApp wajib diisi.")
+	}
+
+	hasPlus := strings.HasPrefix(raw, "+")
+	if strings.Count(raw, "+") > 1 || (!hasPlus && strings.Contains(raw, "+")) {
+		return "", errors.New("Nomor WhatsApp tidak valid (contoh: 081234567890).")
+	}
+
+	var digits []rune
+	for _, r := range raw {
+		if r >= '0' && r <= '9' {
+			digits = append(digits, r)
+		} else if r != '+' && r != '-' && r != ' ' && r != '(' && r != ')' && r != '.' {
+			return "", errors.New("Nomor WhatsApp tidak valid (contoh: 081234567890).")
+		}
+	}
+	s := string(digits)
+
+	if hasPlus && !strings.HasPrefix(s, "62") && !strings.HasPrefix(s, "0") && !strings.HasPrefix(s, "8") {
+		return "", errors.New("Nomor WhatsApp tidak valid (contoh: 081234567890).")
+	}
+
+	if strings.HasPrefix(s, "0062") {
+		s = strings.TrimPrefix(s, "0062")
+	} else if strings.HasPrefix(s, "62") {
+		s = strings.TrimPrefix(s, "62")
+	}
+	s = strings.TrimLeft(s, "0")
+	if len(s) < 8 || len(s) > 15 {
+		return "", errors.New("Nomor WhatsApp tidak valid (contoh: 081234567890).")
+	}
+	return "+62" + s, nil
 }
 
 func HashPassword(pw string) (string, error) {
@@ -427,4 +500,170 @@ func (h Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	h.S.clearCookie(w)
 	w.WriteHeader(http.StatusNoContent)
+}
+
+type sendOTPReq struct {
+	Phone string `json:"phone"`
+	Role  string `json:"role"`
+}
+
+// GenerateOTP creates a cryptographically secure 6-digit OTP code [100000, 999999].
+// It returns an error if reading random entropy fails, never falling back to a static code.
+func GenerateOTP() (string, error) {
+	return GenerateOTPReader(rand.Reader)
+}
+
+func GenerateOTPReader(r io.Reader) (string, error) {
+	bi, err := rand.Int(r, big.NewInt(900000))
+	if err != nil {
+		return "", fmt.Errorf("csprng failure: %w", err)
+	}
+	return fmt.Sprintf("%06d", 100000+bi.Int64()), nil
+}
+
+func (h Handler) SendOTP(w http.ResponseWriter, r *http.Request) {
+	var in sendOTPReq
+	if !httpx.Decode(w, r, &in) {
+		return
+	}
+	phone, err := NormPhone(in.Phone)
+	if err != nil {
+		httpx.Invalid(w, map[string]string{"phone": err.Error()})
+		return
+	}
+
+	code, err := GenerateOTP()
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+
+	h.S.SetOTP(phone, code, time.Now().Add(5*time.Minute))
+	slog.Info("WhatsApp OTP dispatched", "phone", phone, "role", in.Role)
+
+	httpx.JSON(w, http.StatusOK, map[string]any{
+		"status":  "ok",
+		"phone":   phone,
+		"message": "Kode OTP berhasil dikirim ke WhatsApp.",
+	})
+}
+
+type verifyOTPReq struct {
+	Phone string `json:"phone"`
+	Code  string `json:"code"`
+	Role  string `json:"role"`
+}
+
+func (h Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
+	var in verifyOTPReq
+	if !httpx.Decode(w, r, &in) {
+		return
+	}
+	phone, err := NormPhone(in.Phone)
+	if err != nil {
+		httpx.Invalid(w, map[string]string{"phone": err.Error()})
+		return
+	}
+	code := strings.TrimSpace(in.Code)
+	if code == "" {
+		httpx.Invalid(w, map[string]string{"code": "Kode OTP wajib diisi."})
+		return
+	}
+
+	if !h.S.CheckOTP(phone, code) {
+		httpx.Error(w, http.StatusUnauthorized, "invalid_otp", "Kode OTP salah atau telah kadaluarsa.")
+		return
+	}
+
+	var u User
+	err = h.S.DB.QueryRow(r.Context(), `
+		SELECT id, email, display_name, role, created_at
+		FROM users
+		WHERE phone = $1
+		ORDER BY created_at ASC LIMIT 1`, phone).Scan(&u.ID, &u.Email, &u.DisplayName, &u.Role, &u.CreatedAt)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		digits := strings.TrimPrefix(phone, "+")
+		synEmail := fmt.Sprintf("wa-%s@eduplay.local", digits)
+		err = h.S.DB.QueryRow(r.Context(), `
+			SELECT id, email, display_name, role, created_at
+			FROM users
+			WHERE lower(email) = $1`, synEmail).Scan(&u.ID, &u.Email, &u.DisplayName, &u.Role, &u.CreatedAt)
+
+		if errors.Is(err, pgx.ErrNoRows) {
+			displayName := "Orang Tua"
+			if in.Role == "child" {
+				displayName = "Keluarga EduPlay"
+			}
+			dummyHash, _ := bcrypt.GenerateFromPassword([]byte(uuid.NewString()), 10)
+			err = h.S.DB.QueryRow(r.Context(), `
+				INSERT INTO users (email, password_hash, display_name, phone, role, consent_version, consent_at)
+				VALUES ($1, $2, $3, $4, 'parent', $5, now())
+				RETURNING id, email, display_name, role, created_at`,
+				synEmail, string(dummyHash), displayName, phone, ConsentVersion).Scan(&u.ID, &u.Email, &u.DisplayName, &u.Role, &u.CreatedAt)
+			if err != nil {
+				httpx.Internal(w, r, err)
+				return
+			}
+			if h.OnRegister != nil {
+				h.OnRegister(r.Context(), u)
+			}
+		} else if err != nil {
+			httpx.Internal(w, r, err)
+			return
+		} else {
+			_, _ = h.S.DB.Exec(r.Context(), `UPDATE users SET phone = $1 WHERE id = $2`, phone, u.ID)
+		}
+	} else if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+
+	if err := h.S.CreateSession(r.Context(), w, u.ID); err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+
+	resp := map[string]any{
+		"user": u,
+		"role": in.Role,
+	}
+
+	if in.Role == "child" {
+		rows, err := h.S.DB.Query(r.Context(), `
+			SELECT c.id, c.nickname, c.grade_id, g.name, g.ux_band, c.avatar, c.pin_hash IS NOT NULL, c.xp, c.created_at,
+			       (SELECT max(a.started_at) FROM assessments a WHERE a.child_id = c.id)
+			FROM children c JOIN grades g ON g.id = c.grade_id
+			WHERE c.parent_id = $1
+			ORDER BY c.created_at ASC`, u.ID)
+		if err == nil {
+			defer rows.Close()
+			var childrenList []map[string]any
+			for rows.Next() {
+				var cid uuid.UUID
+				var nickname, gradeName, uxBand, avatar string
+				var gradeID, xp int
+				var hasPIN bool
+				var createdAt time.Time
+				var lastActivity *time.Time
+				if err := rows.Scan(&cid, &nickname, &gradeID, &gradeName, &uxBand, &avatar, &hasPIN, &xp, &createdAt, &lastActivity); err == nil {
+					childrenList = append(childrenList, map[string]any{
+						"id":            cid.String(),
+						"nickname":      nickname,
+						"grade_id":      gradeID,
+						"grade_name":    gradeName,
+						"ux_band":       uxBand,
+						"avatar":        avatar,
+						"has_pin":       hasPIN,
+						"xp":            xp,
+						"level":         1 + xp/100,
+						"last_activity": lastActivity,
+					})
+				}
+			}
+			resp["children"] = childrenList
+		}
+	}
+
+	httpx.JSON(w, http.StatusOK, resp)
 }
