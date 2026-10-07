@@ -20,6 +20,55 @@ test.describe('WhatsApp OTP Login Flow', () => {
 	});
 
 	test('parent logs in with WhatsApp OTP into parent dashboard without Mode Anak button', async ({ page }) => {
+		await page.route('**/auth/otp/verify', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				headers: {
+					'Set-Cookie': 'eduplay_session=mocksession; Path=/; HttpOnly'
+				},
+				body: JSON.stringify({
+					role: 'parent',
+					user: {
+						id: '00000000-0000-0000-0000-000000000001',
+						email: 'parent@eduplay.test',
+						display_name: 'Orang Tua',
+						role: 'parent',
+						created_at: new Date().toISOString()
+					}
+				})
+			});
+		});
+		await page.route('**/me', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					user: {
+						id: '00000000-0000-0000-0000-000000000001',
+						email: 'parent@eduplay.test',
+						display_name: 'Orang Tua',
+						role: 'parent',
+						created_at: new Date().toISOString()
+					}
+				})
+			});
+		});
+		await page.route('**/children', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ children: [] })
+			});
+		});
+		await page.route('**/subscription', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ subscription: { active: true, plan: 'family', expires_at: '2099-01-01T00:00:00Z' } })
+			});
+		});
+
 		await page.goto('/login');
 
 		// Select Orang Tua
@@ -38,9 +87,9 @@ test.describe('WhatsApp OTP Login Flow', () => {
 		await expect(page.getByRole('heading', { name: 'Verifikasi Kode OTP' })).toBeVisible();
 		await expect(page.getByText('+6281234567890')).toBeVisible();
 
-		// Enter 6 digit OTP (or use demo code)
+		// Enter 6 digit OTP
 		for (let i = 0; i < 6; i++) {
-			await page.locator(`#otp-${i}`).fill(String(i === 0 ? 1 : i === 1 ? 2 : i === 2 ? 3 : i === 3 ? 4 : i === 4 ? 5 : 6));
+			await page.locator(`#otp-${i}`).fill(String(i + 1));
 		}
 		await page.getByRole('button', { name: 'Verifikasi & Masuk' }).click();
 
@@ -53,6 +102,44 @@ test.describe('WhatsApp OTP Login Flow', () => {
 	});
 
 	test('child logs in with WhatsApp OTP into kid friendly play environment', async ({ page }) => {
+		await page.route('**/auth/otp/verify', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					role: 'child',
+					user: {
+						id: '00000000-0000-0000-0000-000000000001',
+						email: 'parent@eduplay.test',
+						display_name: 'Keluarga EduPlay',
+						role: 'parent',
+						created_at: new Date().toISOString()
+					},
+					children: [
+						{
+							id: '11111111-1111-1111-1111-111111111111',
+							nickname: 'Petualang',
+							grade_id: 1,
+							grade_name: 'SD Kelas 1',
+							ux_band: 'sd12',
+							avatar: 'lion',
+							has_pin: false,
+							xp: 150,
+							level: 2,
+							last_activity: null
+						}
+					]
+				})
+			});
+		});
+		await page.route('**/app/play/**', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'text/html',
+				body: '<!DOCTYPE html><html><body><h1>Ruang Bermain</h1></body></html>'
+			});
+		});
+
 		await page.goto('/login');
 
 		// Select Anak
@@ -69,13 +156,8 @@ test.describe('WhatsApp OTP Login Flow', () => {
 		// OTP screen appears in kid friendly tone
 		await expect(page.getByRole('heading', { name: /Ketik Kode Rahasia/i })).toBeVisible();
 
-		const fillBtn = page.getByRole('button', { name: /Isi otomatis/i });
-		if (await fillBtn.isVisible()) {
-			await fillBtn.click();
-		} else {
-			for (let i = 0; i < 6; i++) {
-				await page.locator(`#otp-${i}`).fill(String(i + 1));
-			}
+		for (let i = 0; i < 6; i++) {
+			await page.locator(`#otp-${i}`).fill(String(i + 1));
 		}
 		await page.getByRole('button', { name: /Ayo Masuk & Main/i }).click();
 

@@ -34,7 +34,6 @@
 
 	// OTP form (6 digits)
 	let otpDigits = $state<string[]>(['', '', '', '', '', '']);
-	let devCode = $state('');
 	let countdown = $state(0);
 	let timer: any = null;
 
@@ -97,12 +96,11 @@
 		busy = true;
 		error = '';
 		try {
-			const res = await post<{ status: string; phone: string; message: string; dev_code?: string }>('/auth/otp/send', {
+			const res = await post<{ status: string; phone: string; message: string }>('/auth/otp/send', {
 				phone: cleanPhone,
 				role: role ?? 'parent'
 			});
 			formattedPhone = res.phone;
-			devCode = res.dev_code ?? '';
 			step = 'otp';
 			startTimer(60);
 			// Auto focus first OTP input box after DOM updates
@@ -145,14 +143,6 @@
 			}
 			const lastIdx = Math.min(digits.length, 5);
 			(document.getElementById(`otp-${lastIdx}`) as HTMLInputElement)?.focus();
-		}
-	}
-
-	function fillDevCode() {
-		if (!devCode) return;
-		const chars = devCode.slice(0, 6).split('');
-		for (let i = 0; i < 6; i++) {
-			otpDigits[i] = chars[i] ?? '';
 		}
 	}
 
@@ -503,21 +493,6 @@
 						</button>
 					</div>
 				</div>
-
-				<!-- Helper chip for dev/mock OTP -->
-				{#if devCode}
-					<button
-						type="button"
-						class="flex w-full items-center justify-between rounded-2xl border border-sun/50 bg-sun-tint/50 p-3 text-xs sm:text-sm text-ink transition-colors hover:bg-sun-tint"
-						onclick={fillDevCode}
-					>
-						<span class="flex items-center gap-1.5 font-semibold">
-							<Sparkle size={16} weight="fill" class="text-sun-deep" />
-							<span>Kode OTP Uji Coba: <b class="font-mono text-base text-ink">{devCode}</b></span>
-						</span>
-						<span class="font-bold text-sun-deep underline">Isi otomatis</span>
-					</button>
-				{/if}
 
 				<form onsubmit={submitVerifyOTP} novalidate class="space-y-5">
 					<div>

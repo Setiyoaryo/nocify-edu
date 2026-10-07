@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"math/big"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -81,6 +83,7 @@ type Service struct {
 	CookieSecure bool
 	otps         sync.Map
 }
+
 func (s *Service) hashToken(token string) string {
 	m := hmac.New(sha256.New, s.Secret)
 	m.Write([]byte(token))
@@ -125,11 +128,12 @@ func NormPhone(raw string) (string, error) {
 		}
 	}
 	s := string(digits)
-	if strings.HasPrefix(s, "62") {
-		s = s[2:]
-	} else if strings.HasPrefix(s, "0") {
-		s = s[1:]
+	if strings.HasPrefix(s, "0062") {
+		s = strings.TrimPrefix(s, "0062")
+	} else if strings.HasPrefix(s, "62") {
+		s = strings.TrimPrefix(s, "62")
 	}
+	s = strings.TrimLeft(s, "0")
 	if len(s) < 8 || len(s) > 15 {
 		return "", errors.New("Nomor WhatsApp tidak valid (contoh: 081234567890).")
 	}
@@ -485,6 +489,20 @@ type sendOTPReq struct {
 	Role  string `json:"role"`
 }
 
+// GenerateOTP creates a cryptographically secure 6-digit OTP code [100000, 999999].
+// It returns an error if reading random entropy fails, never falling back to a static code.
+func GenerateOTP() (string, error) {
+	return GenerateOTPReader(rand.Reader)
+}
+
+func GenerateOTPReader(r io.Reader) (string, error) {
+	bi, err := rand.Int(r, big.NewInt(900000))
+	if err != nil {
+		return "", fmt.Errorf("csprng failure: %w", err)
+	}
+	return fmt.Sprintf("%06d", 100000+bi.Int64()), nil
+}
+
 func (h Handler) SendOTP(w http.ResponseWriter, r *http.Request) {
 	var in sendOTPReq
 	if !httpx.Decode(w, r, &in) {
@@ -496,22 +514,19 @@ func (h Handler) SendOTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bi, err := rand.Int(rand.Reader, big.NewInt(900000))
-	var code string
+	code, err := GenerateOTP()
 	if err != nil {
-		code = "123456"
-	} else {
-		code = fmt.Sprintf("%06d", 100000+bi.Int64())
+		httpx.Internal(w, r, err)
+		return
 	}
 
 	h.S.SetOTP(phone, code, time.Now().Add(5*time.Minute))
-	slog.Info("WhatsApp OTP dispatched", "phone", phone, "code", code, "role", in.Role)
+	slog.Info("WhatsApp OTP dispatched", "phone", phone, "role", in.Role)
 
 	httpx.JSON(w, http.StatusOK, map[string]any{
-		"status":   "ok",
-		"phone":    phone,
-		"message":  "Kode OTP berhasil dikirim ke WhatsApp.",
-		"dev_code": code,
+		"status":  "ok",
+		"phone":   phone,
+		"message": "Kode OTP berhasil dikirim ke WhatsApp.",
 	})
 }
 
@@ -537,8 +552,7 @@ func (h Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valid := code == "123456" || h.S.CheckOTP(phone, code)
-	if !valid {
+	if !h.S.CheckOTP(phone, code) {
 		httpx.Error(w, http.StatusUnauthorized, "invalid_otp", "Kode OTP salah atau telah kadaluarsa.")
 		return
 	}
