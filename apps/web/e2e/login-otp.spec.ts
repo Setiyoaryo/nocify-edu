@@ -106,6 +106,9 @@ test.describe('WhatsApp OTP Login Flow', () => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
+				headers: {
+					'Set-Cookie': 'eduplay_session=mocksession; Path=/; HttpOnly'
+				},
 				body: JSON.stringify({
 					role: 'child',
 					user: {
@@ -132,11 +135,41 @@ test.describe('WhatsApp OTP Login Flow', () => {
 				})
 			});
 		});
-		await page.route('**/app/play/**', async (route) => {
+		await page.route('**/me', async (route) => {
 			await route.fulfill({
 				status: 200,
-				contentType: 'text/html',
-				body: '<!DOCTYPE html><html><body><h1>Ruang Bermain</h1></body></html>'
+				contentType: 'application/json',
+				body: JSON.stringify({
+					user: {
+						id: '00000000-0000-0000-0000-000000000001',
+						email: 'parent@eduplay.test',
+						display_name: 'Keluarga EduPlay',
+						role: 'parent',
+						created_at: new Date().toISOString()
+					}
+				})
+			});
+		});
+		await page.route('**/children/*/home', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					child: {
+						id: '11111111-1111-1111-1111-111111111111',
+						nickname: 'Petualang',
+						grade_id: 1,
+						grade_name: 'SD Kelas 1',
+						ux_band: 'sd12',
+						avatar: 'lion',
+						has_pin: false,
+						xp: 150,
+						level: 2,
+						last_activity: null
+					},
+					stars: 5,
+					streak: 1
+				})
 			});
 		});
 
