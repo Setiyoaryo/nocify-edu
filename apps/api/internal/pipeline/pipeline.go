@@ -523,4 +523,3 @@ func ResolveWorkerStatus(
 
 	return worker
 }
-

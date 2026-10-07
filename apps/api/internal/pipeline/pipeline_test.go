@@ -144,4 +144,3 @@ func TestResolveWorkerStatus(t *testing.T) {
 		t.Fatalf("expected offline worker when never seen, got: %+v", w8)
 	}
 }
-
