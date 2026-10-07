@@ -15,7 +15,9 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import signal
+import socket
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, is_dataclass
@@ -89,6 +91,7 @@ class JobStore(Protocol):
     def unlock(self) -> None: ...
     def due_sources(self) -> list[str]: ...
     def enqueue(self, kind: str, params: dict[str, Any], *, requested_by: str | None = None) -> int: ...
+    def heartbeat(self, worker_id: str, status: str = "idle", current_job_id: int | None = None) -> None: ...
 
 
 def _jsonable(value: Any) -> Any:
@@ -273,14 +276,40 @@ class PgJobStore:
         assert row is not None
         return int(row[0])
 
+    def heartbeat(self, worker_id: str, status: str = "idle", current_job_id: int | None = None) -> None:
+        try:
+            with self._db.transaction() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO content_staging.worker_heartbeats
+                        (worker_id, hostname, pid, status, current_job_id, last_seen_at)
+                    VALUES (%s, %s, %s, %s, %s, now())
+                    ON CONFLICT (worker_id)
+                    DO UPDATE SET status = EXCLUDED.status,
+                                  current_job_id = EXCLUDED.current_job_id,
+                                  last_seen_at = now()
+                    """,
+                    (worker_id, socket.gethostname(), os.getpid(), status, current_job_id),
+                )
+        except Exception as exc:  # noqa: BLE001 - don't crash if table does not exist
+            log.debug("heartbeat update skipped: %s", exc)
+
 
 class JobContext:
     """Per-job handle: reports progress and checks for cancellation/shutdown."""
 
-    def __init__(self, store: JobStore, job: Job, stopping: Callable[[], bool]) -> None:
+    def __init__(
+        self,
+        store: JobStore,
+        job: Job,
+        stopping: Callable[[], bool],
+        *,
+        worker_id: str | None = None,
+    ) -> None:
         self._store = store
         self._job = job
         self._stopping = stopping
+        self._worker_id = worker_id
 
     @property
     def params(self) -> dict[str, Any]:
@@ -291,15 +320,21 @@ class JobContext:
             raise JobInterrupted
         if self._store.is_cancelled(self._job.id):
             raise JobCancelled
+        if self._worker_id:
+            self._store.heartbeat(self._worker_id, "active", self._job.id)
 
     def set_order(self, order: Sequence[str]) -> None:
         self._store.set_order(self._job.id, order)
 
     def begin(self, stage: str) -> None:
         self._store.begin_stage(self._job.id, stage)
+        if self._worker_id:
+            self._store.heartbeat(self._worker_id, "active", self._job.id)
 
     def done(self, stage: str, result: Any) -> None:
         self._store.add_stage(self._job.id, stage, result)
+        if self._worker_id:
+            self._store.heartbeat(self._worker_id, "active", self._job.id)
 
 
 class Worker:
@@ -321,6 +356,7 @@ class Worker:
         )
         self._stopping = False
         self._last_schedule = 0.0
+        self._worker_id = f"worker-{socket.gethostname()}-{os.getpid()}"
 
     def stop(self) -> None:
         self._stopping = True
@@ -334,12 +370,17 @@ class Worker:
         self._store.reap(LEASE_MINUTES)
         job = self._store.claim()
         if job is None:
+            self._store.heartbeat(self._worker_id, "idle", None)
             return False
-        self._execute(job)
+        self._store.heartbeat(self._worker_id, "active", job.id)
+        try:
+            self._execute(job)
+        finally:
+            self._store.heartbeat(self._worker_id, "idle", None)
         return True
 
     def _execute(self, job: Job) -> None:
-        ctx = JobContext(self._store, job, self._is_stopping)
+        ctx = JobContext(self._store, job, self._is_stopping, worker_id=self._worker_id)
         try:
             self._dispatch(ctx, job)
         except JobInterrupted:
@@ -586,17 +627,21 @@ class Worker:
             self._poll_seconds,
             self._scheduler_seconds,
         )
-        while not self._stopping:
-            now = time.monotonic()
-            if now - self._last_schedule >= self._scheduler_seconds:
-                try:
-                    self.schedule_due()
-                except Exception as exc:  # noqa: BLE001 - the scheduler must not crash
-                    log.warning("scheduler error: %s", exc)
-                self._last_schedule = now
-            if not self.run_once():
-                self._sleep(self._poll_seconds)
-        log.info("worker stopped")
+        try:
+            while not self._stopping:
+                self._store.heartbeat(self._worker_id, "idle", None)
+                now = time.monotonic()
+                if now - self._last_schedule >= self._scheduler_seconds:
+                    try:
+                        self.schedule_due()
+                    except Exception as exc:  # noqa: BLE001 - the scheduler must not crash
+                        log.warning("scheduler error: %s", exc)
+                    self._last_schedule = now
+                if not self.run_once():
+                    self._sleep(self._poll_seconds)
+        finally:
+            self._store.heartbeat(self._worker_id, "stopped", None)
+            log.info("worker stopped")
 
     def _on_signal(self, signum: int, _frame: object) -> None:
         log.info("signal %s received; finishing current stage and stopping", signum)

@@ -91,7 +91,7 @@ services:
       interval: 10s
       retries: 3
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/eduplay?sslmode=disable
+      DATABASE_URL: ${CONTENT_PIPELINE_DATABASE_URL:-postgres://content_pipeline:${CONTENT_PIPELINE_PASSWORD:-${POSTGRES_PASSWORD}}@postgres:5432/eduplay?sslmode=disable}
       PIPELINE_USER_AGENT: ${PIPELINE_USER_AGENT:-NocifyEduPlayBot/0.1}
       S3_ENDPOINT: ${S3_ENDPOINT:-}
       S3_REGION: ${S3_REGION:-auto}
@@ -136,6 +136,7 @@ services:
     volumes:
       - backups:/backups
       - ../scripts/backup.sh:/backup.sh:ro
+      - ../scripts/restore.sh:/restore.sh:ro
     entrypoint: ["/bin/sh", "-c", "while true; do /bin/sh /backup.sh; sleep 86400; done"]
     depends_on: { postgres: { condition: service_healthy } }
 

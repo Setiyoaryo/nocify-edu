@@ -84,6 +84,24 @@
       "skills": ["sd3-wujud-benda"]
     },
     {
+      "code": "CP-B-BIN-BACAAN",
+      "phase": "b",
+      "grade": null,
+      "subject": "bahasa-indonesia",
+      "element": "Membaca dan Memirsa",
+      "statement": "Peserta didik dapat memahami ide pokok serta menemukan informasi tersurat dan tersirat dalam teks bacaan dan pertanyaan.",
+      "skills": ["sd4-ide-pokok", "sd4-kata-tanya"]
+    },
+    {
+      "code": "CP-B-IPAS-ENERGI",
+      "phase": "b",
+      "grade": null,
+      "subject": "ipas",
+      "element": "Energi dan Perubahannya",
+      "statement": "Peserta didik dapat mengidentifikasi ragam gaya yang bekerja pada benda serta perubahan bentuk energi dalam kehidupan sehari-hari.",
+      "skills": ["sd4-pengaruh-gaya", "sd4-perubahan-energi"]
+    },
+    {
       "code": "CP-C-MAT-BILANGAN",
       "phase": "c",
       "grade": null,

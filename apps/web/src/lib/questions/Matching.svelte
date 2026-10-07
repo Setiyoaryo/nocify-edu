@@ -5,8 +5,9 @@
 	let {
 		content,
 		response = $bindable(null),
-		disabled = false
-	}: { content: Content; response: Response | null; disabled?: boolean } = $props();
+		disabled = false,
+		reveal = null
+	}: { content: Content; response: Response | null; disabled?: boolean; reveal?: any } = $props();
 
 	// Tap a left item, then its partner on the right. Pairs are marked with a
 	// shared number, so matching never relies on colour alone (§24).
@@ -71,3 +72,19 @@
 		{/each}
 	</div>
 </div>
+{#if reveal?.pairs && Object.keys(reveal.pairs).length > 0}
+	<div class="anim-rise mt-4 rounded-2xl bg-leaf-tint p-3 text-center text-sm font-bold text-leaf-deep">
+		<p class="mb-1.5 font-extrabold">Pasangan yang benar:</p>
+		<ul class="flex flex-wrap justify-center gap-2">
+			{#each Object.entries(reveal.pairs) as [leftId, rightId]}
+				{@const l = left.find((it) => it.id === leftId)}
+				{@const r = right.find((it) => it.id === rightId)}
+				{#if l && r}
+					<li class="rounded-xl border border-leaf/20 bg-white px-3 py-1.5 text-xs font-black shadow-2xs text-ink">
+						{name(l)} ↔ {name(r)}
+					</li>
+				{/if}
+			{/each}
+		</ul>
+	</div>
+{/if}

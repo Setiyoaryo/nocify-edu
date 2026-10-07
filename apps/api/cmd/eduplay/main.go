@@ -54,12 +54,6 @@ func run(cmd string, args []string) error {
 	if err != nil {
 		return err
 	}
-	if cfg.SessionSecret == "" {
-		if cfg.IsProduction() {
-			return errors.New("SESSION_SECRET is required in production")
-		}
-		cfg.SessionSecret = "dev-session-secret"
-	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	pool, err := db.Connect(ctx, cfg.DatabaseURL)

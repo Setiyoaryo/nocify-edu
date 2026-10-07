@@ -72,7 +72,7 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> Settings:
-        database_url = _env("DATABASE_URL")
+        database_url = _env("CONTENT_PIPELINE_DATABASE_URL") or _env("DATABASE_URL")
         if not database_url:
             raise ValueError("DATABASE_URL is required")
         return cls(

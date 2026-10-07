@@ -60,6 +60,13 @@ func setup(t *testing.T) *env {
 	if err != nil {
 		t.Fatal(err)
 	}
+	var currentDB string
+	if err := pool.QueryRow(ctx, `SELECT current_database()`).Scan(&currentDB); err != nil {
+		t.Fatalf("failed to query current_database: %v", err)
+	}
+	if !strings.Contains(strings.ToLower(currentDB), "test") {
+		t.Fatalf("safety guard: refusing to DROP SCHEMA on non-test database %q (database name must contain 'test')", currentDB)
+	}
 	if _, err := pool.Exec(ctx, `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`); err != nil {
 		t.Fatal(err)
 	}
@@ -887,7 +894,7 @@ func TestContentStudioRBAC(t *testing.T) {
 func ensurePipelineStaging(t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
 	ctx := context.Background()
-	for _, name := range []string{"0001_content_staging.sql", "0008_pipeline_jobs.sql"} {
+	for _, name := range []string{"0001_content_staging.sql", "0008_pipeline_jobs.sql", "0009_worker_heartbeats.sql"} {
 		ddl, err := os.ReadFile("../../../../services/content-pipeline/sql/" + name)
 		if err != nil {
 			t.Fatal(err)
@@ -945,6 +952,9 @@ func TestPipelineControl(t *testing.T) {
 	if out := editor.must(200, "GET", "/admin/pipeline/jobs", nil); out["available"] != false {
 		t.Fatalf("jobs without pipeline should be available:false, got %v", out["available"])
 	}
+	if out := editor.must(200, "GET", "/admin/pipeline/worker-status", nil); out["available"] != false {
+		t.Fatalf("worker-status without pipeline should be available:false, got %v", out["available"])
+	}
 	if code, _ := editor.do("POST", "/admin/pipeline/jobs", map[string]any{"kind": "run_pipeline"}); code != 409 {
 		t.Fatalf("enqueue without pipeline must be 409, got %d", code)
 	}
@@ -953,6 +963,20 @@ func TestPipelineControl(t *testing.T) {
 	ensurePipelineStaging(t, e.pool)
 	if out := editor.must(200, "GET", "/admin/pipeline/sources", nil); out["available"] != true {
 		t.Fatalf("sources should be available:true, got %v", out["available"])
+	}
+	if out := editor.must(200, "GET", "/admin/pipeline/worker-status", nil); out["available"] != true {
+		t.Fatalf("worker-status should be available:true, got %v", out["available"])
+	}
+
+	if _, err := e.pool.Exec(ctx, `INSERT INTO content_staging.worker_heartbeats
+		(worker_id, hostname, pid, status, last_seen_at)
+		VALUES ('test-w-1', 'host-1', 1234, 'idle', now())`); err != nil {
+		t.Fatal(err)
+	}
+	if ws := editor.must(200, "GET", "/admin/pipeline/worker-status", nil); ws["available"] != true {
+		t.Fatalf("worker-status with heartbeat should be available:true, got %v", ws)
+	} else if w, ok := ws["worker"].(map[string]any); !ok || w["status"] != "idle" {
+		t.Fatalf("expected worker status idle, got %v", ws["worker"])
 	}
 
 	created := editor.must(201, "POST", "/admin/pipeline/jobs", map[string]any{

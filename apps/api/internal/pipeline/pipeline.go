@@ -82,6 +82,24 @@ type Job struct {
 	FinishedAt  *time.Time      `json:"finished_at"`
 }
 
+type WorkerInfo struct {
+	Status          string     `json:"status"` // "active", "idle", "stalled", "stopped"
+	Label           string     `json:"label"`  // "Aktif", "Siaga", "Terhenti", "Offline"
+	LastHeartbeatAt *time.Time `json:"last_heartbeat_at"`
+	CurrentJobID    *int64     `json:"current_job_id,omitempty"`
+	RunningJobs     int        `json:"running_jobs"`
+	QueuedJobs      int        `json:"queued_jobs"`
+	Message         string     `json:"message"`
+}
+
+type PipelineMetrics struct {
+	CrawledItems       int `json:"crawled_items"`
+	ExtractedChunks    int `json:"extracted_chunks"`
+	MaterialCandidates int `json:"material_candidates"`
+	QuestionCandidates int `json:"question_candidates"`
+	ApprovedQuestions  int `json:"approved_questions"`
+}
+
 type jobRow struct {
 	ID          int64
 	Kind        string
@@ -340,4 +358,168 @@ func (h Handler) mutate(w http.ResponseWriter, r *http.Request, sql string, args
 		return
 	}
 	httpx.JSON(w, http.StatusOK, map[string]any{"job": row.toJob()})
+}
+
+// WorkerStatus returns the current worker heartbeat, execution state, and pipeline summary metrics.
+func (h Handler) WorkerStatus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	if !h.readyJobs(ctx) {
+		httpx.JSON(w, http.StatusOK, map[string]any{
+			"available": false,
+			"worker": WorkerInfo{
+				Status:  "stopped",
+				Label:   "Offline",
+				Message: "Skema pipeline belum siap di database.",
+			},
+			"metrics": PipelineMetrics{},
+		})
+		return
+	}
+
+	var runningCount, queuedCount int
+	var oldestQueued *time.Time
+	_ = h.DB.QueryRow(ctx, `SELECT count(*) FROM content_staging.pipeline_jobs WHERE status = 'running'`).Scan(&runningCount)
+	_ = h.DB.QueryRow(ctx, `SELECT count(*), min(created_at) FROM content_staging.pipeline_jobs WHERE status = 'queued'`).Scan(&queuedCount, &oldestQueued)
+
+	var hbWorkerID, hbStatus string
+	var hbJobID *int64
+	var hbLastSeen *time.Time
+	if h.regclass(ctx, "content_staging.worker_heartbeats") {
+		_ = h.DB.QueryRow(ctx, `SELECT worker_id, status, current_job_id, last_seen_at
+			FROM content_staging.worker_heartbeats
+			ORDER BY last_seen_at DESC LIMIT 1`).
+			Scan(&hbWorkerID, &hbStatus, &hbJobID, &hbLastSeen)
+	}
+
+	var latestRunningID *int64
+	var latestRunningUpdate *time.Time
+	if runningCount > 0 {
+		_ = h.DB.QueryRow(ctx, `SELECT id, updated_at FROM content_staging.pipeline_jobs
+			WHERE status = 'running' ORDER BY updated_at DESC LIMIT 1`).
+			Scan(&latestRunningID, &latestRunningUpdate)
+	}
+
+	var lastFinished *time.Time
+	_ = h.DB.QueryRow(ctx, `SELECT finished_at FROM content_staging.pipeline_jobs
+		WHERE status IN ('done','failed','cancelled') AND finished_at IS NOT NULL
+		ORDER BY finished_at DESC LIMIT 1`).Scan(&lastFinished)
+
+	worker := ResolveWorkerStatus(
+		time.Now(),
+		runningCount,
+		queuedCount,
+		oldestQueued,
+		latestRunningID,
+		latestRunningUpdate,
+		hbWorkerID,
+		hbStatus,
+		hbJobID,
+		hbLastSeen,
+		lastFinished,
+	)
+
+	var metrics PipelineMetrics
+	if h.regclass(ctx, "content_staging.crawl_items") {
+		_ = h.DB.QueryRow(ctx, `SELECT count(*) FROM content_staging.crawl_items WHERE status = 'fetched'`).Scan(&metrics.CrawledItems)
+	}
+	if h.regclass(ctx, "content_staging.document_chunks") {
+		_ = h.DB.QueryRow(ctx, `SELECT count(*) FROM content_staging.document_chunks`).Scan(&metrics.ExtractedChunks)
+	}
+	if h.regclass(ctx, "content_staging.material_candidates") {
+		_ = h.DB.QueryRow(ctx, `SELECT count(*) FROM content_staging.material_candidates`).Scan(&metrics.MaterialCandidates)
+	}
+	if h.regclass(ctx, "content_staging.question_candidates") {
+		_ = h.DB.QueryRow(ctx, `SELECT count(*), count(*) FILTER (WHERE status = 'approved')
+			FROM content_staging.question_candidates`).Scan(&metrics.QuestionCandidates, &metrics.ApprovedQuestions)
+	}
+
+	httpx.JSON(w, http.StatusOK, map[string]any{
+		"available": true,
+		"worker":    worker,
+		"metrics":   metrics,
+	})
+}
+
+// ResolveWorkerStatus computes the operational health of the pipeline worker
+// based on heartbeat records, running jobs, and queue wait times.
+func ResolveWorkerStatus(
+	now time.Time,
+	runningCount, queuedCount int,
+	oldestQueued *time.Time,
+	latestRunningID *int64,
+	latestRunningUpdate *time.Time,
+	hbWorkerID, hbStatus string,
+	hbJobID *int64,
+	hbLastSeen *time.Time,
+	lastFinished *time.Time,
+) WorkerInfo {
+	worker := WorkerInfo{
+		RunningJobs: runningCount,
+		QueuedJobs:  queuedCount,
+	}
+
+	if hbLastSeen != nil && now.Sub(*hbLastSeen) <= 2*time.Minute {
+		worker.LastHeartbeatAt = hbLastSeen
+		if hbStatus == "stopped" {
+			worker.Status = "stopped"
+			worker.Label = "Offline"
+			worker.Message = "Layanan worker pipeline telah dihentikan (stopped)."
+		} else if runningCount > 0 || hbStatus == "active" {
+			worker.Status = "active"
+			worker.Label = "Aktif"
+			if latestRunningID != nil {
+				worker.CurrentJobID = latestRunningID
+				worker.Message = fmt.Sprintf("Worker sedang aktif memproses job #%d", *latestRunningID)
+			} else if hbJobID != nil {
+				worker.CurrentJobID = hbJobID
+				worker.Message = fmt.Sprintf("Worker sedang aktif memproses job #%d", *hbJobID)
+			} else {
+				worker.Message = "Worker sedang aktif memproses tahapan pipeline"
+			}
+		} else {
+			worker.Status = "idle"
+			worker.Label = "Siaga"
+			worker.Message = "Worker aktif berjalan otomatis dan siaga menunggu job atau jadwal crawl"
+		}
+	} else if runningCount > 0 {
+		worker.CurrentJobID = latestRunningID
+		if latestRunningUpdate != nil {
+			worker.LastHeartbeatAt = latestRunningUpdate
+			if now.Sub(*latestRunningUpdate) <= 5*time.Minute {
+				worker.Status = "active"
+				worker.Label = "Aktif"
+				worker.Message = fmt.Sprintf("Worker sedang memproses job #%d", *latestRunningID)
+			} else {
+				worker.Status = "stalled"
+				worker.Label = "Terhenti"
+				worker.Message = fmt.Sprintf("Job #%d tidak ada pembaruan lebih dari 5 menit (mungkin terhenti/macet)", *latestRunningID)
+			}
+		} else {
+			worker.Status = "active"
+			worker.Label = "Aktif"
+			worker.Message = fmt.Sprintf("Worker sedang memproses job #%d", *latestRunningID)
+		}
+	} else if queuedCount > 0 && oldestQueued != nil && now.Sub(*oldestQueued) > 2*time.Minute {
+		worker.Status = "stopped"
+		worker.Label = "Terhenti"
+		worker.Message = "Ada job dalam antrean yang belum diproses lebih dari 2 menit. Worker scraper mungkin tidak berjalan."
+	} else {
+		if hbLastSeen != nil {
+			worker.LastHeartbeatAt = hbLastSeen
+			worker.Status = "stopped"
+			worker.Label = "Terhenti"
+			worker.Message = "Detak jantung worker terakhir lebih dari 2 menit yang lalu. Layanan worker mungkin terhenti."
+		} else if lastFinished != nil && now.Sub(*lastFinished) <= 5*time.Minute {
+			worker.LastHeartbeatAt = lastFinished
+			worker.Status = "idle"
+			worker.Label = "Siaga"
+			worker.Message = "Worker aktif belakangan ini dan siaga menunggu antrean berikutnya."
+		} else {
+			worker.Status = "stopped"
+			worker.Label = "Offline"
+			worker.Message = "Belum ada sinyal detak jantung worker. Pastikan layanan worker pipeline dijalankan."
+		}
+	}
+
+	return worker
 }

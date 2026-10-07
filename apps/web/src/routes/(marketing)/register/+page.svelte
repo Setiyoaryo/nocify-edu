@@ -57,8 +57,7 @@
 			<label class="flex cursor-pointer gap-3 text-sm">
 				<input type="checkbox" class="mt-0.5 size-5 shrink-0 accent-primary" bind:checked={form.consent} aria-invalid={!!fields.consent} />
 				<span>
-					Saya orang tua/wali anak yang akan menggunakan EduPlay dan menyetujui pemrosesan data anak (nama panggilan, kelas, dan jawaban
-					challenge) untuk keperluan belajarnya.
+					Saya orang tua/wali anak yang akan menggunakan EduPlay dan menyetujui pemrosesan data anak untuk keperluan belajarnya sesuai <a href="/privacy" target="_blank" class="text-primary-deep underline">Kebijakan Privasi</a> dan <a href="/terms" target="_blank" class="text-primary-deep underline">Syarat Layanan</a>.
 				</span>
 			</label>
 			{#if fields.consent}<p class="field-error">{fields.consent}</p>{/if}

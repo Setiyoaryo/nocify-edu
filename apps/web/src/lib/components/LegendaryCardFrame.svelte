@@ -46,7 +46,7 @@
 		<div class="flex items-center gap-1.5">
 			<span class="flex size-7 items-center justify-center rounded-xl bg-amber-400 text-black font-black text-xs shadow-xs">👑</span>
 			<div>
-				<span class="font-display text-xs font-black tracking-wider text-primary-deep uppercase">EDUPPLAY</span>
+				<span class="font-display text-xs font-black tracking-wider text-primary-deep uppercase">EDUPLAY</span>
 				<span class="block text-[0.56rem] font-bold text-ink-soft leading-none">Belajar Jadi Lebih Seru</span>
 			</div>
 		</div>
@@ -68,19 +68,19 @@
 	<!-- Dynamic collectible rarity banner -->
 	<div class="relative z-10 -mt-8 px-4 sm:-mt-10 sm:px-6">
 		<div class="flex items-center justify-center gap-0">
-			<span class="h-7 w-14 -rotate-6 rounded-l-full bg-gradient-to-r from-transparent via-[#e6b547] to-[#ad7410] shadow-md sm:w-20"></span>
-			<div class="relative min-w-0 rounded-[1.45rem] bg-gradient-to-r {theme.banner} px-6 py-3 shadow-[0_12px_26px_rgba(74,44,8,0.28)] ring-4 ring-[#ffe7a0] sm:px-9">
+			<span class="h-7 w-7 min-[380px]:w-14 -rotate-6 rounded-l-full bg-gradient-to-r from-transparent via-[#e6b547] to-[#ad7410] shadow-md sm:w-20"></span>
+			<div class="relative min-w-0 rounded-[1.45rem] bg-gradient-to-r {theme.banner} px-5 py-3 shadow-[0_12px_26px_rgba(74,44,8,0.28)] ring-4 ring-[#ffe7a0] sm:px-9">
 				<div class="absolute -top-4 left-1/2 grid size-10 -translate-x-1/2 place-items-center rounded-full bg-gradient-to-br from-[#fff8ad] to-[#efa914] text-[#7e5900] shadow-lg ring-2 ring-white">
 					<Star size={18} weight="fill" />
 				</div>
-				<div class="pt-1 text-center font-display text-[clamp(1rem,5vw,1.55rem)] font-black tracking-[0.08em] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,.4)]">
+				<div class="pt-1 text-center font-display text-[clamp(0.95rem,4.5vw,1.55rem)] font-black tracking-[0.08em] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,.4)]">
 					{recap.archetype.banner}
 				</div>
-				<div class="absolute -bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-[#bf8614] bg-gradient-to-r from-[#fff2ab] via-[#ffd45a] to-[#f0a71e] px-4 py-1 text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#5b4213] shadow-md whitespace-nowrap sm:text-[0.64rem]">
+				<div class="absolute -bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-[#bf8614] bg-gradient-to-r from-[#fff2ab] via-[#ffd45a] to-[#f0a71e] px-3.5 py-1 text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#5b4213] shadow-md whitespace-nowrap sm:px-4 sm:text-[0.64rem]">
 					{recap.archetype.sub_banner}
 				</div>
 			</div>
-			<span class="h-7 w-14 rotate-6 rounded-r-full bg-gradient-to-l from-transparent via-[#e6b547] to-[#ad7410] shadow-md sm:w-20"></span>
+			<span class="h-7 w-7 min-[380px]:w-14 rotate-6 rounded-r-full bg-gradient-to-l from-transparent via-[#e6b547] to-[#ad7410] shadow-md sm:w-20"></span>
 		</div>
 	</div>
 

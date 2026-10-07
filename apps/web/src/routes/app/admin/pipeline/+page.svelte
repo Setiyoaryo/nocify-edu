@@ -3,23 +3,32 @@
 	import { session } from '$lib/session.svelte';
 	import { dateTime } from '$lib/format';
 	import StatusPill from '$lib/components/StatusPill.svelte';
+	import PipelineStepTracker from '$lib/components/PipelineStepTracker.svelte';
+	import PipelineMetricsCard from '$lib/components/PipelineMetricsCard.svelte';
+	import WorkerHealthIndicator from '$lib/components/WorkerHealthIndicator.svelte';
 	import {
 		hasActiveJob,
 		jobKindLabel,
 		jobProgressLabel,
 		frequencyLabel,
 		sourceStatusLabel,
+		extractJobMetrics,
 		CRAWL_FREQUENCIES,
 		type PipelineJob,
-		type PipelineSource
+		type PipelineSource,
+		type WorkerInfo,
+		type PipelineMetrics
 	} from '$lib/pipeline';
 	import { onDestroy } from 'svelte';
 	import Play from 'phosphor-svelte/lib/Play';
 	import ArrowClockwise from 'phosphor-svelte/lib/ArrowClockwise';
 	import RocketLaunch from 'phosphor-svelte/lib/RocketLaunch';
+	import Question from 'phosphor-svelte/lib/Question';
 
 	let sources = $state<PipelineSource[]>([]);
 	let jobs = $state<PipelineJob[]>([]);
+	let workerInfo = $state<WorkerInfo | null>(null);
+	let metrics = $state<PipelineMetrics | null>(null);
 	let available = $state(true);
 	let loaded = $state(false);
 	let err = $state('');
@@ -28,23 +37,32 @@
 	let timer: ReturnType<typeof setTimeout>;
 	const isReviewer = $derived(session.user?.role === 'reviewer' || session.user?.role === 'admin');
 
+	const activeJob = $derived(jobs.find((j) => j.status === 'running' || j.status === 'queued') ?? null);
+	const latestJob = $derived(activeJob ?? jobs[0] ?? null);
+	const latestJobMetrics = $derived(latestJob ? extractJobMetrics(latestJob) : null);
+
 	async function load() {
 		clearTimeout(timer);
 		try {
-			const [s, j] = await Promise.all([
+			const [s, j, ws] = await Promise.all([
 				get('/admin/pipeline/sources'),
-				get('/admin/pipeline/jobs')
+				get('/admin/pipeline/jobs'),
+				get('/admin/pipeline/worker-status').catch(() => null)
 			]);
 			sources = s.sources;
 			available = s.available;
 			jobs = j.jobs;
+			if (ws) {
+				workerInfo = ws.worker;
+				metrics = ws.metrics;
+			}
 			err = '';
 		} catch (e) {
 			err = e instanceof ApiError ? e.message : 'Gagal memuat data pipeline.';
 		} finally {
 			loaded = true;
 		}
-		if (hasActiveJob(jobs)) timer = setTimeout(load, 3000);
+		if (hasActiveJob(jobs) || workerInfo?.status === 'active') timer = setTimeout(load, 3000);
 	}
 	load();
 	onDestroy(() => clearTimeout(timer));
@@ -96,36 +114,79 @@
 </script>
 
 <svelte:head><title>Pipeline | CMS</title></svelte:head>
-<h1 class="text-3xl sm:text-4xl">Pipeline konten</h1>
-<p class="mt-1 max-w-3xl text-ink-soft">
-	Jalankan dan pantau pipeline dari sini: crawl sumber, ekstrak, petakan ke kurikulum, lalu bangun
-	kandidat soal. Reviewer menyetujui di antrian review, lalu menerbitkan ke bank soal.
-</p>
 
-<div class="mt-6 flex flex-wrap gap-2">
-	<button class="btn btn-primary" disabled={busy || !available} onclick={() => run('run_pipeline', {}, 'Pipeline dijalankan.')}>
-		<Play size={18} weight="fill" aria-hidden="true" />Jalankan pipeline
-	</button>
-	{#if isReviewer}
-		<button class="btn btn-quiet" disabled={busy || !available} onclick={publishAll}>
-			<RocketLaunch size={18} weight="bold" aria-hidden="true" />Terbitkan semua yang disetujui
+<div class="flex flex-wrap items-center justify-between gap-4">
+	<div>
+		<h1 class="text-3xl sm:text-4xl">Pipeline konten</h1>
+		<p class="mt-1 max-w-3xl text-ink-soft">
+			Jalankan dan pantau pipeline dari sini: crawl sumber, ekstrak, petakan ke kurikulum, lalu bangun
+			kandidat soal. Reviewer menyetujui di antrian review, lalu menerbitkan ke bank soal.
+		</p>
+	</div>
+
+	<div class="flex flex-wrap gap-2">
+		<button class="btn btn-primary" disabled={busy || !available} onclick={() => run('run_pipeline', {}, 'Pipeline dijalankan.')}>
+			<Play size={18} weight="fill" aria-hidden="true" />Jalankan pipeline
 		</button>
-	{/if}
-	<button class="btn btn-quiet" disabled={busy} onclick={load}>
-		<ArrowClockwise size={18} weight="bold" aria-hidden="true" />Muat ulang
-	</button>
+		{#if isReviewer}
+			<button class="btn btn-quiet" disabled={busy || !available} onclick={publishAll}>
+				<RocketLaunch size={18} weight="bold" aria-hidden="true" />Terbitkan semua yang disetujui
+			</button>
+		{/if}
+		<a href="/app/admin/review?kind=question" class="btn btn-quiet">
+			<Question size={18} weight="bold" aria-hidden="true" />Antrian review
+		</a>
+		<button class="btn btn-quiet" disabled={busy} onclick={load} title="Muat ulang data">
+			<ArrowClockwise size={18} weight="bold" aria-hidden="true" />Muat ulang
+		</button>
+	</div>
 </div>
-{#if err}<p class="field-error mt-3" role="alert">{err}</p>{/if}
-{#if msg}<p class="mt-3 font-semibold text-leaf-deep" role="status">{msg}</p>{/if}
+
+{#if err}<p class="field-error mt-4" role="alert">{err}</p>{/if}
+{#if msg}<p class="mt-4 font-semibold text-leaf-deep" role="status">{msg}</p>{/if}
 
 {#if !available && loaded}
 	<div class="card mt-6 p-6" role="status">
-		<p class="font-semibold">Pipeline belum siap di lingkungan ini.</p>
+		<p class="font-semibold text-rose-deep">Pipeline belum siap di lingkungan ini.</p>
 		<p class="mt-1 text-sm text-ink-soft">Worker pipeline belum membuat skema staging. Jalankan layanan pipeline lebih dulu.</p>
 	</div>
 {/if}
 
-<section class="mt-8" aria-labelledby="src">
+<!-- 1. Indikator Kesehatan Worker -->
+<div class="mt-6">
+	<WorkerHealthIndicator worker={workerInfo} />
+</div>
+
+<!-- 2. Live Visual Progress Bar & Step Tracker (Active or Most Recent Job) -->
+{#if latestJob}
+	<section class="mt-6" aria-labelledby="live-job-progress">
+		<div class="flex items-center justify-between gap-3 mb-2">
+			<h2 id="live-job-progress" class="text-sm font-bold uppercase tracking-wider text-ink-soft">
+				{#if activeJob}
+					Pemantauan Job Aktif (#{activeJob.id})
+				{:else}
+					Status Job Terakhir (#{latestJob.id})
+				{/if}
+			</h2>
+			<a href="/app/admin/pipeline/{latestJob.id}" class="text-xs font-bold text-primary-deep hover:underline">
+				Lihat detail job #{latestJob.id} &rarr;
+			</a>
+		</div>
+		<PipelineStepTracker job={latestJob} />
+	</section>
+{/if}
+
+<!-- 3. Ringkasan Hasil untuk Operator (Metrics Summary) -->
+<div class="mt-6">
+	<PipelineMetricsCard
+		metrics={metrics ?? undefined}
+		jobMetrics={latestJobMetrics?.hasResults ? latestJobMetrics : undefined}
+		title={latestJobMetrics?.hasResults ? `Ringkasan Hasil Job Terakhir (#${latestJob?.id})` : 'Ringkasan Hasil Pipeline (Staging)'}
+	/>
+</div>
+
+<!-- Sumber -->
+<section class="mt-10" aria-labelledby="src">
 	<h2 id="src" class="text-2xl">Sumber</h2>
 	<p class="mt-1 text-sm text-ink-soft">Sumber aktif dengan jadwal (harian/mingguan/bulanan) dicrawl otomatis oleh worker.</p>
 	<div class="card mt-4 overflow-x-auto">
@@ -169,6 +230,7 @@
 	</div>
 </section>
 
+<!-- Riwayat Job -->
 <section class="mt-10" aria-labelledby="jobs">
 	<h2 id="jobs" class="text-2xl">Riwayat job</h2>
 	<div class="card mt-4 overflow-x-auto">
@@ -179,12 +241,12 @@
 			<tbody>
 				{#each jobs as j (j.id)}
 					<tr class="border-t border-line align-top [&>td]:px-4 [&>td]:py-3">
-						<td><a class="font-mono text-primary-deep hover:underline" href="/app/admin/pipeline/{j.id}">{j.id}</a></td>
+						<td><a class="font-mono font-bold text-primary-deep hover:underline" href="/app/admin/pipeline/{j.id}">#{j.id}</a></td>
 						<td>{jobKindLabel[j.kind] ?? j.kind}</td>
 						<td><StatusPill status={j.status} /></td>
 						<td>
-							{jobProgressLabel(j)}
-							{#if j.error}<p class="mt-1 text-xs text-[#a8264f]">{j.error}</p>{/if}
+							<div class="font-medium">{jobProgressLabel(j)}</div>
+							{#if j.error}<p class="mt-1 text-xs text-[#a8264f] font-mono">{j.error}</p>{/if}
 						</td>
 						<td class="text-ink-soft">{dateTime(j.created_at)}</td>
 						<td class="space-y-1 text-right">
@@ -195,6 +257,7 @@
 									<button class="btn btn-quiet btn-sm" onclick={() => jobAction(j.id, 'retry')}>Ulangi</button>
 								{/if}
 							{/if}
+							<a href="/app/admin/pipeline/{j.id}" class="btn btn-quiet btn-sm ml-1">Detail</a>
 						</td>
 					</tr>
 				{:else}

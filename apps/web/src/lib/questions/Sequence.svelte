@@ -5,8 +5,9 @@
 	let {
 		content,
 		response = $bindable(null),
-		disabled = false
-	}: { content: Content; response: Response | null; disabled?: boolean } = $props();
+		disabled = false,
+		reveal = null
+	}: { content: Content; response: Response | null; disabled?: boolean; reveal?: any } = $props();
 
 	// Tap-to-order instead of drag: far more reliable for small fingers on
 	// touchscreens (§31.2) and fully keyboard/screen-reader operable.
@@ -42,6 +43,11 @@
 			</li>
 		{/each}
 	</ol>
+	{#if reveal?.order?.length}
+		<div class="anim-rise rounded-2xl bg-leaf-tint p-3 text-center text-sm font-bold text-leaf-deep">
+			Urutan yang benar: <span class="rounded-lg bg-white px-2 py-0.5">{reveal.order.map((id: string) => byId(id)?.label ?? id).join(' → ')}</span>
+		</div>
+	{/if}
 	<div class="flex flex-wrap justify-center gap-2" role="group" aria-label="Pilihan">
 		{#each items.filter((it) => !placed.includes(it.id)) as it (it.id)}
 			<button type="button" class="tile flex min-h-14 items-center gap-2 px-4 text-lg" {disabled} onclick={() => (placed = [...placed, it.id])}>{@render chip(it)}</button>

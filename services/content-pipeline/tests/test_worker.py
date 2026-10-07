@@ -72,6 +72,7 @@ class FakeJobStore:
         self.reaps = 0
         self.locked = True
         self.due: list[str] = []
+        self.heartbeats: list[tuple[str, str, int | None]] = []
 
     def claim(self) -> Job | None:
         return self._jobs.pop(0) if self._jobs else None
@@ -120,6 +121,9 @@ class FakeJobStore:
     def enqueue(self, kind: str, params: dict[str, Any], *, requested_by: str | None = None) -> int:
         self.enqueued.append((kind, params, requested_by))
         return len(self.enqueued)
+
+    def heartbeat(self, worker_id: str, status: str = "idle", current_job_id: int | None = None) -> None:
+        self.heartbeats.append((worker_id, status, current_job_id))
 
 
 def _job(kind: str, params: dict[str, Any] | None = None, *, jid: int = 1) -> Job:
@@ -295,3 +299,49 @@ def test_jsonable_serialises_dataclasses() -> None:
     assert _jsonable(_Summary("s", 3)) == {"source_code": "s", "generated": 3}
     assert _jsonable([_Summary("s", 1)]) == [{"source_code": "s", "generated": 1}]
     assert _jsonable("x") == "x"
+
+
+def test_settings_from_env_database_url_precedence(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CONTENT_PIPELINE_DATABASE_URL", "postgres://cp:cp@db/staging")
+    monkeypatch.setenv("DATABASE_URL", "postgres://app:app@db/prod")
+    s = Settings.from_env()
+    assert s.database_url == "postgres://cp:cp@db/staging"
+
+    monkeypatch.delenv("CONTENT_PIPELINE_DATABASE_URL", raising=False)
+    s2 = Settings.from_env()
+    assert s2.database_url == "postgres://app:app@db/prod"
+
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    with pytest.raises(ValueError, match="DATABASE_URL is required"):
+        Settings.from_env()
+
+
+def test_worker_records_heartbeats() -> None:
+    store = FakeJobStore()
+    worker = _worker(store)
+    assert not worker.run_once()
+    assert len(store.heartbeats) == 1
+    assert store.heartbeats[0][1] == "idle"
+
+    # With a job
+    job = _job("crawl", {"sources": ["x"]})
+    store = FakeJobStore([job])
+    worker = _worker(store)
+    worker._stage_crawl = lambda _p: [{"source_code": "x"}]  # type: ignore[assignment]
+    assert worker.run_once()
+    # Expect heartbeat active with job.id recorded during claim, begin, and done, then idle
+    active_hbs = [h for h in store.heartbeats if h[1] == "active" and h[2] == 1]
+    assert len(active_hbs) >= 3  # claim + begin + done
+    assert store.heartbeats[-1][1] == "idle"
+
+
+def test_worker_serve_records_stopped_heartbeat() -> None:
+    store = FakeJobStore()
+    worker = _worker(store, worker_poll_seconds=0.01)
+    # Stop immediately after one check
+    worker._stopping = True
+    worker.serve()
+    assert len(store.heartbeats) >= 1
+    assert store.heartbeats[-1][1] == "stopped"
+
+

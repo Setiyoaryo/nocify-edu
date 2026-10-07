@@ -5,8 +5,9 @@
 		content,
 		response = $bindable(null),
 		disabled = false,
+		reveal = null,
 		onsubmit
-	}: { content: Content; response: Response | null; disabled?: boolean; onsubmit?: () => void } = $props();
+	}: { content: Content; response: Response | null; disabled?: boolean; reveal?: any; onsubmit?: () => void } = $props();
 
 	// On-screen keypad keeps the CTA visible on phones (the native keyboard
 	// would cover it, §33); physical keyboards can still type into the field.
@@ -38,6 +39,11 @@
 		/>
 		{#if content.unit}<span class="mt-1 block text-center text-ink-soft">{content.unit}</span>{/if}
 	</label>
+	{#if reveal?.value !== undefined}
+		<p class="anim-rise text-center text-sm font-bold text-leaf-deep">
+			Jawaban benar: <span class="rounded-lg bg-leaf-tint px-2 py-0.5">{reveal.value}</span>
+		</p>
+	{/if}
 	<div class="grid grid-cols-3 gap-1.5 sm:gap-2">
 		{#each keys as k}
 			<button type="button" class="tile grid h-12 min-h-12 place-items-center text-2xl sm:h-14" {disabled} onclick={() => press(k)} aria-label={k === 'hapus' ? 'Hapus' : k === '-' ? 'Tanda minus' : k}>

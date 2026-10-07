@@ -66,9 +66,19 @@
 		<div>
 			<p class="font-bold">Data anak aman</p>
 			<p class="mt-3 text-white/75">Diproses atas persetujuan orang tua/wali, hanya untuk kebutuhan belajar. Tanpa iklan untuk anak.</p>
+			<ul class="mt-4 space-y-2 text-sm text-white/75">
+				<li><a class="inline-block hover:text-white underline decoration-white/30" href="/privacy">Kebijakan Privasi</a></li>
+				<li><a class="inline-block hover:text-white underline decoration-white/30" href="/terms">Syarat & Ketentuan</a></li>
+			</ul>
 		</div>
 	</div>
 	<div class="border-t border-white/10">
-		<p class="mx-auto max-w-6xl px-4 pt-5 pb-28 text-sm text-white/60 sm:px-6 md:pb-5">© 2026 EduPlay. Ilustrasi oleh unDraw, ikon oleh Phosphor.</p>
+		<div class="mx-auto flex max-w-6xl flex-col items-start justify-between gap-2 px-4 pt-5 pb-28 text-sm text-white/60 sm:px-6 sm:flex-row md:pb-5">
+			<p>© 2026 EduPlay. Ilustrasi oleh unDraw, ikon oleh Phosphor.</p>
+			<div class="flex gap-4">
+				<a href="/privacy" class="hover:text-white/80">Privasi</a>
+				<a href="/terms" class="hover:text-white/80">Syarat & Ketentuan</a>
+			</div>
+		</div>
 	</div>
 </footer>

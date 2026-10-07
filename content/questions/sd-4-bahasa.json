@@ -1,0 +1,235 @@
+{
+  "source": "EduPlay kurikulum resmi SD Kelas 4 (Bahasa Indonesia Kurikulum Merdeka)",
+  "questions": [
+    {
+      "code": "SD4-BHS-IDP-01",
+      "skill": "sd4-ide-pokok",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menentukan ide pokok dalam paragraf.",
+      "content": {
+        "prompt": "Hutan bakau memiliki banyak manfaat bagi lingkungan pesisir. Akar bakau yang kokoh mampu menahan deburan ombak sehingga mencegah terjadinya abrasi pantai. Selain itu, hutan bakau juga menjadi tempat tinggal dan berkembang biak bagi berbagai biota laut seperti kepiting dan ikan kecil.\n\nIde pokok paragraf di atas adalah …",
+        "audio_text": "Hutan bakau memiliki banyak manfaat bagi lingkungan pesisir. Akar bakau yang kokoh mampu menahan deburan ombak sehingga mencegah terjadinya abrasi pantai. Ide pokok paragraf di atas adalah apa?",
+        "options": [
+          { "id": "a", "label": "Manfaat hutan bakau bagi lingkungan pesisir" },
+          { "id": "b", "label": "Akar bakau yang kokoh menahan deburan ombak" },
+          { "id": "c", "label": "Tempat hidup kepiting dan ikan kecil" },
+          { "id": "d", "label": "Penyebab utama terjadinya abrasi pantai" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Kalimat utama berada di awal paragraf, yaitu 'Hutan bakau memiliki banyak manfaat bagi lingkungan pesisir'. Kalimat lain merupakan kalimat penjelas.",
+      "hint": "Perhatikan kalimat pertama yang menjelaskan keseluruhan isi paragraf."
+    },
+    {
+      "code": "SD4-BHS-IDP-02",
+      "skill": "sd4-ide-pokok",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menentukan ide pokok dalam teks narasi/deskripsi.",
+      "content": {
+        "prompt": "Sampah plastik merupakan ancaman serius bagi kelestarian laut. Sampah yang hanyut ke laut dapat termakan oleh penyu dan mamalia laut karena dikira ubur-ubur. Limbah plastik juga terurai sangat lambat menjadi mikroplastik yang meracuni rantai makanan laut.\n\nIde pokok paragraf tersebut adalah …",
+        "audio_text": "Sampah plastik merupakan ancaman serius bagi kelestarian laut. Ide pokok paragraf tersebut adalah apa?",
+        "options": [
+          { "id": "a", "label": "Penyu yang gemar memakan ubur-ubur di laut" },
+          { "id": "b", "label": "Ancaman sampah plastik bagi kelestarian laut" },
+          { "id": "c", "label": "Proses mikroplastik meracuni ikan kecil" },
+          { "id": "d", "label": "Rantai makanan hewan di dasar laut" }
+        ]
+      },
+      "answer": {
+        "option_id": "b"
+      },
+      "explanation": "Gagasan pokok paragraf adalah ancaman sampah plastik bagi kelestarian laut yang dijelaskan oleh contoh-contoh pada kalimat berikutnya.",
+      "hint": "Cari topik utama yang dibahas dari awal sampai akhir paragraf."
+    },
+    {
+      "code": "SD4-BHS-IDP-03",
+      "skill": "sd4-ide-pokok",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat membedakan kalimat utama dan kalimat penjelas.",
+      "content": {
+        "prompt": "Menjaga kebersihan gigi sangat penting untuk kesehatan tubuh kita. Gigi yang bersih mencegah timbulnya plak dan karies. Menggosok gigi dua kali sehari setelah sarapan dan sebelum tidur dapat melindungi gigi dari kuman perusak.\n\nKalimat yang merupakan gagasan atau kalimat utama adalah …",
+        "options": [
+          { "id": "a", "label": "Menjaga kebersihan gigi sangat penting untuk kesehatan tubuh kita" },
+          { "id": "b", "label": "Gigi yang bersih mencegah timbulnya plak dan karies" },
+          { "id": "c", "label": "Menggosok gigi dua kali sehari setelah sarapan" },
+          { "id": "d", "label": "Kuman perusak menyebabkan sakit gigi di malam hari" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Kalimat utama adalah pernyataan umum yang mewakili seluruh isi paragraf, yaitu pentingnya menjaga kebersihan gigi.",
+      "hint": "Kalimat utama biasanya bersifat umum dan didukung oleh kalimat-kalimat rincian."
+    },
+    {
+      "code": "SD4-BHS-IDP-04",
+      "skill": "sd4-ide-pokok",
+      "type": "short_answer",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menyimpulkan topik utama bacaan secara tertulis.",
+      "content": {
+        "prompt": "Sepeda merupakan alat transportasi ramah lingkungan. Sepeda tidak menghasilkan gas buang berbahaya sehingga tidak mencemari udara. Mengayuh sepeda setiap hari juga membuat tubuh menjadi sehat dan bugar.\n\nTopik atau keunggulan utama sepeda yang dibahas pada bacaan adalah transportasi ramah _____."
+      },
+      "answer": {
+        "accepted": ["lingkungan", "lingkungan hidup"]
+      },
+      "explanation": "Paragraf menjelaskan bahwa sepeda adalah alat transportasi ramah lingkungan karena tidak mencemari udara.",
+      "hint": "Isi dengan satu kata yang melengkapi 'ramah ...' sesuai kalimat pertama."
+    },
+    {
+      "code": "SD4-BHS-IDP-05",
+      "skill": "sd4-ide-pokok",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menemukan simpulan isi bacaan.",
+      "content": {
+        "prompt": "Membaca buku secara rutin dapat memperluas wawasan dan pengetahuan. Melalui buku, kita dapat menjelajahi tempat-tempat baru dan memahami berbagai budaya di dunia tanpa perlu bepergian jauh. Oleh sebab itu, membaca dijuluki sebagai jendela dunia.\n\nSimpulan dari teks di atas adalah …",
+        "options": [
+          { "id": "a", "label": "Membaca buku membuka wawasan tentang dunia" },
+          { "id": "b", "label": "Bepergian ke tempat baru memerlukan buku saku" },
+          { "id": "c", "label": "Setiap jendela rumah harus memiliki rak buku" },
+          { "id": "d", "label": "Semua budaya di dunia memiliki buku yang sama" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Simpulan merangkum ide pokok bahwa kegiatan membaca buku dapat membuka wawasan kita tentang dunia luas.",
+      "hint": "Pilih pernyataan yang merangkum keseluruhan manfaat membaca dalam teks."
+    },
+    {
+      "code": "SD4-BHS-IDP-06",
+      "skill": "sd4-ide-pokok",
+      "type": "short_answer",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengidentifikasi istilah kalimat penjelas.",
+      "content": {
+        "prompt": "Gagasan yang mendasari dan menjadi pokok pengembangan suatu paragraf disebut gagasan atau ide _____."
+      },
+      "answer": {
+        "accepted": ["pokok", "utama"]
+      },
+      "explanation": "Ide atau gagasan pokok adalah ide utama yang dikembangkan menjadi sebuah paragraf utuh.",
+      "hint": "Pasangan kata dari ide ... (bisa 'pokok' atau 'utama')."
+    },
+    {
+      "code": "SD4-BHS-KT-01",
+      "skill": "sd4-kata-tanya",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menggunakan kata tanya untuk menanyakan alasan.",
+      "content": {
+        "prompt": "Kata tanya yang tepat untuk menanyakan alasan atau penyebab terjadinya suatu peristiwa adalah …",
+        "options": [
+          { "id": "a", "label": "Mengapa" },
+          { "id": "b", "label": "Siapa" },
+          { "id": "c", "label": "Di mana" },
+          { "id": "d", "label": "Berapa" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Kata tanya 'mengapa' digunakan untuk menanyakan sebab atau alasan suatu peristiwa.",
+      "hint": "Biasanya dijawab dengan kata 'karena' atau 'sebab'."
+    },
+    {
+      "code": "SD4-BHS-KT-02",
+      "skill": "sd4-kata-tanya",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menggunakan kata tanya untuk menanyakan waktu.",
+      "content": {
+        "prompt": "Perhatikan jawaban berikut:\n'Upacara bendera Hari Kemerdekaan Indonesia diperingati setiap tanggal 17 Agustus.'\n\nKata tanya yang tepat untuk membuat kalimat tanya dari jawaban di atas adalah …",
+        "options": [
+          { "id": "a", "label": "Kapan" },
+          { "id": "b", "label": "Bagaimana" },
+          { "id": "c", "label": "Siapa" },
+          { "id": "d", "label": "Mengapa" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Jawaban 'tanggal 17 Agustus' menyatakan waktu, sehingga kata tanya yang sesuai adalah 'kapan'.",
+      "hint": "Kata tanya untuk menanyakan waktu pelaksanaan suatu kegiatan."
+    },
+    {
+      "code": "SD4-BHS-KT-03",
+      "skill": "sd4-kata-tanya",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menentukan informasi tersurat dalam bacaan.",
+      "content": {
+        "prompt": "Bacalah teks berikut:\n'Dokter Soetomo bersama rekan-rekannya mendirikan organisasi Budi Utomo di Jakarta pada tanggal 20 Mei 1908.'\n\nDi mana organisasi Budi Utomo didirikan?",
+        "options": [
+          { "id": "a", "label": "Di Jakarta" },
+          { "id": "b", "label": "Di Surabaya" },
+          { "id": "c", "label": "Di Bandung" },
+          { "id": "d", "label": "Di Yogyakarta" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Sesuai teks, organisasi Budi Utomo didirikan di Jakarta.",
+      "hint": "Perhatikan keterangan tempat yang disebutkan dalam kalimat."
+    },
+    {
+      "code": "SD4-BHS-KT-04",
+      "skill": "sd4-kata-tanya",
+      "type": "short_answer",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menggunakan kata tanya untuk menanyakan tokoh/orang.",
+      "content": {
+        "prompt": "Kata tanya yang digunakan untuk menanyakan orang atau pelaku dalam sebuah peristiwa adalah kata tanya _____."
+      },
+      "answer": {
+        "accepted": ["siapa"]
+      },
+      "explanation": "Kata tanya 'siapa' digunakan untuk menanyakan identitas orang atau pelaku.",
+      "hint": "Kata tanya untuk nama orang."
+    },
+    {
+      "code": "SD4-BHS-KT-05",
+      "skill": "sd4-kata-tanya",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menggunakan kata tanya bagaimana untuk menanyakan cara/proses.",
+      "content": {
+        "prompt": "Perhatikan kalimat pertanyaan berikut:\n'… cara kupu-kupu berkembang biak dari telur hingga menjadi kupu-kupu dewasa?'\n\nKata tanya yang tepat untuk melengkapi kalimat tanya tentang proses di atas adalah …",
+        "options": [
+          { "id": "a", "label": "Bagaimana" },
+          { "id": "b", "label": "Berapa" },
+          { "id": "c", "label": "Di mana" },
+          { "id": "d", "label": "Siapa" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Kata tanya 'bagaimana' digunakan untuk menanyakan cara, proses, atau keadaan.",
+      "hint": "Kata tanya untuk menanyakan proses atau tahapan."
+    },
+    {
+      "code": "SD4-BHS-KT-06",
+      "skill": "sd4-kata-tanya",
+      "type": "short_answer",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat mengidentifikasi kata tanya adiksimba.",
+      "content": {
+        "prompt": "Kata tanya yang digunakan untuk menanyakan lokasi atau tempat terjadinya suatu peristiwa adalah kata tanya di _____."
+      },
+      "answer": {
+        "accepted": ["mana"]
+      },
+      "explanation": "Kata tanya 'di mana' digunakan untuk menanyakan tempat atau lokasi peristiwa.",
+      "hint": "Lengkapi kata setelah 'di ...'."
+    }
+  ]
+}

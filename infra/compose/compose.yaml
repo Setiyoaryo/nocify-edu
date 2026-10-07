@@ -46,7 +46,7 @@ services:
       APP_ENV: development
       DATABASE_URL: postgres://eduplay:eduplay@postgres:5432/eduplay?sslmode=disable
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8000}
-      SESSION_SECRET: dev-only-session-secret
+      SESSION_SECRET: dev-only-session-secret-min-32-chars-long
       # Midtrans sandbox by default: put MIDTRANS_SERVER_KEY (SB-Mid-server-…) in infra/compose/.env.
       # CI and automated E2E run with PAYMENT_PROVIDER=mock (never allowed in production).
       PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-midtrans}
