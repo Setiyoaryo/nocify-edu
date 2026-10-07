@@ -17,6 +17,7 @@ import (
 	"net/mail"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 	"unicode/utf8"
 
@@ -93,6 +94,7 @@ func (s *Service) hashToken(token string) string {
 type otpEntry struct {
 	code      string
 	expiresAt time.Time
+	attempts  atomic.Int32
 }
 
 func (s *Service) SetOTP(phone, code string, exp time.Time) {
@@ -110,6 +112,9 @@ func (s *Service) CheckOTP(phone, code string) bool {
 		return false
 	}
 	if entry.code != code {
+		if entry.attempts.Add(1) >= 5 {
+			s.otps.Delete(phone)
+		}
 		return false
 	}
 	s.otps.Delete(phone)
@@ -121,13 +126,26 @@ func NormPhone(raw string) (string, error) {
 	if raw == "" {
 		return "", errors.New("Nomor WhatsApp wajib diisi.")
 	}
+
+	hasPlus := strings.HasPrefix(raw, "+")
+	if strings.Count(raw, "+") > 1 || (!hasPlus && strings.Contains(raw, "+")) {
+		return "", errors.New("Nomor WhatsApp tidak valid (contoh: 081234567890).")
+	}
+
 	var digits []rune
 	for _, r := range raw {
 		if r >= '0' && r <= '9' {
 			digits = append(digits, r)
+		} else if r != '+' && r != '-' && r != ' ' && r != '(' && r != ')' && r != '.' {
+			return "", errors.New("Nomor WhatsApp tidak valid (contoh: 081234567890).")
 		}
 	}
 	s := string(digits)
+
+	if hasPlus && !strings.HasPrefix(s, "62") && !strings.HasPrefix(s, "0") && !strings.HasPrefix(s, "8") {
+		return "", errors.New("Nomor WhatsApp tidak valid (contoh: 081234567890).")
+	}
+
 	if strings.HasPrefix(s, "0062") {
 		s = strings.TrimPrefix(s, "0062")
 	} else if strings.HasPrefix(s, "62") {

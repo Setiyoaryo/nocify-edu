@@ -32,6 +32,7 @@ func TestNormPhone(t *testing.T) {
 		{"formatted +62 (08...)", "+62 (0812) 3456-7890", "+6281234567890", false},
 		{"spaced +62 8...", "+62 812 3456 7890", "+6281234567890", false},
 		{"leading and trailing whitespace", "   081234567890   ", "+6281234567890", false},
+		{"dot separated 08...", "0812.3456.7890", "+6281234567890", false},
 		{"too short digits", "123", "", true},
 		{"empty string", "", "", true},
 		{"only whitespace", "    ", "", true},
@@ -41,6 +42,13 @@ func TestNormPhone(t *testing.T) {
 		{"prefix +62 with only zeros", "+6200000", "", true},
 		{"too long digits (> 15)", "081234567890123456", "", true},
 		{"alphabetic input", "abcdefghijk", "", true},
+		{"alphanumeric mixed suffix", "081234567890abc", "", true},
+		{"alphanumeric mixed prefix", "abc081234567890", "", true},
+		{"special symbols @#$", "0812@3456#7890", "", true},
+		{"plus in middle", "0812+34567890", "", true},
+		{"multiple plus signs", "++6281234567890", "", true},
+		{"foreign plus US +1", "+1 202 555 0123", "", true},
+		{"foreign plus SG +65", "+65 9123 4567", "", true},
 	}
 
 	for _, tt := range tests {
@@ -116,6 +124,22 @@ func TestOTPStore(t *testing.T) {
 	s.SetOTP(phone, code, time.Now().Add(-1*time.Second))
 	if s.CheckOTP(phone, code) {
 		t.Fatalf("expected expired OTP to fail")
+	}
+
+	// Brute-force protection: invalidates after 5 wrong attempts
+	s.SetOTP(phone, code, time.Now().Add(1*time.Minute))
+	for i := 0; i < 4; i++ {
+		if s.CheckOTP(phone, "000000") {
+			t.Fatalf("wrong code should not succeed")
+		}
+	}
+	// 5th wrong attempt triggers deletion
+	if s.CheckOTP(phone, "000000") {
+		t.Fatalf("5th wrong attempt should fail")
+	}
+	// 6th attempt with correct code fails because OTP was deleted
+	if s.CheckOTP(phone, code) {
+		t.Fatalf("expected OTP to be invalidated after 5 failed attempts")
 	}
 }
 
