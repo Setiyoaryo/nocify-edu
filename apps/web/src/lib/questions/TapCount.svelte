@@ -5,8 +5,9 @@
 	let {
 		content,
 		response = $bindable(null),
-		disabled = false
-	}: { content: Content; response: Response | null; disabled?: boolean } = $props();
+		disabled = false,
+		reveal = null
+	}: { content: Content; response: Response | null; disabled?: boolean; reveal?: any } = $props();
 
 	// Tapping each object is a counting aid (one-to-one correspondence); the
 	// answer is the number the child then picks.
@@ -45,7 +46,21 @@
 	</p>
 	<div class="flex justify-center gap-3" role="radiogroup" aria-label="Pilih jumlahnya">
 		{#each content.choices ?? [] as c}
-			<button type="button" role="radio" class="tile size-20 text-3xl font-extrabold" aria-checked={picked === c} {disabled} onclick={() => (picked = c)}>{c}</button>
+			{@const isAnswer = reveal?.value === c}
+			<button
+				type="button"
+				role="radio"
+				class="tile size-20 text-3xl font-extrabold"
+				aria-checked={picked === c}
+				style={isAnswer ? 'border-color: var(--color-leaf-deep); box-shadow: 0 3px 0 var(--color-leaf-deep); background: var(--color-leaf-tint)' : ''}
+				{disabled}
+				onclick={() => (picked = c)}
+			>{c}</button>
 		{/each}
 	</div>
+	{#if reveal?.value !== undefined}
+		<p class="anim-rise text-center text-sm font-bold text-leaf-deep">
+			Jawaban benar: <span class="rounded-lg bg-leaf-tint px-2 py-0.5">{reveal.value}</span>
+		</p>
+	{/if}
 </div>

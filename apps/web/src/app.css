@@ -135,8 +135,8 @@
 
 	/* Child controls: big, pressable, with a visible "edge" instead of heavy shadows. */
 	.tile {
-		min-height: 64px;
-		min-width: 64px;
+		min-height: 48px;
+		min-width: 48px;
 		border-radius: 1.125rem;
 		background: #fff;
 		border: 2px solid var(--color-line);

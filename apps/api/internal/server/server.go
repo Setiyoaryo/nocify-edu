@@ -172,6 +172,8 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 					r.Get("/pipeline/jobs/{id}", pipeH.GetJob)
 					r.Post("/pipeline/jobs/{id}/cancel", pipeH.CancelJob)
 					r.Post("/pipeline/jobs/{id}/retry", pipeH.RetryJob)
+					r.Get("/pipeline/worker-status", pipeH.WorkerStatus)
+					r.Get("/pipeline/status", pipeH.WorkerStatus)
 
 					r.Group(func(r chi.Router) {
 						r.Use(auth.RequireRole(auth.RoleEditor))

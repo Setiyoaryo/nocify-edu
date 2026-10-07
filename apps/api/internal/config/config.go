@@ -77,6 +77,9 @@ func Load() (Config, error) {
 	if c.DatabaseURL == "" {
 		return c, fmt.Errorf("DATABASE_URL is required")
 	}
+	if len(c.SessionSecret) < 32 {
+		return c, fmt.Errorf("SESSION_SECRET must be at least 32 characters")
+	}
 	if c.IsProduction() && c.StorageDriver != "s3" {
 		return c, fmt.Errorf("production requires STORAGE_DRIVER=s3")
 	}

@@ -221,7 +221,7 @@
 
 	</div>
 	<!-- Sticky action bar: stays above the home indicator and never covers content (§33). -->
-	<div class="h-44" aria-hidden="true"></div>
+	<div class="h-52 sm:h-44" aria-hidden="true"></div>
 	<div class="safe-bottom fixed inset-x-0 bottom-0 z-10 border-t border-line px-4 pt-3 transition-colors duration-300 {feedback ? (feedback.ok ? 'bg-leaf-tint' : 'bg-sun-tint') : 'bg-paper'}" aria-live="polite">
 		<div class="mx-auto max-w-2xl">
 			{#if feedback}

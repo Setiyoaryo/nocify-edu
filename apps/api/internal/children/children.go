@@ -176,13 +176,31 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 		httpx.Invalid(w, fields)
 		return
 	}
-	ent, err := h.Policy.Get(r.Context(), h.DB, u.ID)
+	hash, err := pinHash(in.PIN)
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	tx, err := h.DB.Begin(r.Context())
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+
+	var lockedID uuid.UUID
+	if err := tx.QueryRow(r.Context(), `SELECT id FROM users WHERE id = $1 FOR UPDATE`, u.ID).Scan(&lockedID); err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+
+	ent, err := h.Policy.Get(r.Context(), tx, u.ID)
 	if err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}
 	var count int
-	if err := h.DB.QueryRow(r.Context(), `SELECT count(*) FROM children WHERE parent_id = $1`, u.ID).Scan(&count); err != nil {
+	if err := tx.QueryRow(r.Context(), `SELECT count(*) FROM children WHERE parent_id = $1`, u.ID).Scan(&count); err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}
@@ -194,14 +212,13 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, http.StatusPaymentRequired, code, msg)
 		return
 	}
-	hash, err := pinHash(in.PIN)
-	if err != nil {
+	var id uuid.UUID
+	if err := tx.QueryRow(r.Context(), `INSERT INTO children (parent_id, nickname, grade_id, avatar, pin_hash) VALUES ($1,$2,$3,$4,$5) RETURNING id`,
+		u.ID, *in.Nickname, *in.GradeID, *in.Avatar, hash).Scan(&id); err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}
-	var id uuid.UUID
-	if err := h.DB.QueryRow(r.Context(), `INSERT INTO children (parent_id, nickname, grade_id, avatar, pin_hash) VALUES ($1,$2,$3,$4,$5) RETURNING id`,
-		u.ID, *in.Nickname, *in.GradeID, *in.Avatar, hash).Scan(&id); err != nil {
+	if err := tx.Commit(r.Context()); err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}

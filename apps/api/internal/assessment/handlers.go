@@ -332,14 +332,41 @@ func (h Handler) Start(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ent, err := h.Policy.Get(ctx, h.DB, u.ID)
+	tx, err := h.DB.Begin(ctx)
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	defer tx.Rollback(ctx)
+
+	var lockedID uuid.UUID
+	if err := tx.QueryRow(ctx, `SELECT id FROM users WHERE id = $1 FOR UPDATE`, u.ID).Scan(&lockedID); err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+
+	// Re-check for an unfinished session under lock in case a concurrent request just started one.
+	err = tx.QueryRow(ctx, `SELECT id FROM assessments WHERE child_id = $1 AND subject_id = $2 AND COALESCE(skill_id, 0) = $3
+		AND status = 'in_progress' AND started_at > now() - interval '3 hours' ORDER BY started_at DESC LIMIT 1`,
+		child.ID, sc.SubjectID, sc.SkillID).Scan(&existing)
+	if err == nil {
+		_ = tx.Rollback(ctx)
+		h.respond(w, r, u.ID, existing, http.StatusOK)
+		return
+	}
+	if !errors.Is(err, pgx.ErrNoRows) {
+		httpx.Internal(w, r, err)
+		return
+	}
+
+	ent, err := h.Policy.Get(ctx, tx, u.ID)
 	if err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}
 	if ent.Limits.DailyChallenges > 0 {
 		var today int
-		if err := h.DB.QueryRow(ctx, `SELECT count(*) FROM assessments a JOIN children c ON c.id = a.child_id
+		if err := tx.QueryRow(ctx, `SELECT count(*) FROM assessments a JOIN children c ON c.id = a.child_id
 			WHERE c.parent_id = $1 AND a.started_at >= $2`, u.ID, subscriptions.StartOfDay(h.TZ)).Scan(&today); err != nil {
 			httpx.Internal(w, r, err)
 			return
@@ -349,13 +376,6 @@ func (h Handler) Start(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	tx, err := h.DB.Begin(ctx)
-	if err != nil {
-		httpx.Internal(w, r, err)
-		return
-	}
-	defer tx.Rollback(ctx)
 
 	var sessionSize int
 	if err := tx.QueryRow(ctx, `SELECT session_size FROM grades WHERE id = $1`, child.GradeID).Scan(&sessionSize); err != nil {

@@ -1,0 +1,234 @@
+{
+  "source": "EduPlay kurikulum resmi SD Kelas 4 (IPAS Kurikulum Merdeka)",
+  "questions": [
+    {
+      "code": "SD4-IPA-GYA-01",
+      "skill": "sd4-pengaruh-gaya",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menjelaskan pengaruh gaya terhadap gerak benda.",
+      "content": {
+        "prompt": "Ketika seorang kiper menangkap bola sepak yang sedang meluncur cepat ke arah gawang, gaya yang diberikan oleh kiper menyebabkan …",
+        "audio_text": "Ketika seorang kiper menangkap bola sepak yang sedang meluncur cepat ke arah gawang, gaya yang diberikan oleh kiper menyebabkan apa?",
+        "options": [
+          { "id": "a", "label": "Benda bergerak menjadi diam" },
+          { "id": "b", "label": "Benda diam menjadi bergerak" },
+          { "id": "c", "label": "Massa benda bertambah besar" },
+          { "id": "d", "label": "Bentuk bola berubah menjadi pipih" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Kiper memberikan gaya tangkapan yang menghentikan laju bola, sehingga benda yang semula bergerak menjadi diam.",
+      "hint": "Bola awalnya bergerak kencang, lalu tertahan di tangan kiper."
+    },
+    {
+      "code": "SD4-IPA-GYA-02",
+      "skill": "sd4-pengaruh-gaya",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengidentifikasi contoh gaya yang mengubah bentuk benda.",
+      "content": {
+        "prompt": "Kegiatan berikut yang menunjukkan bahwa gaya dapat mengubah bentuk benda adalah …",
+        "options": [
+          { "id": "a", "label": "Menekan dan membentuk plastisin menjadi boneka" },
+          { "id": "b", "label": "Mendorong gerobak pasir hingga berjalan" },
+          { "id": "c", "label": "Menendang bola ke arah gawang lawan" },
+          { "id": "d", "label": "Mengerem sepeda yang sedang melaju" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Menekan plastisin atau tanah liat memberikan gaya tekan yang mengubah bentuk benda tersebut.",
+      "hint": "Cari kegiatan yang membuat bentuk fisik benda menjadi berbeda."
+    },
+    {
+      "code": "SD4-IPA-GYA-03",
+      "skill": "sd4-pengaruh-gaya",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menjelaskan pengaruh gaya gesek dalam kehidupan sehari-hari.",
+      "content": {
+        "prompt": "Ban mobil dan sepatu olahraga diberi alur atau gerigi pada bagian bawahnya bertujuan untuk …",
+        "options": [
+          { "id": "a", "label": "Memperbesar gaya gesek agar tidak licin" },
+          { "id": "b", "label": "Memperkecil gaya gesek agar bergerak lebih cepat" },
+          { "id": "c", "label": "Mengurangi gaya gravitasi bumi" },
+          { "id": "d", "label": "Menambah beban berat kendaraan" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Permukaan yang kasar atau beralur memperbesar gaya gesek sehingga kendaraan atau kaki tidak mudah tergelincir.",
+      "hint": "Pikirkan apa yang terjadi jika jalanan licin dan sepatu tidak ada alurnya."
+    },
+    {
+      "code": "SD4-IPA-GYA-04",
+      "skill": "sd4-pengaruh-gaya",
+      "type": "short_answer",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menyebutkan gaya tarik bumi.",
+      "content": {
+        "prompt": "Buah kelapa yang matang jatuh dari pohon ke tanah karena ditarik oleh gaya _____ bumi."
+      },
+      "answer": {
+        "accepted": ["gravitasi"]
+      },
+      "explanation": "Gaya gravitasi adalah gaya tarik yang dialami semua benda menuju pusat bumi.",
+      "hint": "Gaya tarik yang menyebabkan semua benda jatuh ke bawah."
+    },
+    {
+      "code": "SD4-IPA-GYA-05",
+      "skill": "sd4-pengaruh-gaya",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menjelaskan pengaruh gaya terhadap arah gerak benda.",
+      "content": {
+        "prompt": "Pemain bulu tangkis memukul kok (shuttlecock) yang datang dari arah lawan kembali ke seberang net. Peristiwa ini membuktikan bahwa gaya dapat …",
+        "options": [
+          { "id": "a", "label": "Mengubah arah gerak benda" },
+          { "id": "b", "label": "Menghilangkan massa benda" },
+          { "id": "c", "label": "Mengubah wujud zat benda" },
+          { "id": "d", "label": "Membuat benda diam selamanya" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Pukulan raket memberikan gaya yang membelokkan dan membalikkan arah gerakan kok ke arah berlawanan.",
+      "hint": "Kok datang dari depan, lalu dipukul kembali ke arah yang berlawanan."
+    },
+    {
+      "code": "SD4-IPA-GYA-06",
+      "skill": "sd4-pengaruh-gaya",
+      "type": "short_answer",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengidentifikasi jenis gaya otot.",
+      "content": {
+        "prompt": "Saat kita mendorong meja belajar atau menarik pintu kelas, gaya yang kita gunakan bersumber dari gaya _____."
+      },
+      "answer": {
+        "accepted": ["otot"]
+      },
+      "explanation": "Gaya otot adalah gaya yang dihasilkan oleh kontraksi otot tubuh manusia atau hewan saat menarik atau mendorong.",
+      "hint": "Gaya yang dihasilkan oleh tenaga tubuh kita."
+    },
+    {
+      "code": "SD4-IPA-ENR-01",
+      "skill": "sd4-perubahan-energi",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengidentifikasi perubahan energi listrik menjadi panas.",
+      "content": {
+        "prompt": "Peralatan elektronik rumah tangga berikut yang mengalami perubahan energi listrik menjadi energi panas (kalor) adalah …",
+        "options": [
+          { "id": "a", "label": "Setrika dan penanak nasi (rice cooker)" },
+          { "id": "b", "label": "Kipas angin dan mesin cuci" },
+          { "id": "c", "label": "Lampu senter dan layar monitor" },
+          { "id": "d", "label": "Radio dan pengeras suara" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Setrika dan rice cooker memanfaatkan elemen pemanas untuk mengubah energi listrik menjadi energi panas.",
+      "hint": "Pilih alat yang fungsinya menghasilkan panas untuk merapikan baju atau memasak nasi."
+    },
+    {
+      "code": "SD4-IPA-ENR-02",
+      "skill": "sd4-perubahan-energi",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengidentifikasi perubahan energi listrik menjadi gerak.",
+      "content": {
+        "prompt": "Pada kipas angin dan blender, energi listrik diubah menjadi energi …",
+        "options": [
+          { "id": "a", "label": "Energi gerak (kinetik)" },
+          { "id": "b", "label": "Energi kimia" },
+          { "id": "c", "label": "Energi bunyi saja" },
+          { "id": "d", "label": "Energi cahaya" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Motor listrik pada kipas angin dan blender memutar baling-baling/pisau sehingga menghasilkan energi gerak.",
+      "hint": "Baling-baling kipas berputar ketika dinyalakan."
+    },
+    {
+      "code": "SD4-IPA-ENR-03",
+      "skill": "sd4-perubahan-energi",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menjelaskan energi terbarukan matahari.",
+      "content": {
+        "prompt": "Panel surya yang dipasang di atap rumah berfungsi untuk mengubah energi cahaya matahari menjadi energi …",
+        "options": [
+          { "id": "a", "label": "Listrik" },
+          { "id": "b", "label": "Kimia" },
+          { "id": "c", "label": "Nuklir" },
+          { "id": "d", "label": "Angin" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Panel surya (sel fotovoltaik) menyerap foton dari cahaya matahari dan mengonversinya menjadi arus listrik.",
+      "hint": "Hasil dari panel surya dapat menyalakan lampu rumah."
+    },
+    {
+      "code": "SD4-IPA-ENR-04",
+      "skill": "sd4-perubahan-energi",
+      "type": "short_answer",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menjelaskan fotosintesis pada tumbuhan.",
+      "content": {
+        "prompt": "Dalam proses fotosintesis, daun tumbuhan hijau menangkap energi cahaya matahari untuk diubah menjadi energi _____ dalam bentuk bahan makanan."
+      },
+      "answer": {
+        "accepted": ["kimia"]
+      },
+      "explanation": "Fotosintesis mengubah energi cahaya menjadi energi kimia yang tersimpan dalam glukosa/amilum.",
+      "hint": "Bentuk energi yang tersimpan di dalam makanan dan senyawa organik."
+    },
+    {
+      "code": "SD4-IPA-ENR-05",
+      "skill": "sd4-perubahan-energi",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menganalisis perubahan energi pada alat musik.",
+      "content": {
+        "prompt": "Saat senar gitar dipetik, terjadi perubahan dari energi gerak menjadi energi …",
+        "options": [
+          { "id": "a", "label": "Bunyi" },
+          { "id": "b", "label": "Cahaya" },
+          { "id": "c", "label": "Listrik" },
+          { "id": "d", "label": "Kalor" }
+        ]
+      },
+      "answer": {
+        "option_id": "a"
+      },
+      "explanation": "Petikan tangan (energi gerak) menggetarkan senar gitar dan kotak suara sehingga menghasilkan energi bunyi yang terdengar oleh telinga kita.",
+      "hint": "Getaran senar menghasilkan suara musik yang bisa didengar."
+    },
+    {
+      "code": "SD4-IPA-ENR-06",
+      "skill": "sd4-perubahan-energi",
+      "type": "short_answer",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat memahami hukum kekekalan energi sederhana.",
+      "content": {
+        "prompt": "Energi tidak dapat diciptakan dan tidak dapat dimusnahkan, tetapi energi dapat diubah dari satu bentuk ke bentuk yang _____."
+      },
+      "answer": {
+        "accepted": ["lain", "lainnya"]
+      },
+      "explanation": "Hukum kekekalan energi menyatakan energi tidak dapat dimusnahkan tetapi dapat berubah bentuk ke bentuk lain.",
+      "hint": "Lengkapi kalimat: 'dari satu bentuk ke bentuk yang ...'."
+    }
+  ]
+}

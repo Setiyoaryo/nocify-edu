@@ -91,6 +91,7 @@
 		try {
 			const r = await patch(`/children/${id}`, { ...form, pin: form.pin || undefined });
 			progress = { ...progress, child: r.child };
+			skills = (await get(`/skills?grade_id=${r.child.grade_id}`)).skills;
 			saved = true;
 		} catch (err) {
 			if (err instanceof ApiError) fields = Object.keys(err.fields).length ? err.fields : { nickname: err.message };

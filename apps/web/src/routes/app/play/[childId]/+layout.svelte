@@ -36,13 +36,23 @@
 	let pinError = $state('');
 	let gate = $state(false);
 
-	refresh().then(() => {
-		let ok = false;
-		try {
-			ok = sessionStorage.getItem(key) === '1';
-		} catch {}
-		unlocked = !ctx.child?.has_pin || ok;
-	});
+	get(`/children/${id}`)
+		.then(async (res) => {
+			ctx.child = res.child;
+			let ok = false;
+			try {
+				ok = sessionStorage.getItem(key) === '1';
+			} catch {}
+			if (!ctx.child?.has_pin || ok) {
+				unlocked = true;
+				await refresh();
+			} else {
+				unlocked = false;
+			}
+		})
+		.catch(() => {
+			goto('/app/play');
+		});
 
 	async function press(d: string) {
 		pinError = '';
@@ -54,6 +64,7 @@
 					sessionStorage.setItem(key, '1');
 				} catch {}
 				unlocked = true;
+				await refresh();
 			} catch (e) {
 				pinError = e instanceof ApiError ? e.message : 'Coba lagi.';
 				pin = '';
@@ -105,11 +116,11 @@
 					<p class="pill hidden bg-tangerine-tint px-2 py-1 text-sm text-tangerine-deep sm:inline-flex sm:py-1.5 sm:text-base" aria-label="{ctx.streak} hari beruntun"><Fire size={20} weight="fill" aria-hidden="true" />{ctx.streak}</p>
 				{/if}
 				{#key ctx.stars}<p class="pill anim-pop bg-sun-tint px-2 py-1 text-sm text-ink sm:py-1.5 sm:text-base" aria-label="{ctx.stars} bintang"><Star size={20} weight="fill" class="text-sun-deep" aria-hidden="true" />{ctx.stars}</p>{/key}
-				<button class="tile grid size-10 shrink-0 place-items-center text-primary sm:size-12" onclick={() => speech.toggleMute()} aria-pressed={speech.muted} aria-label={speech.muted ? 'Nyalakan suara' : 'Matikan suara'}>
+				<button class="tile grid size-10 min-h-0 min-w-0 shrink-0 place-items-center text-primary sm:size-12" onclick={() => speech.toggleMute()} aria-pressed={speech.muted} aria-label={speech.muted ? 'Nyalakan suara' : 'Matikan suara'}>
 					{#if speech.muted}<SpeakerSlash size={19} weight="bold" aria-hidden="true" />{:else}<SpeakerHigh size={19} weight="fill" aria-hidden="true" />{/if}
 				</button>
 				{#if !inChallenge}
-					<button class="tile grid size-10 shrink-0 place-items-center text-ink-soft sm:size-12" onclick={() => (gate = true)} aria-label="Keluar ke area orang tua"><SignOut size={19} weight="bold" aria-hidden="true" /></button>
+					<button class="tile grid size-10 min-h-0 min-w-0 shrink-0 place-items-center text-ink-soft sm:size-12" onclick={() => (gate = true)} aria-label="Keluar ke area orang tua"><SignOut size={19} weight="bold" aria-hidden="true" /></button>
 				{/if}
 			</div>
 		</header>

@@ -53,6 +53,14 @@
     { "code": "sd4-mat-pecahan", "grade": "sd-4", "subject": "matematika", "name": "Pecahan", "skills": [
       { "code": "sd4-pecahan-senilai", "name": "Pecahan sederhana", "description": "Mengenali dan membandingkan pecahan sederhana." },
       { "code": "sd4-nilai-tempat", "name": "Nilai tempat", "description": "Nilai tempat ribuan, ratusan, puluhan, satuan." }
+    ]},
+    { "code": "sd4-bhs-ide-pokok", "grade": "sd-4", "subject": "bahasa-indonesia", "name": "Ide Pokok & Teks Bacaan", "skills": [
+      { "code": "sd4-ide-pokok", "name": "Ide Pokok Paragraf", "description": "Menemukan ide pokok dan kalimat utama dalam bacaan." },
+      { "code": "sd4-kata-tanya", "name": "Kata Tanya & Informasi", "description": "Mengidentifikasi informasi penting menggunakan kata tanya adiksimba." }
+    ]},
+    { "code": "sd4-ipas-gaya-energi", "grade": "sd-4", "subject": "ipas", "name": "Gaya & Perubahan Energi", "skills": [
+      { "code": "sd4-pengaruh-gaya", "name": "Pengaruh Gaya", "description": "Mengidentifikasi pengaruh gaya terhadap gerak dan bentuk benda." },
+      { "code": "sd4-perubahan-energi", "name": "Bentuk & Perubahan Energi", "description": "Mengenal berbagai bentuk energi dan perubahannya dalam kehidupan sehari-hari." }
     ]}
   ]
 }

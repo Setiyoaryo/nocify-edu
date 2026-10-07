@@ -111,8 +111,21 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 		httpx.Invalid(w, f)
 		return
 	}
+	tx, err := h.DB.Begin(r.Context())
+	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+
+	var lockedID uuid.UUID
+	if err := tx.QueryRow(r.Context(), `SELECT id FROM children WHERE id = $1 FOR UPDATE`, child.ID).Scan(&lockedID); err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+
 	var active int
-	if err := h.DB.QueryRow(r.Context(), `SELECT count(*) FROM child_missions WHERE child_id = $1 AND status = 'active'`, child.ID).Scan(&active); err != nil {
+	if err := tx.QueryRow(r.Context(), `SELECT count(*) FROM child_missions WHERE child_id = $1 AND status = 'active'`, child.ID).Scan(&active); err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}
@@ -122,7 +135,7 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	u := auth.MustUser(r.Context())
 	var id uuid.UUID
-	err = h.DB.QueryRow(r.Context(), `INSERT INTO child_missions (child_id, skill_id, target, created_by, due_at)
+	err = tx.QueryRow(r.Context(), `INSERT INTO child_missions (child_id, skill_id, target, created_by, due_at)
 		VALUES ($1, $2, $3, $4, now() + make_interval(days => $5)) RETURNING id`, child.ID, in.SkillID, in.Target, u.ID, in.Days).Scan(&id)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
@@ -130,6 +143,10 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		httpx.Internal(w, r, err)
+		return
+	}
+	if err := tx.Commit(r.Context()); err != nil {
 		httpx.Internal(w, r, err)
 		return
 	}

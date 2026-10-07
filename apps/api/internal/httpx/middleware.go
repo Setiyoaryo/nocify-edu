@@ -94,8 +94,11 @@ func SameOrigin(allowed []string) func(http.Handler) http.Handler {
 	}
 }
 
+const maxRateLimitBuckets = 10000
+
 // RateLimit is a fixed-window, per-client-IP limiter. It is in-memory, which is
 // correct for the single-binary MVP; move to Redis only if the API is scaled out.
+// The map is bounded to maxRateLimitBuckets to prevent memory exhaustion under attack.
 func RateLimit(limit int, window time.Duration) func(http.Handler) http.Handler {
 	type bucket struct {
 		start time.Time
@@ -121,6 +124,19 @@ func RateLimit(limit int, window time.Duration) func(http.Handler) http.Handler 
 			b := buckets[key]
 			now := time.Now()
 			if b == nil || now.Sub(b.start) > window {
+				if b == nil && len(buckets) >= maxRateLimitBuckets {
+					for k, v := range buckets {
+						if now.Sub(v.start) > window {
+							delete(buckets, k)
+						}
+					}
+					if len(buckets) >= maxRateLimitBuckets {
+						mu.Unlock()
+						w.Header().Set("Retry-After", strconv.Itoa(int(window.Seconds())))
+						Error(w, http.StatusTooManyRequests, "rate_limited", "Terlalu banyak percobaan. Coba lagi sebentar lagi.")
+						return
+					}
+				}
 				b = &bucket{start: now}
 				buckets[key] = b
 			}
@@ -137,15 +153,35 @@ func RateLimit(limit int, window time.Duration) func(http.Handler) http.Handler 
 	}
 }
 
-// ClientIP trusts X-Forwarded-For's first hop only because the API is only
-// reachable through Traefik; RealIP middleware is not used for that reason.
+// ClientIP returns the client IP address. Behind a reverse proxy (e.g. Traefik),
+// the edge proxy appends the remote IP to X-Forwarded-For. We inspect the rightmost
+// valid hop of X-Forwarded-For to prevent IP spoofing from untrusted initial hops
+// or spoofed X-Real-IP headers. If X-Forwarded-For is absent, X-Real-IP and
+// RemoteAddr are used as fallbacks.
 func ClientIP(r *http.Request) string {
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		return strings.TrimSpace(strings.Split(xff, ",")[0])
+	if xffs := r.Header.Values("X-Forwarded-For"); len(xffs) > 0 {
+		for h := len(xffs) - 1; h >= 0; h-- {
+			parts := strings.Split(xffs[h], ",")
+			for i := len(parts) - 1; i >= 0; i-- {
+				part := strings.TrimSpace(parts[i])
+				if ip := net.ParseIP(part); ip != nil {
+					return ip.String()
+				}
+			}
+		}
+	}
+	if xrip := strings.TrimSpace(r.Header.Get("X-Real-IP")); xrip != "" {
+		if ip := net.ParseIP(xrip); ip != nil {
+			return ip.String()
+		}
 	}
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
-		return r.RemoteAddr
+		host = strings.TrimSpace(r.RemoteAddr)
+	}
+	host = strings.Trim(host, "[]")
+	if ip := net.ParseIP(host); ip != nil {
+		return ip.String()
 	}
 	return host
 }
