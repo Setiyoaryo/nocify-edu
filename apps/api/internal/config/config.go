@@ -13,9 +13,9 @@ type Config struct {
 	Env                 string // development | staging | production
 	HTTPAddr            string
 	DatabaseURL         string
-	GoogleClientID       string
-	GoogleClientSecret   string
-	GoogleRedirectURI    string
+	GoogleClientID      string
+	GoogleClientSecret  string
+	GoogleRedirectURI   string
 	SessionSecret       string
 	SessionTTL          time.Duration
 	PublicURL           string   // e.g. https://eduplay.id, used for redirects and Origin checks
@@ -46,9 +46,9 @@ func Load() (Config, error) {
 		HTTPAddr:            env("HTTP_ADDR", ":8080"),
 		DatabaseURL:         os.Getenv("DATABASE_URL"),
 		SessionSecret:       os.Getenv("SESSION_SECRET"),
-		GoogleClientID: os.Getenv("GOOGLE_CLIENT_ID"),
-		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-		GoogleRedirectURI: os.Getenv("GOOGLE_REDIRECT_URI"),
+		GoogleClientID:       os.Getenv("GOOGLE_CLIENT_ID"),
+		GoogleClientSecret:   os.Getenv("GOOGLE_CLIENT_SECRET"),
+		GoogleRedirectURI:    os.Getenv("GOOGLE_REDIRECT_URI"),
 		SessionTTL:          time.Duration(envInt("SESSION_TTL_HOURS", 24*30)) * time.Hour,
 		PublicURL:           strings.TrimRight(env("PUBLIC_URL", "http://localhost:5173"), "/"),
 		PaymentProvider:     env("PAYMENT_PROVIDER", "midtrans"),
