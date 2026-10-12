@@ -107,8 +107,53 @@
       "grade": null,
       "subject": "matematika",
       "element": "Bilangan",
-      "statement": "Peserta didik dapat menyelesaikan masalah yang melibatkan bilangan besar, pecahan, dan persentase.",
-      "skills": []
+      "statement": "Peserta didik dapat menyelesaikan masalah yang melibatkan bilangan bulat, operasi hitung campuran, pecahan, desimal, dan persentase.",
+      "skills": ["sd6-bilangan-bulat", "sd6-operasi-campuran", "sd6-pecahan-operasi", "sd6-desimal-persen"]
+    },
+    {
+      "code": "CP-C-MAT-GEOMETRI",
+      "phase": "c",
+      "grade": null,
+      "subject": "matematika",
+      "element": "Pengukuran dan Geometri",
+      "statement": "Peserta didik dapat menghitung volume bangun ruang sederhana seperti kubus dan balok.",
+      "skills": ["sd6-bangun-ruang"]
+    },
+    {
+      "code": "CP-C-BIN-BACAAN",
+      "phase": "c",
+      "grade": null,
+      "subject": "bahasa-indonesia",
+      "element": "Membaca dan Memirsa",
+      "statement": "Peserta didik dapat menemukan ide pokok dan menyusun simpulan dari teks yang dibaca.",
+      "skills": ["sd6-ide-pokok-simpulan"]
+    },
+    {
+      "code": "CP-C-BIN-TEKS",
+      "phase": "c",
+      "grade": null,
+      "subject": "bahasa-indonesia",
+      "element": "Menulis dan Berbicara",
+      "statement": "Peserta didik dapat mengenali struktur serta informasi pada teks eksplanasi dan laporan.",
+      "skills": ["sd6-teks-eksplanasi"]
+    },
+    {
+      "code": "CP-C-IPAS-BUMI",
+      "phase": "c",
+      "grade": null,
+      "subject": "ipas",
+      "element": "Bumi dan Antariksa",
+      "statement": "Peserta didik dapat menjelaskan anggota tata surya serta akibat rotasi dan revolusi Bumi, termasuk peristiwa gerhana.",
+      "skills": ["sd6-tata-surya", "sd6-rotasi-revolusi"]
+    },
+    {
+      "code": "CP-C-IPAS-ORGANISASI",
+      "phase": "c",
+      "grade": null,
+      "subject": "ipas",
+      "element": "Makhluk Hidup dan Sistem Organ",
+      "statement": "Peserta didik dapat mengenal organ dan fungsi sistem tubuh serta menjelaskan hubungan makhluk hidup dalam ekosistem.",
+      "skills": ["sd6-sistem-tubuh", "sd6-ekosistem"]
     }
   ]
 }

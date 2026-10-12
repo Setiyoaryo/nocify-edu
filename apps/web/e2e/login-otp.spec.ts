@@ -20,6 +20,17 @@ test.describe('WhatsApp OTP Login Flow', () => {
 	});
 
 	test('parent logs in with WhatsApp OTP into parent dashboard without Mode Anak button', async ({ page }) => {
+		await page.route('**/auth/otp/send', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					status: 'ok',
+					phone: '+6281234567890',
+					message: 'Kode OTP berhasil dikirim ke WhatsApp.'
+				})
+			});
+		});
 		await page.route('**/auth/otp/verify', async (route) => {
 			await route.fulfill({
 				status: 200,
@@ -102,6 +113,17 @@ test.describe('WhatsApp OTP Login Flow', () => {
 	});
 
 	test('child logs in with WhatsApp OTP into kid friendly play environment', async ({ page }) => {
+		await page.route('**/auth/otp/send', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					status: 'ok',
+					phone: '+6281234567890',
+					message: 'Kode OTP berhasil dikirim ke WhatsApp.'
+				})
+			});
+		});
 		await page.route('**/auth/otp/verify', async (route) => {
 			await route.fulfill({
 				status: 200,
@@ -206,7 +228,7 @@ test.describe('WhatsApp OTP Login Flow', () => {
 		await expect(page.getByRole('heading', { name: 'Masuk sebagai Orang Tua' })).toBeVisible();
 
 		// Switch to Anak via top tab bar
-		await page.getByRole('tab', { name: /Anak ⭐/i }).click();
+		await page.getByRole('tab', { name: 'Anak' }).click();
 		await expect(page.getByRole('heading', { name: /Hai Petualang/i })).toBeVisible();
 
 		// Switch back to Orang Tua
@@ -216,5 +238,99 @@ test.describe('WhatsApp OTP Login Flow', () => {
 		// Click "Ganti peran" to go back to initial choice cards
 		await page.getByRole('button', { name: 'Ganti peran' }).click();
 		await expect(page.getByRole('heading', { name: 'Masuk sebagai siapa?' })).toBeVisible();
+	});
+
+	test('child cannot log in if account has not been created by parent', async ({ page }) => {
+		await page.route('**/auth/otp/send', async (route) => {
+			await route.fulfill({
+				status: 404,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					error: 'Nomor WhatsApp belum terdaftar. Minta Ayah atau Bunda mendaftar dan membuat profil anak terlebih dahulu.'
+				})
+			});
+		});
+
+		await page.goto('/login');
+
+		// Select Anak mode
+		await page.getByRole('button', { name: /Ruang Bermain/i }).click();
+
+		// Fill unregistered phone
+		await page.locator('#phone').fill('089999999999');
+		await page.getByRole('button', { name: /Kirim Kode ke Ayah \/ Bunda/i }).click();
+
+		// Error banner explaining parent account requirement appears
+		await expect(page.getByText(/Anak hanya bisa masuk jika akun dan profil anak sudah dibuat oleh orang tua/i)).toBeVisible();
+
+		// Has quick button to switch to Mode Orang Tua
+		const parentModeBtn = page.getByRole('button', { name: /Masuk Mode Orang Tua/i });
+		await expect(parentModeBtn).toBeVisible();
+		await parentModeBtn.click();
+
+		// Successfully switched to parent mode
+		await expect(page.getByRole('heading', { name: 'Masuk sebagai Orang Tua' })).toBeVisible();
+	});
+
+	test('direct URL with role parameter initializes proper mode and back button works', async ({ page }) => {
+		await page.goto('/login?role=child');
+		await expect(page.getByRole('heading', { name: /Hai Petualang/i })).toBeVisible();
+
+		// Browser back to /login goes back to role selection
+		await page.getByRole('button', { name: 'Ganti peran' }).click();
+		await expect(page.getByRole('heading', { name: 'Masuk sebagai siapa?' })).toBeVisible();
+
+		// Browser forward goes back to child role
+		await page.goBack();
+		await expect(page.getByRole('heading', { name: /Hai Petualang/i })).toBeVisible();
+	});
+
+	test('handles mobile SMS code autofill in single input correctly', async ({ page }) => {
+		await page.route('**/auth/otp/send', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					status: 'ok',
+					phone: '+6281234567890',
+					message: 'Kode OTP berhasil dikirim ke WhatsApp.'
+				})
+			});
+		});
+
+		await page.goto('/login?role=parent');
+		await page.locator('#phone').fill('081234567890');
+		await page.getByRole('button', { name: /Kirim Kode OTP via WhatsApp/i }).click();
+		await expect(page.getByRole('heading', { name: 'Verifikasi Kode OTP' })).toBeVisible();
+
+		// Simulate mobile SMS autofill inserting full 6-digit string into otp-0
+		await page.locator('#otp-0').fill('654321');
+
+		// All 6 digit inputs should be populated
+		await expect(page.locator('#otp-0')).toHaveValue('6');
+		await expect(page.locator('#otp-1')).toHaveValue('5');
+		await expect(page.locator('#otp-2')).toHaveValue('4');
+		await expect(page.locator('#otp-3')).toHaveValue('3');
+		await expect(page.locator('#otp-4')).toHaveValue('2');
+		await expect(page.locator('#otp-5')).toHaveValue('1');
+
+		// Submit button is now enabled
+		const submitBtn = page.getByRole('button', { name: 'Verifikasi & Masuk' });
+		await expect(submitBtn).toBeEnabled();
+	});
+
+	test('renders without horizontal overflow on narrow mobile screens (320px)', async ({ page }) => {
+		await page.setViewportSize({ width: 320, height: 640 });
+		await page.goto('/login');
+		let scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+		expect(scrollWidth).toBeLessThanOrEqual(320);
+
+		await page.getByRole('button', { name: /Area Orang Tua/i }).click();
+		scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+		expect(scrollWidth).toBeLessThanOrEqual(320);
+
+		await page.getByRole('tab', { name: 'Anak' }).click();
+		scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+		expect(scrollWidth).toBeLessThanOrEqual(320);
 	});
 });

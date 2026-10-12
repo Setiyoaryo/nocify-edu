@@ -532,6 +532,39 @@ func (h Handler) SendOTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.S.DB != nil && in.Role == "child" {
+		var parentID uuid.UUID
+		err := h.S.DB.QueryRow(r.Context(), `
+			SELECT id FROM users WHERE phone = $1
+			ORDER BY created_at ASC LIMIT 1`, phone).Scan(&parentID)
+		if errors.Is(err, pgx.ErrNoRows) {
+			digits := strings.TrimPrefix(phone, "+")
+			synEmail := fmt.Sprintf("wa-%s@eduplay.local", digits)
+			err = h.S.DB.QueryRow(r.Context(), `
+				SELECT id FROM users WHERE lower(email) = $1
+				ORDER BY created_at ASC LIMIT 1`, synEmail).Scan(&parentID)
+		}
+		if errors.Is(err, pgx.ErrNoRows) {
+			httpx.Error(w, http.StatusNotFound, "account_not_found", "Nomor WhatsApp belum terdaftar. Minta Ayah atau Bunda mendaftar dan membuat profil anak terlebih dahulu.")
+			return
+		} else if err != nil {
+			httpx.Internal(w, r, err)
+			return
+		}
+
+		var count int
+		err = h.S.DB.QueryRow(r.Context(), `
+			SELECT count(*) FROM children WHERE parent_id = $1`, parentID).Scan(&count)
+		if err != nil {
+			httpx.Internal(w, r, err)
+			return
+		}
+		if count == 0 {
+			httpx.Error(w, http.StatusConflict, "no_children", "Belum ada profil anak yang dibuat di akun ini. Minta Ayah atau Bunda masuk terlebih dahulu untuk membuat profil anak Anda.")
+			return
+		}
+	}
+
 	code, err := GenerateOTP()
 	if err != nil {
 		httpx.Internal(w, r, err)
@@ -549,9 +582,10 @@ func (h Handler) SendOTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type verifyOTPReq struct {
-	Phone string `json:"phone"`
-	Code  string `json:"code"`
-	Role  string `json:"role"`
+	Phone       string `json:"phone"`
+	Code        string `json:"code"`
+	Role        string `json:"role"`
+	DisplayName string `json:"display_name,omitempty"`
 }
 
 func (h Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
@@ -575,7 +609,13 @@ func (h Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.S.DB == nil {
+		httpx.Error(w, http.StatusServiceUnavailable, "db_unavailable", "Database tidak tersedia.")
+		return
+	}
+
 	var u User
+	var isNewUser bool
 	err = h.S.DB.QueryRow(r.Context(), `
 		SELECT id, email, display_name, role, created_at
 		FROM users
@@ -591,9 +631,13 @@ func (h Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 			WHERE lower(email) = $1`, synEmail).Scan(&u.ID, &u.Email, &u.DisplayName, &u.Role, &u.CreatedAt)
 
 		if errors.Is(err, pgx.ErrNoRows) {
-			displayName := "Orang Tua"
 			if in.Role == "child" {
-				displayName = "Keluarga EduPlay"
+				httpx.Error(w, http.StatusNotFound, "account_not_found", "Nomor WhatsApp belum terdaftar. Minta Ayah atau Bunda mendaftar dan membuat profil anak terlebih dahulu.")
+				return
+			}
+			displayName := strings.TrimSpace(in.DisplayName)
+			if displayName == "" {
+				displayName = "Orang Tua"
 			}
 			dummyHash, _ := bcrypt.GenerateFromPassword([]byte(uuid.NewString()), 10)
 			err = h.S.DB.QueryRow(r.Context(), `
@@ -605,6 +649,7 @@ func (h Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 				httpx.Internal(w, r, err)
 				return
 			}
+			isNewUser = true
 			if h.OnRegister != nil {
 				h.OnRegister(r.Context(), u)
 			}
@@ -613,10 +658,60 @@ func (h Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			_, _ = h.S.DB.Exec(r.Context(), `UPDATE users SET phone = $1 WHERE id = $2`, phone, u.ID)
+			if strings.TrimSpace(in.DisplayName) != "" && (u.DisplayName == "Orang Tua" || u.DisplayName == "") {
+				_, _ = h.S.DB.Exec(r.Context(), `UPDATE users SET display_name = $1 WHERE id = $2`, strings.TrimSpace(in.DisplayName), u.ID)
+				u.DisplayName = strings.TrimSpace(in.DisplayName)
+			}
 		}
 	} else if err != nil {
 		httpx.Internal(w, r, err)
 		return
+	} else {
+		if strings.TrimSpace(in.DisplayName) != "" && (u.DisplayName == "Orang Tua" || u.DisplayName == "") {
+			_, _ = h.S.DB.Exec(r.Context(), `UPDATE users SET display_name = $1 WHERE id = $2`, strings.TrimSpace(in.DisplayName), u.ID)
+			u.DisplayName = strings.TrimSpace(in.DisplayName)
+		}
+	}
+
+	var childrenList []map[string]any
+	if in.Role == "child" {
+		rows, err := h.S.DB.Query(r.Context(), `
+			SELECT c.id, c.nickname, c.grade_id, g.name, g.ux_band, c.avatar, c.pin_hash IS NOT NULL, c.xp, c.created_at,
+			       (SELECT max(a.started_at) FROM assessments a WHERE a.child_id = c.id)
+			FROM children c JOIN grades g ON g.id = c.grade_id
+			WHERE c.parent_id = $1
+			ORDER BY c.created_at ASC`, u.ID)
+		if err != nil {
+			httpx.Internal(w, r, err)
+			return
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var cid uuid.UUID
+			var nickname, gradeName, uxBand, avatar string
+			var gradeID, xp int
+			var hasPIN bool
+			var createdAt time.Time
+			var lastActivity *time.Time
+			if err := rows.Scan(&cid, &nickname, &gradeID, &gradeName, &uxBand, &avatar, &hasPIN, &xp, &createdAt, &lastActivity); err == nil {
+				childrenList = append(childrenList, map[string]any{
+					"id":            cid.String(),
+					"nickname":      nickname,
+					"grade_id":      gradeID,
+					"grade_name":    gradeName,
+					"ux_band":       uxBand,
+					"avatar":        avatar,
+					"has_pin":       hasPIN,
+					"xp":            xp,
+					"level":         1 + xp/100,
+					"last_activity": lastActivity,
+				})
+			}
+		}
+		if len(childrenList) == 0 {
+			httpx.Error(w, http.StatusConflict, "no_children", "Belum ada profil anak yang dibuat di akun ini. Minta Ayah atau Bunda masuk terlebih dahulu untuk membuat profil anak Anda.")
+			return
+		}
 	}
 
 	if err := h.S.CreateSession(r.Context(), w, u.ID); err != nil {
@@ -625,44 +720,12 @@ func (h Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := map[string]any{
-		"user": u,
-		"role": in.Role,
+		"user":        u,
+		"role":        in.Role,
+		"is_new_user": isNewUser,
 	}
-
 	if in.Role == "child" {
-		rows, err := h.S.DB.Query(r.Context(), `
-			SELECT c.id, c.nickname, c.grade_id, g.name, g.ux_band, c.avatar, c.pin_hash IS NOT NULL, c.xp, c.created_at,
-			       (SELECT max(a.started_at) FROM assessments a WHERE a.child_id = c.id)
-			FROM children c JOIN grades g ON g.id = c.grade_id
-			WHERE c.parent_id = $1
-			ORDER BY c.created_at ASC`, u.ID)
-		if err == nil {
-			defer rows.Close()
-			var childrenList []map[string]any
-			for rows.Next() {
-				var cid uuid.UUID
-				var nickname, gradeName, uxBand, avatar string
-				var gradeID, xp int
-				var hasPIN bool
-				var createdAt time.Time
-				var lastActivity *time.Time
-				if err := rows.Scan(&cid, &nickname, &gradeID, &gradeName, &uxBand, &avatar, &hasPIN, &xp, &createdAt, &lastActivity); err == nil {
-					childrenList = append(childrenList, map[string]any{
-						"id":            cid.String(),
-						"nickname":      nickname,
-						"grade_id":      gradeID,
-						"grade_name":    gradeName,
-						"ux_band":       uxBand,
-						"avatar":        avatar,
-						"has_pin":       hasPIN,
-						"xp":            xp,
-						"level":         1 + xp/100,
-						"last_activity": lastActivity,
-					})
-				}
-			}
-			resp["children"] = childrenList
-		}
+		resp["children"] = childrenList
 	}
 
 	httpx.JSON(w, http.StatusOK, resp)

@@ -271,4 +271,31 @@ func TestVerifyOTPHandler_NoBackdoor(t *testing.T) {
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("expected status 400 for bad json, got %d", w.Code)
 	}
+
+	// 6. Child role with invalid phone (HTTP 422)
+	body, _ = json.Marshal(map[string]any{
+		"phone": "0000",
+		"code":  "123456",
+		"role":  "child",
+	})
+	req = httptest.NewRequest("POST", "/auth/otp/verify", bytes.NewReader(body))
+	w = httptest.NewRecorder()
+	h.VerifyOTP(w, req)
+	if w.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("expected status 422 for invalid child phone, got %d", w.Code)
+	}
+
+	// 7. Valid OTP with nil DB returns 503 instead of crashing
+	body, _ = json.Marshal(map[string]any{
+		"phone":        phone,
+		"code":         correctCode,
+		"role":         "parent",
+		"display_name": "Bunda Hebat",
+	})
+	req = httptest.NewRequest("POST", "/auth/otp/verify", bytes.NewReader(body))
+	w = httptest.NewRecorder()
+	h.VerifyOTP(w, req)
+	if w.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected status 503 for nil DB, got %d", w.Code)
+	}
 }

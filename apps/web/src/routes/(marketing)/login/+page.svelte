@@ -13,6 +13,11 @@
 	import UsersThree from 'phosphor-svelte/lib/UsersThree';
 	import GameController from 'phosphor-svelte/lib/GameController';
 	import Sparkle from 'phosphor-svelte/lib/Sparkle';
+	import Star from 'phosphor-svelte/lib/Star';
+	import Lightbulb from 'phosphor-svelte/lib/Lightbulb';
+	import Backpack from 'phosphor-svelte/lib/Backpack';
+	import WarningCircle from 'phosphor-svelte/lib/WarningCircle';
+	import Key from 'phosphor-svelte/lib/Key';
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 	import Rocket from 'phosphor-svelte/lib/Rocket';
@@ -48,10 +53,12 @@
 	let error = $state('');
 	let busy = $state(false);
 
-	onMount(() => {
+	$effect(() => {
 		const paramRole = page.url.searchParams.get('role');
 		if (paramRole === 'parent' || paramRole === 'child') {
 			role = paramRole;
+		} else {
+			role = null;
 		}
 	});
 
@@ -76,6 +83,11 @@
 		role = r;
 		step = 'phone';
 		error = '';
+		if (page.url.searchParams.get('role') !== r) {
+			const u = new URL(page.url);
+			u.searchParams.set('role', r);
+			goto(u.pathname + u.search, { replaceState: false, noScroll: true, keepFocus: true });
+		}
 	}
 
 	function resetRole() {
@@ -83,6 +95,11 @@
 		step = 'phone';
 		error = '';
 		otpDigits = ['', '', '', '', '', ''];
+		if (page.url.searchParams.has('role')) {
+			const u = new URL(page.url);
+			u.searchParams.delete('role');
+			goto(u.pathname + (u.search ? u.search : ''), { replaceState: false, noScroll: true, keepFocus: true });
+		}
 	}
 
 	async function submitSendOTP(e?: SubmitEvent) {
@@ -103,10 +120,11 @@
 			formattedPhone = res.phone;
 			step = 'otp';
 			startTimer(60);
-			// Auto focus first OTP input box after DOM updates
-			setTimeout(() => {
-				document.getElementById('otp-0')?.focus();
-			}, 60);
+			queueMicrotask(() => {
+				if (!document.activeElement?.id?.startsWith('otp-')) {
+					document.getElementById('otp-0')?.focus();
+				}
+			});
 		} catch (err) {
 			error = err instanceof ApiError ? err.message : 'Gagal mengirim kode OTP. Coba beberapa saat lagi.';
 		} finally {
@@ -117,8 +135,24 @@
 	function handleDigitInput(index: number, e: Event) {
 		const target = e.target as HTMLInputElement;
 		const val = target.value.replace(/\D/g, '');
-		otpDigits[index] = val ? val[val.length - 1] : '';
 		error = '';
+
+		if (val.length > 1) {
+			// Handle mobile SMS autofill where full code (e.g. 6 digits) is inserted into active field
+			const digits = val.slice(0, 6).split('');
+			for (let i = 0; i < 6; i++) {
+				if (i >= index && i < index + digits.length) {
+					otpDigits[i] = digits[i - index] ?? '';
+				}
+			}
+			target.value = otpDigits[index] ?? '';
+			const nextIdx = Math.min(index + digits.length - 1, 5);
+			const nextEl = document.getElementById(`otp-${nextIdx}`) as HTMLInputElement | null;
+			nextEl?.focus();
+			return;
+		}
+
+		otpDigits[index] = val ? val[val.length - 1] : '';
 
 		if (val && index < 5) {
 			const nextInput = document.getElementById(`otp-${index + 1}`) as HTMLInputElement | null;
@@ -130,6 +164,12 @@
 		if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
 			const prevInput = document.getElementById(`otp-${index - 1}`) as HTMLInputElement | null;
 			prevInput?.focus();
+		} else if (e.key === 'ArrowLeft' && index > 0) {
+			const prevInput = document.getElementById(`otp-${index - 1}`) as HTMLInputElement | null;
+			prevInput?.focus();
+		} else if (e.key === 'ArrowRight' && index < 5) {
+			const nextInput = document.getElementById(`otp-${index + 1}`) as HTMLInputElement | null;
+			nextInput?.focus();
 		}
 	}
 
@@ -224,10 +264,16 @@
 />
 
 <AuthShell
-	title={role === 'child' ? 'Dunia Petualangan EduPlay' : 'Selamat datang kembali'}
+	title={role === 'child'
+		? 'Ruang Bermain Anak'
+		: role === 'parent'
+			? 'Masuk Area Orang Tua'
+			: 'Masuk sebagai siapa?'}
 	lead={role === 'child'
 		? 'Ayo sambung petualanganmu, selesaikan tantangan seru, dan kumpulkan bintang hari ini!'
-		: 'Masuk untuk melihat perkembangan anak dan melanjutkan belajar.'}
+		: role === 'parent'
+			? 'Masuk untuk memantau progres belajar anak, mengatur misi, dan mengelola akun.'
+			: 'Pilih peran Anda untuk pengalaman belajar yang tepat dan menyenangkan.'}
 	image={role === 'child' ? playArt : loginArt}
 	points={role === 'child'
 		? [
@@ -243,28 +289,29 @@
 >
 	<!-- STAGE 1: ROLE SELECTION -->
 	{#if role === null}
-		<div class="mt-4">
-			<h2 class="text-xl font-bold text-ink sm:text-2xl">Masuk sebagai siapa?</h2>
-			<p class="mt-1 text-sm text-ink-soft">Pilih peran Anda untuk pengalaman belajar yang tepat.</p>
-
-			<div class="mt-6 grid gap-4 sm:grid-cols-2">
+		<div class="mt-2 sm:mt-3">
+			<div class="grid gap-3.5 sm:gap-4 sm:grid-cols-2">
 				<!-- Orang Tua Card -->
-				<button
-					type="button"
-					class="press group relative flex flex-col items-start gap-4 rounded-3xl border-2 border-line bg-white p-5 text-left transition-all hover:border-primary hover:bg-primary-tint/20 hover:shadow-md active:scale-[0.98]"
-					onclick={() => selectRole('parent')}
+				<a
+					href="/login?role=parent"
+					role="button"
+					class="press group relative flex flex-col items-start gap-3 sm:gap-4 rounded-3xl border-2 border-line bg-white p-4.5 sm:p-5 text-left transition-all hover:border-primary hover:bg-primary-tint/20 hover:shadow-md active:scale-[0.98]"
+					onclick={(e) => {
+						e.preventDefault();
+						selectRole('parent');
+					}}
 				>
 					<div class="flex w-full items-center justify-between">
 						<span
-							class="grid size-13 place-items-center rounded-2xl bg-primary-tint text-primary-deep shadow-sm transition-transform group-hover:scale-105"
+							class="grid size-12 sm:size-13 place-items-center rounded-2xl bg-primary-tint text-primary-deep shadow-sm transition-transform group-hover:scale-105"
 						>
-							<UsersThree size={30} weight="fill" aria-hidden="true" />
+							<UsersThree size={28} weight="fill" aria-hidden="true" />
 						</span>
 						<span class="pill bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary-deep">Area Orang Tua</span>
 					</div>
 					<div>
-						<h3 class="text-lg font-extrabold text-ink sm:text-xl">Orang Tua</h3>
-						<p class="mt-1.5 text-xs sm:text-sm leading-relaxed text-ink-soft">
+						<h2 class="text-lg font-extrabold text-ink sm:text-xl">Orang Tua</h2>
+						<p class="mt-1 text-xs sm:text-sm leading-relaxed text-ink-soft">
 							Pantau laporan skill, buat misi mingguan, dan kelola akun anak.
 						</p>
 					</div>
@@ -272,25 +319,35 @@
 						<span>Masuk Orang Tua</span>
 						<ArrowRight size={16} weight="bold" class="transition-transform group-hover:translate-x-1" aria-hidden="true" />
 					</div>
-				</button>
+				</a>
 
 				<!-- Anak Card (Kid Friendly) -->
-				<button
-					type="button"
-					class="press group relative flex flex-col items-start gap-4 rounded-3xl border-2 border-sun/60 bg-gradient-to-b from-white to-sun-tint/30 p-5 text-left transition-all hover:border-sun hover:bg-sun-tint/40 hover:shadow-md active:scale-[0.98]"
-					onclick={() => selectRole('child')}
+				<a
+					href="/login?role=child"
+					role="button"
+					class="press group relative flex flex-col items-start gap-3 sm:gap-4 rounded-3xl border-2 border-sun/60 bg-gradient-to-b from-white to-sun-tint/30 p-4.5 sm:p-5 text-left transition-all hover:border-sun hover:bg-sun-tint/40 hover:shadow-md active:scale-[0.98]"
+					onclick={(e) => {
+						e.preventDefault();
+						selectRole('child');
+					}}
 				>
 					<div class="flex w-full items-center justify-between">
 						<span
-							class="grid size-13 place-items-center rounded-2xl bg-sun-tint text-sun-deep shadow-sm transition-transform group-hover:scale-105"
+							class="grid size-12 sm:size-13 place-items-center rounded-2xl bg-sun-tint text-sun-deep shadow-sm transition-transform group-hover:scale-105"
 						>
-							<GameController size={30} weight="fill" aria-hidden="true" />
+							<GameController size={28} weight="fill" aria-hidden="true" />
 						</span>
-						<span class="pill bg-sun/20 px-2.5 py-1 text-xs font-black tracking-wide text-sun-deep">Ruang Bermain ⭐</span>
+						<span class="pill inline-flex items-center gap-1.5 bg-sun/20 px-2.5 py-1 text-xs font-black tracking-wide text-sun-deep">
+							<Star size={13} weight="fill" aria-hidden="true" />
+							<span>Ruang Bermain</span>
+						</span>
 					</div>
 					<div>
-						<h3 class="text-lg font-black text-ink sm:text-xl">Anak</h3>
-						<p class="mt-1.5 text-xs sm:text-sm leading-relaxed text-ink-soft">
+						<div class="flex items-center gap-2">
+							<h2 class="text-lg font-black text-ink sm:text-xl">Anak</h2>
+							<span class="rounded-lg bg-sun/20 px-1.5 py-0.5 text-[10px] font-extrabold text-sun-deep">Akun dari Orang Tua</span>
+						</div>
+						<p class="mt-1 text-xs sm:text-sm leading-relaxed text-ink-soft">
 							Mulai petualangan kuis seru, raih bintang, dan koleksi avatar lucu!
 						</p>
 					</div>
@@ -298,10 +355,20 @@
 						<span>Ayo Main Sekarang!</span>
 						<Rocket size={16} weight="fill" class="transition-transform group-hover:translate-x-1" aria-hidden="true" />
 					</div>
-				</button>
+				</a>
 			</div>
 
-			<p class="mt-8 text-center text-xs sm:text-sm text-ink-soft">
+			<!-- Notice about child accounts created by parents -->
+			<div class="mt-4 sm:mt-5 flex items-start gap-2.5 sm:gap-3 rounded-2xl border border-line bg-paper-deep p-3.5 text-xs text-ink-soft">
+				<span class="grid size-6 place-items-center rounded-lg bg-sun/30 text-sun-deep shrink-0 mt-0.5">
+					<Lightbulb size={16} weight="fill" aria-hidden="true" />
+				</span>
+				<p class="leading-relaxed">
+					<strong class="text-ink font-bold">Catatan untuk Anak:</strong> Anak dapat login setelah akun dan profilnya dibuatkan oleh Orang Tua. Pastikan Ayah atau Bunda sudah mendaftar terlebih dahulu ya!
+				</p>
+			</div>
+
+			<p class="mt-6 sm:mt-8 text-center text-xs sm:text-sm text-ink-soft">
 				Belum punya akun? <a class="font-bold text-primary-deep hover:underline" href="/register">Daftar gratis</a>
 			</p>
 		</div>
@@ -309,53 +376,67 @@
 	<!-- STAGE 2: FORM FOR SELECTED ROLE -->
 	{:else}
 		<!-- Header with role switch and back button -->
-		<div class="mt-2 mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
-			<button
-				type="button"
-				class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-ink-soft hover:text-ink transition-colors"
-				onclick={resetRole}
+		<div class="mt-1 mb-5 sm:mb-6 flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3.5 sm:pb-4">
+			<a
+				href="/login"
+				role="button"
+				class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-ink-soft hover:text-ink transition-colors shrink-0"
+				onclick={(e) => {
+					e.preventDefault();
+					resetRole();
+				}}
 			>
 				<ArrowLeft size={16} weight="bold" aria-hidden="true" />
 				<span>Ganti peran</span>
-			</button>
+			</a>
 
-			<div class="flex items-center rounded-2xl bg-paper-deep p-1 shadow-inner" role="tablist">
-				<button
-					type="button"
+			<div class="flex items-center rounded-2xl bg-paper-deep p-1 shadow-inner shrink-0" role="tablist">
+				<a
+					href="/login?role=parent"
 					role="tab"
 					aria-selected={role === 'parent'}
-					class="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-bold transition-all {role === 'parent'
+					class="flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-bold transition-all {role === 'parent'
 						? 'bg-white text-primary-deep shadow-sm'
 						: 'text-ink-soft hover:text-ink'}"
-					onclick={() => selectRole('parent')}
+					onclick={(e) => {
+						e.preventDefault();
+						selectRole('parent');
+					}}
 				>
 					<UsersThree size={16} weight="fill" aria-hidden="true" />
 					<span>Orang Tua</span>
-				</button>
-				<button
-					type="button"
+				</a>
+				<a
+					href="/login?role=child"
 					role="tab"
 					aria-selected={role === 'child'}
-					class="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-bold transition-all {role === 'child'
+					class="flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-bold transition-all {role === 'child'
 						? 'bg-sun text-ink shadow-sm'
 						: 'text-ink-soft hover:text-ink'}"
-					onclick={() => selectRole('child')}
+					onclick={(e) => {
+						e.preventDefault();
+						selectRole('child');
+					}}
 				>
 					<GameController size={16} weight="fill" aria-hidden="true" />
-					<span>Anak ⭐</span>
-				</button>
+					<span>Anak</span>
+				</a>
 			</div>
 		</div>
 
 		<!-- STEP 1: PHONE INPUT -->
 		{#if step === 'phone'}
-			<div class="space-y-5">
+			<div class="space-y-4 sm:space-y-5">
 				<div>
-					<h2 class="text-xl sm:text-2xl font-extrabold text-ink flex items-center gap-2">
+					<h2 class="text-xl sm:text-2xl font-extrabold text-ink flex items-center gap-2 flex-wrap">
 						{#if role === 'child'}
-							Hai Petualang Cilik! <span class="anim-float">🎒✨</span>
+							<span>Hai Petualang Cilik!</span>
+							<span class="anim-float inline-flex items-center gap-1">
+								<Backpack size={24} weight="fill" class="text-primary-deep" aria-hidden="true" />
+								<Sparkle size={20} weight="fill" class="text-sun-deep" aria-hidden="true" />
+							</span>
 						{:else}
-							Masuk sebagai Orang Tua
+							<span>Masuk sebagai Orang Tua</span>
 						{/if}
 					</h2>
 					<p class="mt-1 text-xs sm:text-sm text-ink-soft">
@@ -368,15 +449,22 @@
 				</div>
 
 				{#if role === 'child'}
-					<div class="flex items-start gap-3 rounded-2xl border border-sun/40 bg-sun-tint/40 p-3.5 text-xs sm:text-sm text-ink shadow-sm">
-						<span class="text-xl">💬</span>
-						<p class="leading-relaxed font-semibold">
-							Kode rahasia 6 angka akan dikirim ke WhatsApp Ayah atau Bunda. Nanti tinggal ketik kodenya untuk langsung bermain!
-						</p>
+					<div class="flex items-start gap-2.5 sm:gap-3 rounded-2xl border border-sun/50 bg-sun-tint/50 p-3.5 text-xs sm:text-sm text-ink shadow-sm">
+						<span class="grid size-7 place-items-center rounded-xl bg-sun/40 text-sun-deep shrink-0 mt-0.5">
+							<Backpack size={18} weight="fill" aria-hidden="true" />
+						</span>
+						<div class="space-y-1">
+							<p class="leading-relaxed font-black text-ink">
+								Akun anak dibuatkan oleh Orang Tua
+							</p>
+							<p class="text-xs text-ink-soft leading-relaxed">
+								Ketik nomor WhatsApp Ayah atau Bunda yang sudah didaftarkan. Kode rahasia 6 angka akan dikirimkan ke WhatsApp mereka untuk langsung bermain!
+							</p>
+						</div>
 					</div>
 				{/if}
 
-				<form onsubmit={submitSendOTP} novalidate class="space-y-5">
+				<form onsubmit={submitSendOTP} novalidate class="space-y-4 sm:space-y-5">
 					<div>
 						<label class="label text-xs sm:text-sm" for="phone">
 							{role === 'child' ? 'Nomor WhatsApp Ayah / Bunda' : 'Nomor WhatsApp'}
@@ -384,12 +472,15 @@
 						<div
 							class="relative flex items-center rounded-2xl border border-line bg-paper-deep transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
 						>
-							<div class="flex items-center gap-1.5 border-r border-line/80 px-3.5 py-3 text-sm font-bold text-ink select-none sm:text-base">
-								<span>🇮🇩</span>
+							<div class="flex items-center gap-2 border-r border-line/80 px-3 sm:px-3.5 py-3 text-sm font-bold text-ink select-none sm:text-base shrink-0">
+								<svg class="h-3.5 w-5 rounded-[3px] border border-line/80 shadow-xs overflow-hidden shrink-0" viewBox="0 0 20 14" aria-hidden="true">
+									<rect width="20" height="7" fill="#E11D48" />
+									<rect y="7" width="20" height="7" fill="#FFFFFF" />
+								</svg>
 								<span>+62</span>
 							</div>
 							<input
-								class="w-full bg-transparent px-3.5 py-3 text-sm sm:text-base font-semibold text-ink placeholder:text-ink-soft/60 focus:outline-none"
+								class="w-full bg-transparent px-3 sm:px-3.5 py-3 text-base font-semibold text-ink placeholder:text-ink-soft/60 focus:outline-none"
 								id="phone"
 								type="tel"
 								inputmode="numeric"
@@ -404,7 +495,39 @@
 						</p>
 					</div>
 
-					{#if error}<p class="field-error" role="alert">{error}</p>{/if}
+					{#if error}
+						<div class="rounded-2xl border border-red-200 bg-red-50 p-3.5 text-xs sm:text-sm text-red-800 shadow-sm" role="alert">
+							<div class="flex items-start gap-2.5">
+								<span class="grid size-6 place-items-center rounded-lg bg-red-100 text-red-700 shrink-0 mt-0.5">
+									<WarningCircle size={18} weight="fill" aria-hidden="true" />
+								</span>
+								<div class="flex-1 space-y-1.5">
+									<p class="font-bold">{error}</p>
+									{#if role === 'child'}
+										<p class="text-xs text-red-700 leading-relaxed">
+											Anak hanya bisa masuk jika akun dan profil anak sudah dibuat oleh orang tua terlebih dahulu.
+										</p>
+										<div class="mt-2 flex flex-wrap gap-2 pt-1">
+											<button
+												type="button"
+												class="press inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1.5 text-xs font-bold text-ink border border-red-200 shadow-xs hover:bg-paper-deep"
+												onclick={() => selectRole('parent')}
+											>
+												<UsersThree size={14} weight="fill" />
+												<span>Masuk Mode Orang Tua</span>
+											</button>
+											<a
+												href="/register"
+												class="press inline-flex items-center gap-1 rounded-xl bg-primary px-2.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-primary-deep"
+											>
+												<span>Daftar Akun Baru</span>
+											</a>
+										</div>
+									{/if}
+								</div>
+							</div>
+						</div>
+					{/if}
 
 					<button
 						type="submit"
@@ -418,7 +541,7 @@
 							<span>Mengirim kode…</span>
 						{:else if role === 'child'}
 							<Rocket size={22} weight="fill" aria-hidden="true" />
-							<span>Kirim Kode ke Ayah / Bunda 🚀</span>
+							<span>Kirim Kode ke Ayah / Bunda</span>
 						{:else}
 							<WhatsappLogo size={22} weight="fill" aria-hidden="true" />
 							<span>Kirim Kode OTP via WhatsApp</span>
@@ -473,8 +596,11 @@
 		{:else if step === 'otp'}
 			<div class="space-y-5">
 				<div>
-					<h2 class="text-xl sm:text-2xl font-extrabold text-ink">
-						{role === 'child' ? 'Ketik Kode Rahasia 🔑' : 'Verifikasi Kode OTP'}
+					<h2 class="text-xl sm:text-2xl font-extrabold text-ink inline-flex items-center gap-2">
+						<span>{role === 'child' ? 'Ketik Kode Rahasia' : 'Verifikasi Kode OTP'}</span>
+						{#if role === 'child'}
+							<Key size={22} weight="fill" class="text-sun-deep" aria-hidden="true" />
+						{/if}
 					</h2>
 					<p class="mt-1 text-xs sm:text-sm text-ink-soft">
 						Kode 6 digit telah dikirim melalui WhatsApp ke:
@@ -499,15 +625,15 @@
 						<label class="label block text-center text-xs sm:text-sm" for="otp-0">
 							Masukkan 6 Digit Kode
 						</label>
-						<div class="mt-3 flex justify-center gap-2 sm:gap-3">
+						<div class="mt-3 flex justify-center gap-1.5 sm:gap-3">
 							{#each otpDigits as _, i}
 								<input
 									id="otp-{i}"
 									type="text"
 									inputmode="numeric"
 									pattern="[0-9]*"
-									maxlength="1"
-									class="size-11 sm:size-13 text-center text-xl sm:text-2xl font-black rounded-2xl border-2 border-line bg-paper-deep text-ink transition-all focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+									maxlength={i === 0 ? 6 : 1}
+									class="h-11 sm:h-13 w-full max-w-[48px] min-w-0 flex-1 text-center text-lg sm:text-2xl font-black rounded-xl sm:rounded-2xl border-2 border-line bg-paper-deep text-ink transition-all focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
 									bind:value={otpDigits[i]}
 									oninput={(e) => handleDigitInput(i, e)}
 									onkeydown={(e) => handleDigitKeydown(i, e)}
@@ -518,7 +644,11 @@
 						</div>
 					</div>
 
-					{#if error}<p class="field-error text-center" role="alert">{error}</p>{/if}
+					{#if error}
+						<div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-xs sm:text-sm text-red-800 text-center font-bold" role="alert">
+							{error}
+						</div>
+					{/if}
 
 					<button
 						type="submit"
@@ -532,7 +662,7 @@
 							<span>Memverifikasi…</span>
 						{:else if role === 'child'}
 							<Sparkle size={20} weight="fill" aria-hidden="true" />
-							<span>Ayo Masuk & Main! ⭐</span>
+							<span>Ayo Masuk & Main!</span>
 						{:else}
 							<LockKey size={20} weight="bold" aria-hidden="true" />
 							<span>Verifikasi & Masuk</span>
@@ -563,8 +693,8 @@
 		{:else if step === 'pick_child'}
 			<div class="space-y-6">
 				<div class="text-center">
-					<span class="mx-auto grid size-16 place-items-center rounded-3xl bg-sun-tint text-3xl shadow-sm">
-						🎮
+					<span class="mx-auto grid size-16 place-items-center rounded-3xl bg-sun-tint text-sun-deep shadow-sm">
+						<GameController size={36} weight="fill" aria-hidden="true" />
 					</span>
 					<h2 class="mt-3 text-xl sm:text-2xl font-black text-ink">Siapa yang Mau Main?</h2>
 					<p class="mt-1 text-xs sm:text-sm font-medium text-ink-soft">Pilih profilmu untuk mulai belajar dan bermain:</p>
@@ -579,11 +709,7 @@
 						<button
 							type="button"
 							class="btn btn-primary btn-sm mt-4"
-							onclick={() => {
-								role = 'parent';
-								step = 'phone';
-								error = '';
-							}}
+							onclick={() => selectRole('parent')}
 						>
 							Buka Mode Orang Tua
 						</button>
@@ -606,8 +732,9 @@
 										<span class="pill bg-primary-tint text-primary-deep text-xs font-bold">Level {c.level}</span>
 										<span class="pill bg-sun-tint text-sun-deep text-xs font-black">{c.xp} XP</span>
 									</div>
-									<span class="mt-1 text-xs font-black text-sun-deep group-hover:underline">
-										Pilih & Main 🚀
+									<span class="mt-1 inline-flex items-center gap-1 text-xs font-black text-sun-deep group-hover:underline">
+										<span>Pilih & Main</span>
+										<Rocket size={14} weight="fill" class="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
 									</span>
 								</button>
 							</li>

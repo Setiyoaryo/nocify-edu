@@ -1,0 +1,199 @@
+{
+  "source": "EduPlay seed set SD Kelas 6 — Bahasa Indonesia (Kurikulum Merdeka Fase C). Drafted 2026-10-12 — MUST pass academic review before production (§7, §24).",
+  "questions": [
+    {
+      "code": "SD6-BIN-IDE-01",
+      "skill": "sd6-ide-pokok-simpulan",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menemukan ide pokok paragraf.",
+      "content": {
+        "prompt": "Sampah plastik yang dibuang ke sungai dapat menyumbat aliran air. Akibatnya, air meluap dan menyebabkan banjir. Selain itu, plastik sulit terurai sehingga mencemari lingkungan selama bertahun-tahun. Ide pokok paragraf tersebut adalah …",
+        "audio_text": "Sampah plastik yang dibuang ke sungai dapat menyumbat aliran air. Akibatnya, air meluap dan menyebabkan banjir. Selain itu, plastik sulit terurai sehingga mencemari lingkungan selama bertahun-tahun. Apa ide pokok paragraf tersebut?",
+        "options": [
+          { "id": "a", "label": "Cara mengolah sampah plastik" },
+          { "id": "b", "label": "Dampak buruk sampah plastik bagi lingkungan" },
+          { "id": "c", "label": "Jenis-jenis sampah di sungai" },
+          { "id": "d", "label": "Waktu yang dibutuhkan plastik untuk terurai" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Seluruh kalimat membahas akibat buruk sampah plastik: menyebabkan banjir dan mencemari lingkungan.",
+      "hint": "Cari kalimat yang menjadi inti pembicaraan seluruh paragraf."
+    },
+    {
+      "code": "SD6-BIN-IDE-02",
+      "skill": "sd6-ide-pokok-simpulan",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menemukan ide pokok paragraf.",
+      "content": {
+        "prompt": "Lebah menghasilkan madu yang bermanfaat bagi manusia. Selain itu, saat mencari nektar, lebah membantu penyerbukan bunga sehingga tanaman dapat berbuah. Ide pokok paragraf tersebut adalah …",
+        "audio_text": "Lebah menghasilkan madu yang bermanfaat bagi manusia. Selain itu, saat mencari nektar, lebah membantu penyerbukan bunga sehingga tanaman dapat berbuah. Apa ide pokok paragraf tersebut?",
+        "options": [
+          { "id": "a", "label": "Manfaat lebah bagi manusia dan tanaman" },
+          { "id": "b", "label": "Cara lebah membuat madu" },
+          { "id": "c", "label": "Jenis bunga yang disukai lebah" },
+          { "id": "d", "label": "Rasa madu yang manis" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Paragraf menjelaskan dua manfaat lebah: menghasilkan madu dan membantu penyerbukan.",
+      "hint": "Apa hal utama yang dibahas tentang lebah?"
+    },
+    {
+      "code": "SD6-BIN-IDE-03",
+      "skill": "sd6-ide-pokok-simpulan",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menemukan ide pokok paragraf.",
+      "content": {
+        "prompt": "Setiap pagi Dita membantu ibunya menyiram tanaman. Ia juga menyapu halaman sebelum berangkat sekolah. Dita senang karena pekerjaan itu membuat rumahnya rapi dan nyaman. Ide pokok paragraf tersebut adalah …",
+        "audio_text": "Setiap pagi Dita membantu ibunya menyiram tanaman. Ia juga menyapu halaman sebelum berangkat sekolah. Dita senang karena pekerjaan itu membuat rumahnya rapi dan nyaman. Apa ide pokok paragraf tersebut?",
+        "options": [
+          { "id": "a", "label": "Dita senang bermain di halaman" },
+          { "id": "b", "label": "Dita membantu pekerjaan rumah" },
+          { "id": "c", "label": "Cara menyapu halaman" },
+          { "id": "d", "label": "Jadwal sekolah Dita" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Paragraf berisi kegiatan Dita membantu pekerjaan rumah seperti menyiram tanaman dan menyapu.",
+      "hint": "Kegiatan apa yang dilakukan Dita setiap pagi?"
+    },
+    {
+      "code": "SD6-BIN-IDE-04",
+      "skill": "sd6-ide-pokok-simpulan",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menyusun simpulan dari teks.",
+      "content": {
+        "prompt": "Olahraga teratur membuat tubuh lebih kuat dan pikiran lebih segar. Anak yang rutin berolahraga juga lebih mudah berkonsentrasi saat belajar. Simpulan yang tepat untuk bacaan tersebut adalah …",
+        "audio_text": "Olahraga teratur membuat tubuh lebih kuat dan pikiran lebih segar. Anak yang rutin berolahraga juga lebih mudah berkonsentrasi saat belajar. Apa simpulan yang tepat?",
+        "options": [
+          { "id": "a", "label": "Olahraga hanya untuk orang dewasa" },
+          { "id": "b", "label": "Olahraga teratur bermanfaat bagi tubuh dan konsentrasi belajar" },
+          { "id": "c", "label": "Belajar lebih penting daripada olahraga" },
+          { "id": "d", "label": "Anak yang tidak berolahraga selalu sakit" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Simpulan harus merangkum keseluruhan isi, yaitu manfaat olahraga bagi tubuh dan konsentrasi.",
+      "hint": "Pilih jawaban yang merangkum seluruh bacaan, bukan sebagian."
+    },
+    {
+      "code": "SD6-BIN-IDE-05",
+      "skill": "sd6-ide-pokok-simpulan",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengenali letak kalimat utama.",
+      "content": {
+        "prompt": "Dalam sebuah paragraf, kalimat utama yang memuat ide pokok umumnya terletak pada …",
+        "audio_text": "Dalam sebuah paragraf, kalimat utama yang memuat ide pokok umumnya terletak pada bagian mana?",
+        "options": [
+          { "id": "a", "label": "Kalimat pertama atau kalimat terakhir" },
+          { "id": "b", "label": "Selalu di tengah paragraf" },
+          { "id": "c", "label": "Judul bacaan" },
+          { "id": "d", "label": "Kalimat yang paling panjang" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Kalimat utama dapat berada di awal (deduktif) atau di akhir (induktif) paragraf.",
+      "hint": "Ada dua pola paragraf yang paling sering: awal dan akhir."
+    },
+    {
+      "code": "SD6-BIN-TEK-01",
+      "skill": "sd6-teks-eksplanasi",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menjelaskan isi teks eksplanasi.",
+      "content": {
+        "prompt": "Teks eksplanasi berisi penjelasan tentang …",
+        "audio_text": "Teks eksplanasi berisi penjelasan tentang apa?",
+        "options": [
+          { "id": "a", "label": "Proses terjadinya suatu peristiwa" },
+          { "id": "b", "label": "Cerita khayalan" },
+          { "id": "c", "label": "Daftar harga barang" },
+          { "id": "d", "label": "Riwayat hidup seseorang" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Teks eksplanasi menjelaskan proses sebab-akibat terjadinya suatu peristiwa atau fenomena.",
+      "hint": "Kata 'eksplanasi' berkaitan dengan 'menjelaskan'."
+    },
+    {
+      "code": "SD6-BIN-TEK-02",
+      "skill": "sd6-teks-eksplanasi",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengenali struktur teks eksplanasi.",
+      "content": {
+        "prompt": "Bagian akhir teks eksplanasi yang berisi penutup atau kesan umum disebut …",
+        "audio_text": "Bagian akhir teks eksplanasi yang berisi penutup atau kesan umum disebut apa?",
+        "options": [
+          { "id": "a", "label": "Pernyataan umum" },
+          { "id": "b", "label": "Deretan penjelas" },
+          { "id": "c", "label": "Interpretasi" },
+          { "id": "d", "label": "Orientasi" }
+        ]
+      },
+      "answer": { "option_id": "c" },
+      "explanation": "Struktur teks eksplanasi: pernyataan umum → deretan penjelas → interpretasi (penutup).",
+      "hint": "Bagian penutup dalam eksplanasi disebut interpretasi."
+    },
+    {
+      "code": "SD6-BIN-TEK-03",
+      "skill": "sd6-teks-eksplanasi",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menemukan informasi dalam teks eksplanasi.",
+      "content": {
+        "prompt": "Pelangi terbentuk ketika cahaya matahari melewati titik-titik air di udara. Cahaya itu dibiaskan dan diuraikan sehingga muncul warna-warni. Apa yang menyebabkan terbentuknya pelangi?",
+        "audio_text": "Pelangi terbentuk ketika cahaya matahari melewati titik-titik air di udara. Cahaya itu dibiaskan dan diuraikan sehingga muncul warna-warni. Apa yang menyebabkan terbentuknya pelangi?",
+        "options": [
+          { "id": "a", "label": "Cahaya bulan di malam hari" },
+          { "id": "b", "label": "Cahaya matahari yang dibiaskan titik air" },
+          { "id": "c", "label": "Angin yang bertiup kencang" },
+          { "id": "d", "label": "Awan yang berwarna-warni" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Pelangi muncul saat cahaya matahari dibiaskan dan diuraikan oleh titik-titik air.",
+      "hint": "Perhatikan kalimat pertama bacaan."
+    },
+    {
+      "code": "SD6-BIN-TEK-04",
+      "skill": "sd6-teks-eksplanasi",
+      "type": "short_answer",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat membedakan jenis teks.",
+      "content": {
+        "prompt": "Teks yang berisi langkah-langkah membuat atau melakukan sesuatu disebut teks …",
+        "audio_text": "Teks yang berisi langkah-langkah membuat atau melakukan sesuatu disebut teks apa?"
+      },
+      "answer": { "accepted": ["prosedur"] },
+      "explanation": "Teks prosedur berisi langkah-langkah, berbeda dengan teks eksplanasi yang menjelaskan proses terjadinya sesuatu.",
+      "hint": "Berbeda dengan eksplanasi; teks ini berisi urutan langkah."
+    },
+    {
+      "code": "SD6-BIN-TEK-05",
+      "skill": "sd6-teks-eksplanasi",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat mengenali ciri kebahasaan teks eksplanasi.",
+      "content": {
+        "prompt": "Ciri kebahasaan teks eksplanasi antara lain banyak menggunakan …",
+        "audio_text": "Ciri kebahasaan teks eksplanasi antara lain banyak menggunakan apa?",
+        "options": [
+          { "id": "a", "label": "Kata kerja perintah" },
+          { "id": "b", "label": "Konjungsi kausalitas seperti 'karena' dan 'sehingga'" },
+          { "id": "c", "label": "Sajak dan rima" },
+          { "id": "d", "label": "Dialog antar tokoh" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Karena menjelaskan sebab-akibat, teks eksplanasi banyak memakai konjungsi kausalitas.",
+      "hint": "Eksplanasi menjelaskan sebab dan akibat suatu peristiwa."
+    }
+  ]
+}

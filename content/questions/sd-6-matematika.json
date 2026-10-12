@@ -1,0 +1,458 @@
+{
+  "source": "EduPlay seed set SD Kelas 6 — Matematika (Kurikulum Merdeka Fase C). Drafted 2026-10-12 — MUST pass academic review before production (§7, §24).",
+  "questions": [
+    {
+      "code": "SD6-MAT-BIL-01",
+      "skill": "sd6-bilangan-bulat",
+      "type": "sequence",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengurutkan bilangan bulat termasuk bilangan negatif.",
+      "content": {
+        "prompt": "Urutkan bilangan berikut dari yang terkecil.",
+        "audio_text": "Urutkan bilangan berikut dari yang paling kecil.",
+        "items": [
+          { "id": "a", "label": "-3" },
+          { "id": "b", "label": "2" },
+          { "id": "c", "label": "-5" },
+          { "id": "d", "label": "0" }
+        ]
+      },
+      "answer": { "order": ["c", "a", "d", "b"] },
+      "explanation": "Pada garis bilangan, makin ke kiri nilainya makin kecil: -5 < -3 < 0 < 2.",
+      "hint": "Bayangkan garis bilangan; bilangan negatif berada di sebelah kiri nol."
+    },
+    {
+      "code": "SD6-MAT-BIL-02",
+      "skill": "sd6-bilangan-bulat",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat membandingkan bilangan bulat termasuk bilangan negatif.",
+      "content": {
+        "prompt": "Bilangan manakah yang nilainya lebih besar dari -2?",
+        "audio_text": "Bilangan manakah yang nilainya lebih besar dari negatif dua?",
+        "options": [
+          { "id": "a", "label": "-7" },
+          { "id": "b", "label": "-5" },
+          { "id": "c", "label": "-1" },
+          { "id": "d", "label": "-3" }
+        ]
+      },
+      "answer": { "option_id": "c" },
+      "explanation": "-1 berada di sebelah kanan -2 pada garis bilangan, jadi -1 > -2.",
+      "hint": "Di garis bilangan, bilangan yang lebih besar letaknya lebih ke kanan."
+    },
+    {
+      "code": "SD6-MAT-BIL-03",
+      "skill": "sd6-bilangan-bulat",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menghitung penjumlahan bilangan bulat dalam konteks suhu.",
+      "content": {
+        "prompt": "Suhu di puncak gunung pada pagi hari adalah -4°C. Menjelang siang suhu naik 6°C. Berapa suhu di puncak gunung sekarang?",
+        "audio_text": "Suhu di puncak gunung pada pagi hari adalah negatif empat derajat Celsius. Menjelang siang suhu naik enam derajat. Berapa suhu sekarang?",
+        "unit": "°C"
+      },
+      "answer": { "value": 2 },
+      "explanation": "-4 + 6 = 2, jadi suhunya menjadi 2°C.",
+      "hint": "Naik berarti bergerak ke kanan pada garis bilangan."
+    },
+    {
+      "code": "SD6-MAT-BIL-04",
+      "skill": "sd6-bilangan-bulat",
+      "type": "short_answer",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menentukan lawan (invers) dari bilangan bulat.",
+      "content": {
+        "prompt": "Lawan (kebalikan) dari bilangan -9 adalah …",
+        "audio_text": "Lawan atau kebalikan dari bilangan negatif sembilan adalah berapa?"
+      },
+      "answer": { "accepted": ["9", "+9"] },
+      "explanation": "Lawan dari -9 adalah 9, karena -9 + 9 = 0.",
+      "hint": "Lawan suatu bilangan jika dijumlahkan hasilnya nol."
+    },
+    {
+      "code": "SD6-MAT-BIL-05",
+      "skill": "sd6-bilangan-bulat",
+      "type": "sequence",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengurutkan bilangan bulat dari yang terbesar.",
+      "content": {
+        "prompt": "Urutkan bilangan berikut dari yang terbesar.",
+        "audio_text": "Urutkan bilangan berikut dari yang paling besar.",
+        "items": [
+          { "id": "a", "label": "5" },
+          { "id": "b", "label": "-1" },
+          { "id": "c", "label": "3" },
+          { "id": "d", "label": "-4" }
+        ]
+      },
+      "answer": { "order": ["a", "c", "b", "d"] },
+      "explanation": "Dari yang terbesar: 5 > 3 > -1 > -4.",
+      "hint": "Bilangan positif selalu lebih besar daripada bilangan negatif."
+    },
+    {
+      "code": "SD6-MAT-OPR-01",
+      "skill": "sd6-operasi-campuran",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menghitung operasi hitung campuran dengan urutan operasi yang benar.",
+      "content": {
+        "prompt": "Hasil dari 12 + 4 × 5 adalah …",
+        "audio_text": "Hasil dari dua belas ditambah empat dikali lima adalah berapa?",
+        "options": [
+          { "id": "a", "label": "28" },
+          { "id": "b", "label": "32" },
+          { "id": "c", "label": "80" },
+          { "id": "d", "label": "44" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Kerjakan perkalian dulu: 4 × 5 = 20. Lalu 12 + 20 = 32.",
+      "hint": "Dalam operasi campuran, kerjakan perkalian atau pembagian lebih dulu."
+    },
+    {
+      "code": "SD6-MAT-OPR-02",
+      "skill": "sd6-operasi-campuran",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menghitung operasi hitung campuran dengan tanda kurung.",
+      "content": {
+        "prompt": "Hasil dari (18 − 6) ÷ 4 adalah …",
+        "audio_text": "Hasil dari delapan belas dikurangi enam, lalu dibagi empat, adalah berapa?"
+      },
+      "answer": { "value": 3 },
+      "explanation": "Kerjakan dalam kurung dulu: 18 − 6 = 12. Lalu 12 ÷ 4 = 3.",
+      "hint": "Kerjakan operasi di dalam kurung terlebih dahulu."
+    },
+    {
+      "code": "SD6-MAT-OPR-03",
+      "skill": "sd6-operasi-campuran",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menghitung operasi hitung campuran dengan urutan operasi yang benar.",
+      "content": {
+        "prompt": "Hasil dari 50 − 5 × 6 + 4 adalah …",
+        "audio_text": "Hasil dari lima puluh dikurangi lima dikali enam, lalu ditambah empat, adalah berapa?",
+        "options": [
+          { "id": "a", "label": "24" },
+          { "id": "b", "label": "30" },
+          { "id": "c", "label": "20" },
+          { "id": "d", "label": "274" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Perkalian dulu: 5 × 6 = 30. Lalu 50 − 30 + 4 = 24.",
+      "hint": "Kerjakan perkalian sebelum pengurangan dan penjumlahan."
+    },
+    {
+      "code": "SD6-MAT-OPR-04",
+      "skill": "sd6-operasi-campuran",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menghitung operasi hitung campuran dengan tanda kurung.",
+      "content": {
+        "prompt": "Hasil dari 7 × (9 − 3) − 10 adalah …",
+        "audio_text": "Hasil dari tujuh dikali sembilan dikurangi tiga, lalu dikurangi sepuluh, adalah berapa?",
+        "options": [
+          { "id": "a", "label": "32" },
+          { "id": "b", "label": "42" },
+          { "id": "c", "label": "22" },
+          { "id": "d", "label": "52" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Dalam kurung: 9 − 3 = 6. Lalu 7 × 6 = 42. Terakhir 42 − 10 = 32.",
+      "hint": "Selesaikan kurung, lanjutkan perkalian, lalu pengurangan."
+    },
+    {
+      "code": "SD6-MAT-OPR-05",
+      "skill": "sd6-operasi-campuran",
+      "type": "short_answer",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menghitung operasi hitung campuran dengan tanda kurung.",
+      "content": {
+        "prompt": "Hasil dari 100 ÷ (2 + 3) + 15 adalah …",
+        "audio_text": "Hasil dari seratus dibagi dua ditambah tiga, lalu ditambah lima belas, adalah berapa?"
+      },
+      "answer": { "accepted": ["35"] },
+      "explanation": "Dalam kurung: 2 + 3 = 5. Lalu 100 ÷ 5 = 20. Terakhir 20 + 15 = 35.",
+      "hint": "Jumlahkan isi kurung lebih dulu, lalu bagi."
+    },
+    {
+      "code": "SD6-MAT-PEC-01",
+      "skill": "sd6-pecahan-operasi",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menjumlahkan pecahan berpenyebut berbeda.",
+      "content": {
+        "prompt": "Hasil dari 1/2 + 1/4 adalah …",
+        "audio_text": "Hasil dari satu per dua ditambah satu per empat adalah berapa?",
+        "figures": [
+          { "icon": "pizza", "count": 2, "color": "orange" }
+        ],
+        "options": [
+          { "id": "a", "label": "1/6" },
+          { "id": "b", "label": "2/6" },
+          { "id": "c", "label": "3/4" },
+          { "id": "d", "label": "2/4" }
+        ]
+      },
+      "answer": { "option_id": "c" },
+      "explanation": "Samakan penyebut: 1/2 = 2/4. Lalu 2/4 + 1/4 = 3/4.",
+      "hint": "Ubah 1/2 menjadi 2/4 agar penyebutnya sama."
+    },
+    {
+      "code": "SD6-MAT-PEC-02",
+      "skill": "sd6-pecahan-operasi",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengurangkan pecahan berpenyebut sama.",
+      "content": {
+        "prompt": "Hasil dari 3/4 − 1/4 adalah …",
+        "audio_text": "Hasil dari tiga per empat dikurangi satu per empat adalah berapa?",
+        "options": [
+          { "id": "a", "label": "1/2" },
+          { "id": "b", "label": "4/4" },
+          { "id": "c", "label": "3/4" },
+          { "id": "d", "label": "1/4" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Penyebut sama, kurangkan pembilangnya: 3 − 1 = 2, sehingga 2/4 = 1/2.",
+      "hint": "Setelah dikurangi, sederhanakan 2/4 menjadi 1/2."
+    },
+    {
+      "code": "SD6-MAT-PEC-03",
+      "skill": "sd6-pecahan-operasi",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengalikan pecahan sederhana.",
+      "content": {
+        "prompt": "Hasil dari 2/3 × 3/4 adalah …",
+        "audio_text": "Hasil dari dua per tiga dikali tiga per empat adalah berapa?",
+        "options": [
+          { "id": "a", "label": "5/7" },
+          { "id": "b", "label": "1/2" },
+          { "id": "c", "label": "6/7" },
+          { "id": "d", "label": "1/6" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "2/3 × 3/4 = 6/12 = 1/2.",
+      "hint": "Kalikan pembilang dengan pembilang, penyebut dengan penyebut, lalu sederhanakan."
+    },
+    {
+      "code": "SD6-MAT-PEC-04",
+      "skill": "sd6-pecahan-operasi",
+      "type": "number_input",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat membagi pecahan sederhana.",
+      "content": {
+        "prompt": "Hasil dari 1/2 ÷ 1/4 adalah …",
+        "audio_text": "Hasil dari satu per dua dibagi satu per empat adalah berapa?"
+      },
+      "answer": { "value": 2 },
+      "explanation": "Membagi dengan pecahan sama dengan mengalikan kebalikannya: 1/2 × 4/1 = 2.",
+      "hint": "Balik pecahan pembagi lalu kalikan."
+    },
+    {
+      "code": "SD6-MAT-PEC-05",
+      "skill": "sd6-pecahan-operasi",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menjumlahkan pecahan berpenyebut berbeda.",
+      "content": {
+        "prompt": "Hasil dari 2/5 + 1/2 adalah …",
+        "audio_text": "Hasil dari dua per lima ditambah satu per dua adalah berapa?",
+        "options": [
+          { "id": "a", "label": "3/7" },
+          { "id": "b", "label": "9/10" },
+          { "id": "c", "label": "3/10" },
+          { "id": "d", "label": "1/2" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Samakan penyebut menjadi 10: 2/5 = 4/10 dan 1/2 = 5/10. Lalu 4/10 + 5/10 = 9/10.",
+      "hint": "Penyebut yang sama untuk 5 dan 2 adalah 10."
+    },
+    {
+      "code": "SD6-MAT-DES-01",
+      "skill": "sd6-desimal-persen",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengubah pecahan menjadi bentuk persen.",
+      "content": {
+        "prompt": "Bentuk persen dari 1/4 adalah …",
+        "audio_text": "Bentuk persen dari satu per empat adalah berapa?",
+        "options": [
+          { "id": "a", "label": "14%" },
+          { "id": "b", "label": "25%" },
+          { "id": "c", "label": "40%" },
+          { "id": "d", "label": "50%" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "1/4 = 25/100 = 25%.",
+      "hint": "Ubah pecahan menjadi per seratus."
+    },
+    {
+      "code": "SD6-MAT-DES-02",
+      "skill": "sd6-desimal-persen",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengubah desimal menjadi pecahan paling sederhana.",
+      "content": {
+        "prompt": "Bentuk pecahan paling sederhana dari 0,5 adalah …",
+        "audio_text": "Bentuk pecahan paling sederhana dari nol koma lima adalah berapa?",
+        "options": [
+          { "id": "a", "label": "1/5" },
+          { "id": "b", "label": "5/100" },
+          { "id": "c", "label": "1/2" },
+          { "id": "d", "label": "1/50" }
+        ]
+      },
+      "answer": { "option_id": "c" },
+      "explanation": "0,5 = 5/10, dan 5/10 disederhanakan menjadi 1/2.",
+      "hint": "0,5 sama dengan setengah."
+    },
+    {
+      "code": "SD6-MAT-DES-03",
+      "skill": "sd6-desimal-persen",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengubah pecahan menjadi bentuk desimal.",
+      "content": {
+        "prompt": "Bentuk desimal dari 3/5 adalah …",
+        "audio_text": "Bentuk desimal dari tiga per lima adalah berapa?"
+      },
+      "answer": { "value": 0.6 },
+      "explanation": "3/5 = 6/10 = 0,6.",
+      "hint": "Ubah penyebut menjadi 10 agar mudah dijadikan desimal."
+    },
+    {
+      "code": "SD6-MAT-DES-04",
+      "skill": "sd6-desimal-persen",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menghitung nilai persen dari suatu bilangan.",
+      "content": {
+        "prompt": "Berapakah 40% dari 250?",
+        "audio_text": "Berapakah empat puluh persen dari dua ratus lima puluh?"
+      },
+      "answer": { "value": 100 },
+      "explanation": "40% = 40/100. Maka 40/100 × 250 = 100.",
+      "hint": "Ubah persen menjadi pecahan per seratus, lalu kalikan."
+    },
+    {
+      "code": "SD6-MAT-DES-05",
+      "skill": "sd6-desimal-persen",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengubah desimal menjadi bentuk persen.",
+      "content": {
+        "prompt": "Bentuk persen dari 0,75 adalah …",
+        "audio_text": "Bentuk persen dari nol koma tujuh lima adalah berapa?",
+        "options": [
+          { "id": "a", "label": "7,5%" },
+          { "id": "b", "label": "0,75%" },
+          { "id": "c", "label": "75%" },
+          { "id": "d", "label": "750%" }
+        ]
+      },
+      "answer": { "option_id": "c" },
+      "explanation": "0,75 = 75/100 = 75%.",
+      "hint": "Desimal menjadi persen dengan mengalikan 100%."
+    },
+    {
+      "code": "SD6-MAT-BGR-01",
+      "skill": "sd6-bangun-ruang",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menghitung volume kubus.",
+      "content": {
+        "prompt": "Sebuah kubus memiliki panjang rusuk 4 cm. Volume kubus tersebut adalah …",
+        "audio_text": "Sebuah kubus memiliki panjang rusuk empat sentimeter. Berapa volumenya?",
+        "figures": [
+          { "icon": "square", "count": 1, "color": "blue" }
+        ],
+        "options": [
+          { "id": "a", "label": "16 cm³" },
+          { "id": "b", "label": "48 cm³" },
+          { "id": "c", "label": "64 cm³" },
+          { "id": "d", "label": "12 cm³" }
+        ]
+      },
+      "answer": { "option_id": "c" },
+      "explanation": "Volume kubus = rusuk × rusuk × rusuk = 4 × 4 × 4 = 64 cm³.",
+      "hint": "Kalikan panjang rusuk sebanyak tiga kali."
+    },
+    {
+      "code": "SD6-MAT-BGR-02",
+      "skill": "sd6-bangun-ruang",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menghitung volume balok.",
+      "content": {
+        "prompt": "Sebuah balok berukuran 8 cm × 3 cm × 5 cm. Berapa volume balok tersebut (cm³)?",
+        "audio_text": "Sebuah balok berukuran delapan sentimeter kali tiga sentimeter kali lima sentimeter. Berapa volumenya?"
+      },
+      "answer": { "value": 120 },
+      "explanation": "Volume balok = panjang × lebar × tinggi = 8 × 3 × 5 = 120 cm³.",
+      "hint": "Kalikan ketiga ukuran balok."
+    },
+    {
+      "code": "SD6-MAT-BGR-03",
+      "skill": "sd6-bangun-ruang",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menentukan panjang rusuk kubus dari volumenya.",
+      "content": {
+        "prompt": "Sebuah kubus memiliki volume 125 cm³. Panjang rusuknya adalah …",
+        "audio_text": "Sebuah kubus memiliki volume seratus dua puluh lima sentimeter kubik. Berapa panjang rusuknya?",
+        "options": [
+          { "id": "a", "label": "5 cm" },
+          { "id": "b", "label": "15 cm" },
+          { "id": "c", "label": "25 cm" },
+          { "id": "d", "label": "11 cm" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Rusuk = ∛125 = 5, karena 5 × 5 × 5 = 125.",
+      "hint": "Cari bilangan yang jika dikalikan tiga kali hasilnya 125."
+    },
+    {
+      "code": "SD6-MAT-BGR-04",
+      "skill": "sd6-bangun-ruang",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menghitung volume balok.",
+      "content": {
+        "prompt": "Sebuah balok memiliki panjang 10 cm, lebar 4 cm, dan tinggi 6 cm. Volume balok tersebut adalah …",
+        "audio_text": "Sebuah balok memiliki panjang sepuluh sentimeter, lebar empat sentimeter, dan tinggi enam sentimeter. Berapa volumenya?",
+        "options": [
+          { "id": "a", "label": "20 cm³" },
+          { "id": "b", "label": "240 cm³" },
+          { "id": "c", "label": "120 cm³" },
+          { "id": "d", "label": "64 cm³" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Volume = 10 × 4 × 6 = 240 cm³.",
+      "hint": "Kalikan panjang, lebar, dan tinggi."
+    },
+    {
+      "code": "SD6-MAT-BGR-05",
+      "skill": "sd6-bangun-ruang",
+      "type": "number_input",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menghitung volume kubus dalam konteks sehari-hari.",
+      "content": {
+        "prompt": "Sebuah bak air berbentuk kubus dengan panjang rusuk 6 dm terisi penuh. Berapa volume air di dalam bak (dm³)?",
+        "audio_text": "Sebuah bak air berbentuk kubus dengan panjang rusuk enam desimeter terisi penuh. Berapa volume air di dalam bak?"
+      },
+      "answer": { "value": 216 },
+      "explanation": "Volume = 6 × 6 × 6 = 216 dm³.",
+      "hint": "Gunakan rumus volume kubus: rusuk × rusuk × rusuk."
+    }
+  ]
+}

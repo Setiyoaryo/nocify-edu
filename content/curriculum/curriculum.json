@@ -61,6 +61,29 @@
     { "code": "sd4-ipas-gaya-energi", "grade": "sd-4", "subject": "ipas", "name": "Gaya & Perubahan Energi", "skills": [
       { "code": "sd4-pengaruh-gaya", "name": "Pengaruh Gaya", "description": "Mengidentifikasi pengaruh gaya terhadap gerak dan bentuk benda." },
       { "code": "sd4-perubahan-energi", "name": "Bentuk & Perubahan Energi", "description": "Mengenal berbagai bentuk energi dan perubahannya dalam kehidupan sehari-hari." }
+    ]},
+    { "code": "sd6-mat-bilangan", "grade": "sd-6", "subject": "matematika", "name": "Bilangan Bulat & Operasi Hitung", "skills": [
+      { "code": "sd6-bilangan-bulat", "name": "Bilangan bulat", "description": "Membandingkan dan mengurutkan bilangan bulat termasuk bilangan negatif." },
+      { "code": "sd6-operasi-campuran", "name": "Operasi hitung campuran", "description": "Menghitung operasi campuran dengan urutan operasi yang benar." }
+    ]},
+    { "code": "sd6-mat-pecahan", "grade": "sd-6", "subject": "matematika", "name": "Pecahan, Desimal & Persen", "skills": [
+      { "code": "sd6-pecahan-operasi", "name": "Operasi pecahan", "description": "Menjumlahkan, mengurangkan, mengalikan, dan membagi pecahan sederhana." },
+      { "code": "sd6-desimal-persen", "name": "Desimal & persen", "description": "Mengubah pecahan ke bentuk desimal dan persen beserta sebaliknya." }
+    ]},
+    { "code": "sd6-mat-bangun", "grade": "sd-6", "subject": "matematika", "name": "Bangun Ruang & Pengukuran", "skills": [
+      { "code": "sd6-bangun-ruang", "name": "Volume bangun ruang", "description": "Menghitung volume kubus dan balok serta mengenal sifatnya." }
+    ]},
+    { "code": "sd6-bhs-teks", "grade": "sd-6", "subject": "bahasa-indonesia", "name": "Teks & Gagasan", "skills": [
+      { "code": "sd6-ide-pokok-simpulan", "name": "Ide pokok & simpulan", "description": "Menemukan ide pokok dan menyusun simpulan dari teks." },
+      { "code": "sd6-teks-eksplanasi", "name": "Teks eksplanasi & laporan", "description": "Mengenali struktur dan informasi pada teks eksplanasi serta laporan." }
+    ]},
+    { "code": "sd6-ipas-tatasurya", "grade": "sd-6", "subject": "ipas", "name": "Tata Surya & Bumi", "skills": [
+      { "code": "sd6-tata-surya", "name": "Tata surya", "description": "Mengenal anggota tata surya beserta karakteristiknya." },
+      { "code": "sd6-rotasi-revolusi", "name": "Rotasi, revolusi & gerhana", "description": "Menjelaskan akibat rotasi dan revolusi serta peristiwa gerhana." }
+    ]},
+    { "code": "sd6-ipas-tubuh", "grade": "sd-6", "subject": "ipas", "name": "Sistem Tubuh & Ekosistem", "skills": [
+      { "code": "sd6-sistem-tubuh", "name": "Sistem organ tubuh", "description": "Mengenal organ dan fungsi sistem pencernaan serta peredaran darah." },
+      { "code": "sd6-ekosistem", "name": "Ekosistem & rantai makanan", "description": "Menjelaskan hubungan makhluk hidup dan aliran energi dalam ekosistem." }
     ]}
   ]
 }

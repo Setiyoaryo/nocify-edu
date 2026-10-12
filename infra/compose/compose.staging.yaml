@@ -1,0 +1,38 @@
+# Staging overlay for a VPS addressed by IP (no domain/HTTPS).
+# Payments use the mock provider and uploads go to local disk: no Midtrans keys
+# and no object storage are needed yet.
+#
+# Usage (on the test VPS, from the repo root):
+#   docker compose -f infra/compose/compose.yaml -f infra/compose/compose.staging.yaml up -d --build --wait
+#   docker compose -f infra/compose/compose.yaml -f infra/compose/compose.staging.yaml exec -T api eduplay seed --publish
+#   docker compose -f infra/compose/compose.yaml -f infra/compose/compose.staging.yaml exec -T api eduplay user --email admin@test.local --password '<pass>' --role admin
+#
+# .env (see .env.example): PUBLIC_URL=http://<VPS-IP>, HTTP_PORT=80,
+# PAYMENT_PROVIDER=mock, PAYMENT_SECRET=staging-only-secret
+
+services:
+  # Object storage is intentionally not part of staging. The profile keeps it
+  # from starting on a plain `up`; the api no longer waits on it below.
+  s3:
+    profiles: ["s3"]
+
+  api:
+    environment:
+      STORAGE_DRIVER: local
+      STORAGE_DIR: /data/storage
+      SESSION_SECRET: ${SESSION_SECRET:-staging-session-secret-change-me-32-chars}
+    depends_on: !override
+      postgres: { condition: service_healthy }
+    volumes:
+      - appstorage:/data/storage
+
+  worker:
+    environment:
+      STORAGE_DRIVER: local
+      STORAGE_DIR: /data/storage
+      SESSION_SECRET: ${SESSION_SECRET:-staging-session-secret-change-me-32-chars}
+    depends_on: !override
+      api: { condition: service_started }
+
+volumes:
+  appstorage:

@@ -8,6 +8,10 @@ test('app pages never overflow horizontally', async ({ page }, info) => {
 	test.skip(info.project.name !== 'desktop', 'widths are set explicitly');
 	const email = `resp-${Date.now()}@example.test`;
 	await page.goto('/register');
+	const emailToggle = page.getByRole('button', { name: /daftar dengan email/i });
+	if (await emailToggle.isVisible()) {
+		await emailToggle.click();
+	}
 	await expect(page.getByRole('button', { name: 'Buat akun' })).toBeEnabled();
 	await page.locator('#name').fill('Ibu Uji');
 	await page.locator('#email').fill(email);

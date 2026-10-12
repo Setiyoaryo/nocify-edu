@@ -1,0 +1,412 @@
+{
+  "source": "EduPlay seed set SD Kelas 6 — IPAS (Kurikulum Merdeka Fase C). Drafted 2026-10-12 — MUST pass academic review before production (§7, §24).",
+  "questions": [
+    {
+      "code": "SD6-IPA-SUR-01",
+      "skill": "sd6-tata-surya",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengenal pusat tata surya.",
+      "content": {
+        "prompt": "Pusat tata surya adalah …",
+        "audio_text": "Pusat tata surya adalah apa?",
+        "figures": [
+          { "icon": "sun", "count": 1, "color": "yellow" }
+        ],
+        "options": [
+          { "id": "a", "label": "Bumi" },
+          { "id": "b", "label": "Matahari" },
+          { "id": "c", "label": "Bulan" },
+          { "id": "d", "label": "Jupiter" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Matahari adalah pusat tata surya; semua planet mengelilinginya.",
+      "hint": "Benda langit yang paling besar dan bercahaya sendiri di tata surya."
+    },
+    {
+      "code": "SD6-IPA-SUR-02",
+      "skill": "sd6-tata-surya",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengurutkan planet berdasarkan jarak dari Matahari.",
+      "content": {
+        "prompt": "Planet yang letaknya paling dekat dengan Matahari adalah …",
+        "audio_text": "Planet yang letaknya paling dekat dengan Matahari adalah apa?",
+        "options": [
+          { "id": "a", "label": "Venus" },
+          { "id": "b", "label": "Merkurius" },
+          { "id": "c", "label": "Bumi" },
+          { "id": "d", "label": "Mars" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Urutan planet dari Matahari: Merkurius, Venus, Bumi, Mars, Jupiter, Saturnus, Uranus, Neptunus.",
+      "hint": "Planet pertama dari Matahari."
+    },
+    {
+      "code": "SD6-IPA-SUR-03",
+      "skill": "sd6-tata-surya",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengenal karakteristik planet.",
+      "content": {
+        "prompt": "Planet terbesar dalam tata surya adalah …",
+        "audio_text": "Planet terbesar dalam tata surya adalah apa?",
+        "options": [
+          { "id": "a", "label": "Saturnus" },
+          { "id": "b", "label": "Bumi" },
+          { "id": "c", "label": "Jupiter" },
+          { "id": "d", "label": "Neptunus" }
+        ]
+      },
+      "answer": { "option_id": "c" },
+      "explanation": "Jupiter adalah planet terbesar di tata surya.",
+      "hint": "Planet raksasa yang memiliki banyak pita warna di permukaannya."
+    },
+    {
+      "code": "SD6-IPA-SUR-04",
+      "skill": "sd6-tata-surya",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengenal karakteristik planet.",
+      "content": {
+        "prompt": "Planet yang dikenal sebagai 'planet merah' adalah …",
+        "audio_text": "Planet yang dikenal sebagai planet merah adalah apa?",
+        "options": [
+          { "id": "a", "label": "Mars" },
+          { "id": "b", "label": "Venus" },
+          { "id": "c", "label": "Merkurius" },
+          { "id": "d", "label": "Uranus" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Mars tampak merah karena permukaannya banyak mengandung besi berkarat.",
+      "hint": "Warnanya berkarat seperti besi tua."
+    },
+    {
+      "code": "SD6-IPA-SUR-05",
+      "skill": "sd6-tata-surya",
+      "type": "number_input",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menyebutkan jumlah planet dalam tata surya.",
+      "content": {
+        "prompt": "Berapa jumlah planet dalam tata surya kita?",
+        "audio_text": "Berapa jumlah planet dalam tata surya kita?"
+      },
+      "answer": { "value": 8 },
+      "explanation": "Tata surya memiliki 8 planet: Merkurius, Venus, Bumi, Mars, Jupiter, Saturnus, Uranus, dan Neptunus.",
+      "hint": "Sejak 2006, Pluto tidak lagi dihitung sebagai planet."
+    },
+    {
+      "code": "SD6-IPA-ROT-01",
+      "skill": "sd6-rotasi-revolusi",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menjelaskan akibat rotasi Bumi.",
+      "content": {
+        "prompt": "Peristiwa siang dan malam disebabkan oleh …",
+        "audio_text": "Peristiwa siang dan malam disebabkan oleh apa?",
+        "figures": [
+          { "icon": "globe", "count": 1, "color": "blue" }
+        ],
+        "options": [
+          { "id": "a", "label": "Rotasi Bumi" },
+          { "id": "b", "label": "Revolusi Bumi" },
+          { "id": "c", "label": "Gerhana Matahari" },
+          { "id": "d", "label": "Pasang surut air laut" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Bumi berputar pada porosnya (rotasi), sehingga bagian yang menghadap Matahari mengalami siang.",
+      "hint": "Bumi berputar pada porosnya dari barat ke timur."
+    },
+    {
+      "code": "SD6-IPA-ROT-02",
+      "skill": "sd6-rotasi-revolusi",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat menyebutkan waktu rotasi Bumi.",
+      "content": {
+        "prompt": "Waktu yang dibutuhkan Bumi untuk satu kali rotasi adalah sekitar …",
+        "audio_text": "Waktu yang dibutuhkan Bumi untuk satu kali rotasi adalah sekitar berapa?",
+        "options": [
+          { "id": "a", "label": "24 jam" },
+          { "id": "b", "label": "12 jam" },
+          { "id": "c", "label": "30 hari" },
+          { "id": "d", "label": "365 hari" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Satu kali rotasi Bumi memerlukan waktu sekitar 24 jam atau satu hari.",
+      "hint": "Lamanya sama dengan satu hari."
+    },
+    {
+      "code": "SD6-IPA-ROT-03",
+      "skill": "sd6-rotasi-revolusi",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menjelaskan akibat revolusi Bumi.",
+      "content": {
+        "prompt": "Pergantian musim di Bumi disebabkan oleh …",
+        "audio_text": "Pergantian musim di Bumi disebabkan oleh apa?",
+        "options": [
+          { "id": "a", "label": "Rotasi Bumi" },
+          { "id": "b", "label": "Revolusi Bumi mengelilingi Matahari" },
+          { "id": "c", "label": "Gerhana Bulan" },
+          { "id": "d", "label": "Gravitasi Bulan" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Karena Bumi mengelilingi Matahari (revolusi) dengan poros miring, terjadilah pergantian musim.",
+      "hint": "Bumi mengelilingi Matahari selama satu tahun."
+    },
+    {
+      "code": "SD6-IPA-ROT-04",
+      "skill": "sd6-rotasi-revolusi",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menjelaskan peristiwa gerhana matahari.",
+      "content": {
+        "prompt": "Gerhana Matahari terjadi ketika …",
+        "audio_text": "Gerhana Matahari terjadi ketika apa?",
+        "figures": [
+          { "icon": "moon", "count": 1, "color": "gray" }
+        ],
+        "options": [
+          { "id": "a", "label": "Bumi berada di antara Matahari dan Bulan" },
+          { "id": "b", "label": "Bulan berada di antara Matahari dan Bumi" },
+          { "id": "c", "label": "Matahari berada di antara Bumi dan Bulan" },
+          { "id": "d", "label": "Bulan berada di belakang Bumi" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Gerhana Matahari terjadi saat Bulan berada di antara Matahari dan Bumi sehingga menghalangi cahaya Matahari.",
+      "hint": "Benda yang menghalangi cahaya berada di tengah."
+    },
+    {
+      "code": "SD6-IPA-ROT-05",
+      "skill": "sd6-rotasi-revolusi",
+      "type": "short_answer",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menyebutkan waktu revolusi Bumi.",
+      "content": {
+        "prompt": "Bumi memerlukan waktu sekitar satu … untuk satu kali mengelilingi Matahari. (Isi dengan satuan waktu)",
+        "audio_text": "Bumi memerlukan waktu sekitar satu apa untuk satu kali mengelilingi Matahari?"
+      },
+      "answer": { "accepted": ["tahun"] },
+      "explanation": "Satu kali revolusi Bumi mengelilingi Matahari memerlukan waktu sekitar satu tahun (365 hari).",
+      "hint": "Lamanya sama dengan satu tahun."
+    },
+    {
+      "code": "SD6-IPA-TUB-01",
+      "skill": "sd6-sistem-tubuh",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengenal organ peredaran darah.",
+      "content": {
+        "prompt": "Organ yang memompa darah ke seluruh tubuh adalah …",
+        "audio_text": "Organ yang memompa darah ke seluruh tubuh adalah apa?",
+        "figures": [
+          { "icon": "heart", "count": 1, "color": "red" }
+        ],
+        "options": [
+          { "id": "a", "label": "Paru-paru" },
+          { "id": "b", "label": "Jantung" },
+          { "id": "c", "label": "Lambung" },
+          { "id": "d", "label": "Ginjal" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Jantung memompa darah agar beredar ke seluruh tubuh.",
+      "hint": "Organ yang berdetak di dalam dada."
+    },
+    {
+      "code": "SD6-IPA-TUB-02",
+      "skill": "sd6-sistem-tubuh",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengenal organ pencernaan.",
+      "content": {
+        "prompt": "Proses pencernaan makanan dimulai di …",
+        "audio_text": "Proses pencernaan makanan dimulai di bagian mana?",
+        "options": [
+          { "id": "a", "label": "Lambung" },
+          { "id": "b", "label": "Mulut" },
+          { "id": "c", "label": "Usus halus" },
+          { "id": "d", "label": "Kerongkongan" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Pencernaan dimulai di mulut, tempat makanan dikunyah dan dicampur air liur.",
+      "hint": "Tempat makanan pertama kali masuk dan dikunyah."
+    },
+    {
+      "code": "SD6-IPA-TUB-03",
+      "skill": "sd6-sistem-tubuh",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengenal fungsi organ pencernaan.",
+      "content": {
+        "prompt": "Organ yang berfungsi menyerap sari-sari makanan adalah …",
+        "audio_text": "Organ yang berfungsi menyerap sari-sari makanan adalah apa?",
+        "options": [
+          { "id": "a", "label": "Usus halus" },
+          { "id": "b", "label": "Usus besar" },
+          { "id": "c", "label": "Lambung" },
+          { "id": "d", "label": "Mulut" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Sari-sari makanan diserap di usus halus, sedangkan usus besar menyerap air.",
+      "hint": "Organ setelah lambung yang berbentuk panjang dan berkelok."
+    },
+    {
+      "code": "SD6-IPA-TUB-04",
+      "skill": "sd6-sistem-tubuh",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengenal organ pernapasan.",
+      "content": {
+        "prompt": "Alat pernapasan utama pada manusia adalah …",
+        "audio_text": "Alat pernapasan utama pada manusia adalah apa?",
+        "options": [
+          { "id": "a", "label": "Jantung" },
+          { "id": "b", "label": "Paru-paru" },
+          { "id": "c", "label": "Hati" },
+          { "id": "d", "label": "Lambung" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Paru-paru adalah organ utama pernapasan tempat pertukaran oksigen dan karbon dioksida.",
+      "hint": "Organ yang mengembang dan mengempis saat bernapas."
+    },
+    {
+      "code": "SD6-IPA-TUB-05",
+      "skill": "sd6-sistem-tubuh",
+      "type": "matching",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat memasangkan organ tubuh dengan fungsinya.",
+      "content": {
+        "prompt": "Pasangkan organ tubuh dengan fungsinya.",
+        "audio_text": "Pasangkan organ tubuh dengan fungsinya.",
+        "left": [
+          { "id": "l1", "label": "Jantung" },
+          { "id": "l2", "label": "Paru-paru" },
+          { "id": "l3", "label": "Lambung" }
+        ],
+        "right": [
+          { "id": "r1", "label": "Mencerna makanan" },
+          { "id": "r2", "label": "Memompa darah" },
+          { "id": "r3", "label": "Menukar oksigen dan karbon dioksida" }
+        ]
+      },
+      "answer": { "pairs": { "l1": "r2", "l2": "r3", "l3": "r1" } },
+      "explanation": "Jantung memompa darah, paru-paru menukar oksigen, lambung mencerna makanan.",
+      "hint": "Mulai dari jantung: tugasnya memompa darah ke seluruh tubuh."
+    },
+    {
+      "code": "SD6-IPA-EKO-01",
+      "skill": "sd6-ekosistem",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengenal peran produsen dalam ekosistem.",
+      "content": {
+        "prompt": "Makhluk hidup yang dapat membuat makanan sendiri disebut …",
+        "audio_text": "Makhluk hidup yang dapat membuat makanan sendiri disebut apa?",
+        "figures": [
+          { "icon": "plant", "count": 1, "color": "green" }
+        ],
+        "options": [
+          { "id": "a", "label": "Konsumen" },
+          { "id": "b", "label": "Produsen" },
+          { "id": "c", "label": "Pengurai" },
+          { "id": "d", "label": "Predator" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Tumbuhan hijau adalah produsen karena dapat membuat makanan sendiri melalui fotosintesis.",
+      "hint": "Tumbuhan membuat makanan dengan bantuan cahaya matahari."
+    },
+    {
+      "code": "SD6-IPA-EKO-02",
+      "skill": "sd6-ekosistem",
+      "type": "single_choice",
+      "difficulty": 1,
+      "learning_objective": "Siswa dapat mengenal peran tumbuhan hijau dalam rantai makanan.",
+      "content": {
+        "prompt": "Dalam rantai makanan, tumbuhan hijau berperan sebagai …",
+        "audio_text": "Dalam rantai makanan, tumbuhan hijau berperan sebagai apa?",
+        "options": [
+          { "id": "a", "label": "Produsen" },
+          { "id": "b", "label": "Konsumen pertama" },
+          { "id": "c", "label": "Pengurai" },
+          { "id": "d", "label": "Pemangsa puncak" }
+        ]
+      },
+      "answer": { "option_id": "a" },
+      "explanation": "Tumbuhan hijau adalah produsen yang menjadi awal rantai makanan.",
+      "hint": "Rantai makanan selalu dimulai dari tumbuhan."
+    },
+    {
+      "code": "SD6-IPA-EKO-03",
+      "skill": "sd6-ekosistem",
+      "type": "single_choice",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat mengenal peran pengurai dalam ekosistem.",
+      "content": {
+        "prompt": "Makhluk hidup yang menguraikan sisa makhluk hidup yang telah mati disebut …",
+        "audio_text": "Makhluk hidup yang menguraikan sisa makhluk hidup yang telah mati disebut apa?",
+        "options": [
+          { "id": "a", "label": "Produsen" },
+          { "id": "b", "label": "Konsumen" },
+          { "id": "c", "label": "Pengurai (dekomposer)" },
+          { "id": "d", "label": "Herbivora" }
+        ]
+      },
+      "answer": { "option_id": "c" },
+      "explanation": "Bakteri dan jamur adalah pengurai yang menguraikan sisa makhluk hidup menjadi zat hara.",
+      "hint": "Contohnya bakteri dan jamur."
+    },
+    {
+      "code": "SD6-IPA-EKO-04",
+      "skill": "sd6-ekosistem",
+      "type": "sequence",
+      "difficulty": 2,
+      "learning_objective": "Siswa dapat menyusun urutan rantai makanan.",
+      "content": {
+        "prompt": "Urutkan rantai makanan berikut, mulai dari yang pertama dimakan.",
+        "audio_text": "Urutkan rantai makanan berikut dari yang pertama.",
+        "items": [
+          { "id": "a", "label": "Padi" },
+          { "id": "b", "label": "Tikus" },
+          { "id": "c", "label": "Ular" },
+          { "id": "d", "label": "Elang" }
+        ]
+      },
+      "answer": { "order": ["a", "b", "c", "d"] },
+      "explanation": "Rantai makanan: padi → tikus → ular → elang.",
+      "hint": "Dimulai dari tumbuhan, lalu hewan yang memakannya."
+    },
+    {
+      "code": "SD6-IPA-EKO-05",
+      "skill": "sd6-ekosistem",
+      "type": "single_choice",
+      "difficulty": 3,
+      "learning_objective": "Siswa dapat menjelaskan aliran energi dalam ekosistem.",
+      "content": {
+        "prompt": "Energi dalam sebuah ekosistem mengalir dari …",
+        "audio_text": "Energi dalam sebuah ekosistem mengalir dari mana ke mana?",
+        "options": [
+          { "id": "a", "label": "Konsumen ke produsen" },
+          { "id": "b", "label": "Produsen ke konsumen" },
+          { "id": "c", "label": "Pengurai ke produsen" },
+          { "id": "d", "label": "Konsumen ke pengurai saja" }
+        ]
+      },
+      "answer": { "option_id": "b" },
+      "explanation": "Energi mengalir dari produsen ke konsumen melalui proses makan dan dimakan.",
+      "hint": "Tumbuhan dimakan hewan, hewan dimakan hewan lain."
+    }
+  ]
+}
