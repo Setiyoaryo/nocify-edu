@@ -19,6 +19,7 @@
 	import LockKey from 'phosphor-svelte/lib/LockKey';
 	import EnvelopeSimple from 'phosphor-svelte/lib/EnvelopeSimple';
 
+	let googleEnabled = $state(false);
 	let ready = $state(false);
 	onMount(() => (ready = true));
 
@@ -48,7 +49,13 @@
 	let error = $state('');
 	let busy = $state(false);
 
-	onMount(() => {
+	onMount(async () => {
+		try {
+			const response = await fetch('/api/v1/auth/google/status');
+			googleEnabled = response.ok && (await response.json()).enabled === true;
+		} catch { googleEnabled = false; }
+		const oauthError = page.url.searchParams.get('oauth_error');
+		if (oauthError) error = oauthError === 'account_exists' ? 'Email sudah terdaftar. Masuk dengan email dan tautkan akun Google dari pengaturan.' : 'Login Google tidak berhasil. Silakan coba lagi.';
 		const paramRole = page.url.searchParams.get('role');
 		if (paramRole === 'parent' || paramRole === 'child') {
 			role = paramRole;
@@ -347,7 +354,13 @@
 			</div>
 		</div>
 
-		<!-- STEP 1: PHONE INPUT -->
+		{#if role === 'parent' && googleEnabled}
+			<div class="mb-5">
+				<a class="btn btn-primary flex w-full items-center justify-center gap-2" href="/api/v1/auth/google/start">Masuk dengan Google</a>
+				<p class="mt-2 text-center text-xs text-ink-soft">Google hanya digunakan untuk memverifikasi akun orang tua.</p>
+			</div>
+			{/if}
+			<!-- STEP 1: PHONE INPUT -->
 		{#if step === 'phone'}
 			<div class="space-y-5">
 				<div>
