@@ -13,6 +13,9 @@ type Config struct {
 	Env                 string // development | staging | production
 	HTTPAddr            string
 	DatabaseURL         string
+	GoogleClientID       string
+	GoogleClientSecret   string
+	GoogleRedirectURI    string
 	SessionSecret       string
 	SessionTTL          time.Duration
 	PublicURL           string   // e.g. https://eduplay.id, used for redirects and Origin checks
@@ -43,6 +46,9 @@ func Load() (Config, error) {
 		HTTPAddr:            env("HTTP_ADDR", ":8080"),
 		DatabaseURL:         os.Getenv("DATABASE_URL"),
 		SessionSecret:       os.Getenv("SESSION_SECRET"),
+		GoogleClientID: os.Getenv("GOOGLE_CLIENT_ID"),
+		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		GoogleRedirectURI: os.Getenv("GOOGLE_REDIRECT_URI"),
 		SessionTTL:          time.Duration(envInt("SESSION_TTL_HOURS", 24*30)) * time.Hour,
 		PublicURL:           strings.TrimRight(env("PUBLIC_URL", "http://localhost:5173"), "/"),
 		PaymentProvider:     env("PAYMENT_PROVIDER", "midtrans"),
@@ -74,6 +80,12 @@ func Load() (Config, error) {
 	}
 	c.Timezone = tz
 
+	if (c.GoogleClientID != "" || c.GoogleClientSecret != "" || c.GoogleRedirectURI != "") && (c.GoogleClientID == "" || c.GoogleClientSecret == "" || c.GoogleRedirectURI == "") {
+		return c, fmt.Errorf("Google OIDC requires GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and GOOGLE_REDIRECT_URI together")
+	}
+	if c.GoogleRedirectURI != "" && !strings.HasPrefix(c.GoogleRedirectURI, c.PublicURL+"/api/v1/auth/google/callback") {
+		return c, fmt.Errorf("GOOGLE_REDIRECT_URI must use PUBLIC_URL and /api/v1/auth/google/callback")
+	}
 	if c.DatabaseURL == "" {
 		return c, fmt.Errorf("DATABASE_URL is required")
 	}
