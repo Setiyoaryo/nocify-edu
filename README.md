@@ -93,3 +93,26 @@ docs/               Architecture, decisions, operations, privacy, brand-asset go
 | Mobile | Verified at 320/360/1280 in Playwright; **open:** real-device performance testing |
 | Payments & storage | Midtrans Snap + verified webhooks; S3-compatible storage (SeaweedFS in dev). **Open:** production Midtrans keys, bucket, and domain. |
 | Before public launch | Legal review of child-data handling (UU PDP / PP 17/2025), academic review of the seed question bank, transactional email (deferred), auto-renewal (deferred) |
+
+## Google Login for parents (optional)
+
+Google OIDC is an additional parent authentication path; existing email/password and WhatsApp OTP are preserved.
+
+1. Create a Google Cloud OAuth 2.0 **Web application** client.
+2. Set the authorized redirect URI exactly to `https://YOUR_DOMAIN/api/v1/auth/google/callback` (or a localhost PUBLIC_URL for development).
+3. Configure the Go API environment (via `infra/compose/.env`, not Git):
+
+```dotenv
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-secret
+GOOGLE_REDIRECT_URI=https://YOUR_DOMAIN/api/v1/auth/google/callback
+```
+
+For production, `PUBLIC_URL` is `https://YOUR_DOMAIN` via `DOMAIN`. In local compose, set `PUBLIC_URL` to the real URL used by the browser.
+
+4. Deploy migration `0011_google_oidc.sql` as part of the normal Go API startup.
+5. Open `/login?role=parent`. New Google identities go through `/register/google` for password recovery and explicit child-data consent.
+
+All three Google variables may be left empty to disable the button and Google endpoint. Never commit real client secrets. Unknown existing emails are **not automatically linked**; first authenticate using the existing account method and plan a secure linking UI/step-up. Google does not grant staff privileges.
+
+The full product and phased child-device design is in [Google OAuth and Family Auth PRD](docs/prd-google-oidc-family-auth.md). Child-only sessions and browser pairing are **not included** in this initial Google sign-in change. Existing WhatsApp OTP delivery remains a stub, and the current child mode's inherited parent session must be hardened before public child-device rollout.

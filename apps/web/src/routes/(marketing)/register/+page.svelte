@@ -12,9 +12,16 @@
 	import WarningCircle from 'phosphor-svelte/lib/WarningCircle';
 	import EnvelopeSimple from 'phosphor-svelte/lib/EnvelopeSimple';
 
+	let googleEnabled = $state(false);
 	let ready = $state(false);
-	onMount(() => {
+	onMount(async () => {
 		ready = true;
+		try {
+			const response = await fetch('/api/v1/auth/google/status');
+			googleEnabled = response.ok && (await response.json()).enabled === true;
+		} catch {
+			googleEnabled = false;
+		}
 	});
 
 	type Step = 'form' | 'otp';
@@ -244,6 +251,13 @@
 	]}
 >
 	{#if step === 'form'}
+		{#if googleEnabled}
+			<a class="btn btn-primary mt-6 flex w-full items-center justify-center" href="/api/v1/auth/google/start">Daftar dengan Google</a>
+			<p class="mt-2 mb-1 text-center text-xs text-ink-soft">Persetujuan orang tua akan diminta sebelum akun dibuat.</p>
+			<div class="my-5 flex items-center gap-3 text-xs font-semibold text-ink-soft">
+				<span class="h-px flex-1 bg-line"></span><span>atau</span><span class="h-px flex-1 bg-line"></span>
+			</div>
+		{/if}
 		<form class="mt-6 sm:mt-8 space-y-4 sm:space-y-5" method="post" onsubmit={submitSendOTP} novalidate>
 			<div>
 				<label class="label text-xs sm:text-sm" for="name">Nama Lengkap / Panggilan Anda</label>
