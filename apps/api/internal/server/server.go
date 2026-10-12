@@ -45,6 +45,7 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 	authH := auth.Handler{S: authSvc, OnRegister: func(ctx context.Context, u auth.User) {
 		analytics.Track(ctx, pool, "register", u.ID, uuid.Nil, nil)
 	}}
+	googleH := auth.GoogleOAuthHandler{Auth: authH, ClientID: cfg.GoogleClientID, Secret: cfg.GoogleClientSecret, RedirectURI: cfg.GoogleRedirectURI}
 	childH := children.Handler{DB: pool, Policy: policy}
 	curH := curriculum.Handler{DB: pool}
 	asmH := assessment.Handler{DB: pool, Policy: policy, TZ: cfg.Timezone}
@@ -86,6 +87,11 @@ func New(cfg config.Config, pool *pgxpool.Pool, storage media.Storage) http.Hand
 			r.Use(httpx.SameOrigin(append([]string{cfg.PublicURL}, cfg.AllowedOrigins...)))
 			r.Use(authSvc.Middleware)
 
+			r.Get("/auth/google/status", googleH.Status)
+			r.With(httpx.RateLimit(20, time.Minute)).Get("/auth/google/start", googleH.Start)
+			r.With(httpx.RateLimit(30, time.Minute)).Get("/auth/google/callback", googleH.Callback)
+			r.Get("/auth/google/pending", googleH.Pending)
+			r.With(httpx.RateLimit(10, time.Minute)).Post("/auth/google/complete", googleH.Complete)
 			r.With(httpx.RateLimit(10, time.Minute)).Post("/auth/register", authH.Register)
 			r.With(httpx.RateLimit(10, time.Minute)).Post("/auth/login", authH.Login)
 			r.With(httpx.RateLimit(15, time.Minute)).Post("/auth/otp/send", authH.SendOTP)
