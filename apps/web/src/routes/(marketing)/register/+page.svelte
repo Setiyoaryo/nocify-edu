@@ -15,9 +15,6 @@
 	let ready = $state(false);
 	onMount(() => {
 		ready = true;
-		if (page.url.searchParams.get('email') === '1' || page.url.searchParams.get('email') === 'true') {
-			showEmailFallback = true;
-		}
 	});
 
 	type Step = 'form' | 'otp';
@@ -26,6 +23,12 @@
 	let form = $state({ display_name: '', phone: '', consent: false });
 	let emailForm = $state({ email: '', password: '' });
 	let showEmailFallback = $state(false);
+
+	$effect(() => {
+		if (page.url.searchParams.get('email') === '1' || page.url.searchParams.get('email') === 'true') {
+			showEmailFallback = true;
+		}
+	});
 
 	let fields = $state<Record<string, string>>({});
 	let formattedPhone = $state('');
@@ -172,13 +175,17 @@
 		busy = true;
 		error = '';
 		try {
-			await post('/auth/otp/verify', {
+			const res = await post<{ role: string; is_new_user?: boolean; user: any }>('/auth/otp/verify', {
 				phone: formattedPhone || form.phone.trim(),
 				code,
 				role: 'parent',
 				display_name: form.display_name.trim()
 			});
-			await goto('/app/parent/children/new?welcome=1');
+			if (res.is_new_user === false) {
+				await goto('/app/parent');
+			} else {
+				await goto('/app/parent/children/new?welcome=1');
+			}
 		} catch (err) {
 			error = err instanceof ApiError ? err.message : 'Kode OTP tidak valid atau telah kadaluarsa.';
 		} finally {
@@ -318,7 +325,7 @@
 
 			<button
 				type="submit"
-				class="btn btn-primary w-full py-3.5 text-base font-bold shadow-md inline-flex items-center justify-center gap-2"
+				class="press flex min-h-12 sm:min-h-13 w-full items-center justify-center gap-2 rounded-2xl py-3 px-5 text-sm sm:text-base font-bold shadow-md transition-all active:scale-[0.99] bg-[#25D366] hover:bg-[#1eb956] text-white disabled:opacity-50"
 				disabled={busy || !ready}
 			>
 				{#if busy}
@@ -411,6 +418,7 @@
 					onclick={() => {
 						step = 'form';
 						error = '';
+						otpDigits = ['', '', '', '', '', ''];
 					}}
 				>
 					<ArrowLeft size={14} weight="bold" aria-hidden="true" />
@@ -435,7 +443,7 @@
 								bind:value={otpDigits[i]}
 								oninput={(e) => handleDigitInput(i, e)}
 								onkeydown={(e) => handleDigitKeydown(i, e)}
-								onpaste={i === 0 ? handlePaste : undefined}
+								onpaste={handlePaste}
 								autocomplete={i === 0 ? 'one-time-code' : 'off'}
 							/>
 						{/each}
@@ -466,7 +474,7 @@
 
 				<button
 					type="submit"
-					class="btn btn-primary w-full py-3.5 text-base font-bold shadow-md inline-flex items-center justify-center gap-2"
+					class="press flex min-h-12 sm:min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 px-5 text-sm sm:text-base font-bold text-white shadow-md transition-all hover:bg-primary-deep active:scale-[0.99] disabled:opacity-50"
 					disabled={busy || otpDigits.join('').length < 6}
 				>
 					{#if busy}

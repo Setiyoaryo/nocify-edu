@@ -237,4 +237,112 @@ test.describe('WhatsApp OTP Registration Flow', () => {
 		scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
 		expect(scrollWidth).toBeLessThanOrEqual(320);
 	});
+
+	test('displays error message when OTP is invalid or expired', async ({ page }) => {
+		await page.route('**/auth/otp/send', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					status: 'ok',
+					phone: '+6281234567890',
+					message: 'Kode OTP berhasil dikirim ke WhatsApp.'
+				})
+			});
+		});
+
+		await page.route('**/auth/otp/verify', async (route) => {
+			await route.fulfill({
+				status: 401,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					error: 'invalid_otp',
+					message: 'Kode OTP salah atau telah kadaluarsa.'
+				})
+			});
+		});
+
+		await page.goto('/register');
+		await page.locator('#name').fill('Ayah Budi');
+		await page.locator('#phone').fill('081234567890');
+		await page.getByRole('checkbox').check();
+		await page.getByRole('button', { name: /Daftar dengan WhatsApp/i }).click();
+
+		await expect(page.getByRole('heading', { name: 'Verifikasi Kode OTP' })).toBeVisible();
+
+		for (let i = 0; i < 6; i++) {
+			await page.locator(`#otp-${i}`).fill(String(i + 1));
+		}
+
+		await page.getByRole('button', { name: 'Verifikasi & Buat Akun' }).click();
+
+		await expect(page.getByText('Kode OTP salah atau telah kadaluarsa.')).toBeVisible();
+	});
+
+	test('redirects existing parent to /app/parent dashboard when is_new_user is false', async ({ page }) => {
+		await page.route('**/auth/otp/send', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					status: 'ok',
+					phone: '+6281234567890',
+					message: 'Kode OTP berhasil dikirim ke WhatsApp.'
+				})
+			});
+		});
+
+		await page.route('**/auth/otp/verify', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				headers: {
+					'Set-Cookie': 'eduplay_session=mocksession; Path=/; HttpOnly'
+				},
+				body: JSON.stringify({
+					role: 'parent',
+					is_new_user: false,
+					user: {
+						id: '00000000-0000-0000-0000-000000000001',
+						email: 'parent@eduplay.test',
+						display_name: 'Ayah Budi',
+						role: 'parent',
+						created_at: new Date().toISOString()
+					}
+				})
+			});
+		});
+
+		await page.route('**/auth/session', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					user: {
+						id: '00000000-0000-0000-0000-000000000001',
+						email: 'parent@eduplay.test',
+						display_name: 'Ayah Budi',
+						role: 'parent',
+						created_at: new Date().toISOString()
+					}
+				})
+			});
+		});
+
+		await page.goto('/register');
+		await page.locator('#name').fill('Ayah Budi');
+		await page.locator('#phone').fill('081234567890');
+		await page.getByRole('checkbox').check();
+		await page.getByRole('button', { name: /Daftar dengan WhatsApp/i }).click();
+
+		await expect(page.getByRole('heading', { name: 'Verifikasi Kode OTP' })).toBeVisible();
+
+		for (let i = 0; i < 6; i++) {
+			await page.locator(`#otp-${i}`).fill(String(i + 1));
+		}
+
+		await page.getByRole('button', { name: 'Verifikasi & Buat Akun' }).click();
+
+		await page.waitForURL('**/app/parent');
+	});
 });

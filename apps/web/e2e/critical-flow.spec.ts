@@ -37,11 +37,7 @@ async function answerCurrent(page: Page, attempt: number) {
 test('parent registers, child plays a challenge, parent subscribes', async ({ page }) => {
 	const email = `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.test`;
 
-	await page.goto('/register');
-	const emailToggle = page.getByRole('button', { name: /daftar dengan email/i });
-	if (await emailToggle.isVisible()) {
-		await emailToggle.click();
-	}
+	await page.goto('/register?email=1');
 	await expect(page.getByRole('button', { name: 'Buat akun' })).toBeEnabled(); // hydrated
 	await page.locator('#name').fill('Ibu Uji');
 	await page.locator('#email').fill(email);
