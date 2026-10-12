@@ -6,8 +6,15 @@
 	import { onMount } from 'svelte';
 	import art from '$lib/illustrations/parent-child.svg';
 
+	let googleEnabled = $state(false);
 	let ready = $state(false);
-	onMount(() => (ready = true));
+	onMount(async () => {
+		ready = true;
+		try {
+			const response = await fetch('/api/v1/auth/google/status');
+			googleEnabled = response.ok && (await response.json()).enabled === true;
+		} catch { googleEnabled = false; }
+	});
 
 	let form = $state({ display_name: '', email: '', password: '', consent: false });
 	let fields = $state<Record<string, string>>({});
@@ -37,6 +44,10 @@
 
 <AuthShell title="Buat akun orang tua" lead="Gratis untuk 1 anak. Profil anak dibuat setelah ini." image={art}
 	points={['Gratis untuk 1 anak, tanpa kartu kredit', 'Challenge 5–10 menit sesuai kelas', 'Laporan yang menjawab: sudah bisa apa, perlu latihan apa']}>
+	{#if googleEnabled}
+		<a class="btn btn-primary mt-8 flex w-full items-center justify-center" href="/api/v1/auth/google/start">Daftar dengan Google</a>
+		<p class="mt-2 text-center text-xs text-ink-soft">Persetujuan orang tua akan diminta sebelum akun dibuat.</p>
+	{/if}
 	<form class="mt-8 space-y-5" method="post" onsubmit={submit} novalidate>
 		<div>
 			<label class="label" for="name">Nama Anda</label>
